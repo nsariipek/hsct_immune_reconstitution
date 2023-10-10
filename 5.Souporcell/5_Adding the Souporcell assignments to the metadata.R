@@ -7,7 +7,6 @@ library(ggplot2)
 library(RColorBrewer)
 library(janitor)
 
-
 # Load the metadata
 seu_diet_merged <- readRDS("~/seu_diet_merged.rds")
 
@@ -37,47 +36,47 @@ df9$assignment <- gsub("1", "donor", df9$assignment)
 df9$assignment <- gsub("0", "host", df9$assignment) 
 
 
+# Repeat this for each patient repeatedly, ask Peter or Ksenia how to make this in a loop
+
+# Merge each cohort's patients and subset remission samples only
+# Cohort1
 combined_df1 <- bind_rows(df1,df2)
 combined_df1_rem <- subset(combined_df1, subset = status.x %in% c("remission"))
 
+# Cohort2
 combined_df2 <- bind_rows(df5,df6,df8)
 combined_df2_rem <- subset(combined_df2, subset = status.x %in% c("remission"))
 
-
+#subset only the first 6 months of period for each cohort
 combined_df1_rem_6mo <- subset(combined_df1_rem, subset = id %in% c("P01.1Rem","P01.1RemT","P02.1Rem","P01.2Rem"))
 combined_df2_rem_6mo <- subset(combined_df2_rem, subset = id %in% c("P05.1Rem","P06.1Rem","P08.1Rem","P08.1RemT"))
 
-
+#Subset donor cells only
 combined_df1_rem_6mo_donor<- subset(combined_df1_rem_6mo, subset = assignment == "donor")
 combined_df2_rem_6mo_donor<- subset(combined_df2_rem_6mo, subset = assignment == "donor")
 
-
+#Subset host cells only
 combined_df1_rem_6mo_host<- subset(combined_df1_rem_6mo, subset = assignment == "host")
 combined_df2_rem_6mo_host<- subset(combined_df2_rem_6mo, subset = assignment == "host")
 
-
+#Combine donor cells for all of the 8 patients
 combined_donor6mo <- bind_rows(combined_df1_rem_6mo_donor, combined_df2_rem_6mo_donor)
 
+#Combine host cells for all of the 8 patients
 combined_host6mo <- bind_rows(combined_df1_rem_6mo_host, combined_df2_rem_6mo_host)
 
-combined_df1_donor <-  subset(combined_df1_rem, subset = assignment == "donor")
-combined_df2_donor <-  subset(combined_df2_rem, subset = assignment == "donor")
 
-combined_donor <- bind_rows(combined_df1_rem_6mo_donor, combined_df2_rem_6mo_donor)
-
-
-#to export the table 
-t3 <-
-  combined_donor %>%
-  group_by( celltype, id) %>% 
+#Export as a CSV 
+table1 <-
+  combined_donor_6mo %>%
+  group_by(celltype, id) %>% 
   summarize(n=n()) 
 
-write_csv(t3, "~/donor.csv")
+write_csv(table1, "~/donor6mo.csv")
 
               
 # Visualize the results in different ways
  
-
 # Visualize the souporcell outputs at which time point 
 df4 %>% 
   select(assignment, id) %>% 
@@ -89,7 +88,7 @@ df4 %>%
   theme_pubr(base_size = 15) +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5), legend.position = "right")
 
-
+#Visualize as a proportional graph
 combined_donor  %>% 
      select(celltype,cohort) %>% 
      group_by(celltype,cohort) %>% 
@@ -100,8 +99,7 @@ combined_donor  %>%
      scale_fill_manual(values = palette) +
      theme(axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 10),legend.position = "right") 
 
-
-
+#See actual cell numbers in each bar
 combined_donor %>% 
    select(id, celltype) %>% 
    group_by(id, celltype) %>% 

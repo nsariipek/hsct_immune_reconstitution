@@ -7,16 +7,17 @@
 library(tidyverse)
 library(fossil)
 library(ggrepel)
+library(ggpubr)
 
 
 # Start with a clean slate
 rm(list=ls())
 
-setwd("/Users/dz855/Downloads/")
+setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output")
 
 #Create a file that combines reference and alternative matrices output of the souporcell.
 # The way to create this file in bash is
-# paste ref.mtx alt.mtx | sed 's/ /\t/g' > Pt09.combined.tsv
+# paste ref.mtx alt.mtx | sed 's/ /\t/g' > Pt03.combined.tsv
 
 # t = read.table("ptbm.combined.mtx2", skip=3, sep = '\t')
 
@@ -74,6 +75,8 @@ t %>%
   summarize(n = n()) %>%
   ggplot(aes(x=n)) + geom_histogram() + scale_x_log10()
 
+
+#briefly visualize the results
 results %>%
   ggplot(aes(x=rand,y=ncells)) + geom_point()
 
@@ -85,6 +88,7 @@ geno_frac = t_f %>%
   group_by(pos) %>%
   summarize(max_geno_frac = max(n/sum(n)))
 
+  #Plot down below selects and label the variants that have more than 1000 cells and rand index >0.8 and geno fraction <0.8
 results %>% 
   left_join(geno_frac, by = c("var" = "pos")) %>%
   ggplot(aes(x=rand,y=ncells,color=max_geno_frac, label = var, size =4)) + 
@@ -93,12 +97,13 @@ results %>%
   geom_label_repel(aes(label=ifelse(ncells>1000 & rand>0.8 & max_geno_frac<0.8, as.character(var),'')),hjust=0,vjust=0, label.size = 1)+
   scale_color_distiller(palette = "Spectral")
 
-
+#select the most informative variants for to see how strong Souporcell results are 
 
 relevant_variants = results %>% left_join(geno_frac, by = c("var" = "pos")) %>% filter(rand > 0.8, ncells > 1000, max_geno_frac<0.8) %>% pull(var)
 
 relevant_variants = results %>% left_join(geno_frac, by = c("var" = "pos")) %>% filter(rand > 0.8, ncells > 200, max_geno_frac<0.8) %>% pull(var)
 
+#arrange the x axes
 
 ordered_barcodes = cells %>% arrange(assignment) %>% pull(barcode)
 

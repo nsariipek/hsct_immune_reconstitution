@@ -144,9 +144,13 @@ combined_df_T_rem <- subset(combined_df_T, subset = status == "remission")
 combined_df_T_rem6mo <- subset(combined_df_T_rem, subset = id %in% c("P01.1Rem","P01.2Rem","P02.1Rem","P05.1Rem
   "."P06.1Rem","P07.1Rem","P08.1Rem"))
 
+#select the donor cells only for the statistical analysis purposes
+
+combined_df_T_rem6mo_donor <- subset(combined_df_T, subset = assignment == "donor")
+
 #Export as a CSV to do statistical anaylsis
 
-t1 <- combined_df_T_rem6mo %>% 
+t1 <- combined_df_T_rem6mo_donor %>% 
   group_by(celltype, cohort,id) %>%
   summarize(n = n()) %>%
   group_by(id,cohort) %>%
@@ -155,7 +159,7 @@ t1 <- combined_df_T_rem6mo %>%
 
 head(t1)
  
-write_csv(t1, "~/combined_df_T_rem.csv")
+write_csv(t1, "~/combined_df_T_rem_donor.csv")
 
 
             

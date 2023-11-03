@@ -1,13 +1,15 @@
 
-
 #load the libraries
 
 library(ggalluvial)
-
+library(tidyverse)
+library(janitor)
+library(ggforce)
+library(RColorBrewer)
+library(randomcoloR)
 
 
 #Load the saved dataframe that contains the information from the previous part
-
 
 combined_df <- read_csv(file = "/Dropbox/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv")
 
@@ -21,19 +23,19 @@ combined_df_T <- subset(combined_df, subset = celltype %in% c("CD4 Memory","CD8 
 combined_df_T_rem <- subset(combined_df_T, subset = status == "remission")
 
 #select only 6mo remission cells and MNC libraries only to prevent any skewing
-combined_df_T_rem6mo <- subset(combined_df_T_rem, subset = id %in% c("P01.1Rem","P01.2Rem","P02.1Rem","P05.1Rem","P06.1Rem","P07.1Rem","P08.1Rem"))
+combined_df_T_rem6mo <- subset(combined_df_T_rem, subset = id %in% c("P01.1Rem","P01.2Rem","P02.1Rem","P04.1Rem", "P05.1Rem","P06.1Rem","P07.1Rem","P08.1Rem"))
 
 
 #Plot 1, Post-transplant 3-6 months remission samples
 
-#Summarize 
+#Summarize the dataframe
  meta_summary <- 
    combined_df_T_rem6mo  %>% group_by(celltype,cohort,id,assignment) %>%
    summarize(n_cells = n())
 
+#add a color palette 
+palette <- distinctColorPalette(k = 34)
 
-ordered_status = c("pre_transplant","remission","relapse")
-meta_summary$status= factor(meta_summary$status, levels = ordered_status)
 
 #change fill to change the flow
 ggplot(data = meta_summary,
@@ -47,7 +49,8 @@ ggplot(data = meta_summary,
   ggtitle("Post-transplant 3-6 months remission samples")
 
 
-#Plot 2, 
+
+
 
 
 

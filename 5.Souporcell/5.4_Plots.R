@@ -6,8 +6,10 @@ library(ggalluvial)
 
 
 
-#Load the saved dataframe from the previous part
-combined_df <- read_csv(file = "~/cohort1-2_souporcell.csv")
+#Load the saved dataframe that contains the information from the previous part
+
+
+combined_df <- read_csv(file = "/Dropbox/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv")
 
 
 #subset and summarise as you like to visualize 

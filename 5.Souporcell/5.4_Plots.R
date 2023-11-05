@@ -85,9 +85,18 @@ for (x in unique(proportions_df$celltype)) {
 }
 # CD56 Bright NK cells are significant (P < 0.05)
 
+
 # View table with percentages
-proportions_df %>%
+df1<- proportions_df %>%
   pivot_wider(id_cols = "celltype", names_from = "id", values_from = "percent")
+
+View(df1)
+
+#add a new row for all NK cells
+df1 %>%
+  filter(celltype %in% c("CD56 Bright NK cells", "CD56 Dim NK cells")) %>%
+  summarize(celltype = "NK cells", across(c( P01.1Rem, P01.2Rem, P02.1Rem, P04.1Rem, P05.1Rem, P06.1Rem, P07.1Rem, P08.1Rem), sum)) %>%
+  bind_rows(df1, .)
 
 # Heatmap
 proportions_df %>%

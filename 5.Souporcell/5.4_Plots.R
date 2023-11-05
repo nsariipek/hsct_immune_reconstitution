@@ -1,6 +1,6 @@
+# Nurefsan Sariipek, 231103
 
-#load the libraries
-
+# Load the libraries
 library(ggalluvial)
 library(tidyverse)
 library(janitor)
@@ -10,14 +10,15 @@ library(randomcoloR)
 
 
 #Load the saved dataframe that contains the information from the previous part
-
+# For Nurefsan
 combined_df <- read_csv(file = "/Dropbox/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv")
-
+# For Peter
+combined_df <- read_csv(file = "~/DropboxMGB/Projects/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv")
 
 #subset and summarise as you like to visualize 
 
-#select only T cells
-combined_df_T <- subset(combined_df, subset = celltype %in% c("CD4 Memory","CD8 Effector","CD8 Memory","CD4 Naïve","Treg","CD8 Naïve","CD8 Effector","CD4 Naïve","CD56 Dim NK cells","CD8 Terminally Exhausted","CD4 Memory","NK T cells","γδ T lymphocytes","CD56 Bright NK cells", "CD4 Naïve"))
+#select only T and NK cells
+combined_df_T <- subset(combined_df, subset = celltype %in% c("CD4 Memory","CD8 Effector","CD8 Memory","CD4 Naïve","Treg","CD8 Naïve","CD8 Effector","CD4 Naïve","CD56 Dim NK cells","CD8 Terminally Exhausted","CD4 Memory","NK T cells","γδ T lymphocytes","CD56 Bright NK cells", "CD4 Naïve")) # @nurefsan several cell types are duplicated here. It doesn't change the outcome but should be fixed.
 
 #select only remission cells
 combined_df_T_rem <- subset(combined_df_T, subset = status == "remission")
@@ -48,14 +49,50 @@ ggplot(data = meta_summary,
   scale_fill_manual(values = palette) + 
   ggtitle("Post-transplant 3-6 months remission samples")
 
+# Peter's quick additions
+# Bar/dot plots
+proportions_df <- combined_df %>% filter(library_type == "MNC",
+                       celltype %in% c("CD4 Naïve","CD4 Memory","Treg","CD8 Naïve","CD8 Memory","CD8 Effector",
+                                       "CD8 Terminally Exhausted","γδ T lymphocytes","NK T cells","CD56 Dim NK cells",
+                                       "CD56 Bright NK cells"),
+                       id %in% c("P01.1Rem","P01.2Rem","P02.1Rem","P04.1Rem", "P05.1Rem","P06.1Rem","P07.1Rem","P08.1Rem"),
+                       status == "remission", # redundant
+                       assignment == "donor") %>% 
+  group_by(id, cohort) %>% reframe(tabyl(celltype)) %>%
+  mutate(percent = percent*100)
 
+proportions_df <- proportions_df %>% mutate(celltype = factor(celltype,
+  levels = c("CD4 Naïve","CD4 Memory","Treg","CD8 Naïve","CD8 Memory","CD8 Effector","CD8 Terminally Exhausted",
+             "γδ T lymphocytes","NK T cells","CD56 Dim NK cells","CD56 Bright NK cells")),
+  cohort = gsub("Remission cohort", "Non-relapsed", gsub("Relapse cohort", "Relapsed", cohort)),
+  cohort = factor(cohort, levels = c("Non-relapsed", "Relapsed")))
 
+proportions_df %>%
+  ggplot(aes(x = cohort, y = percent)) +
+  geom_point(shape = 1, size = 2) +
+  coord_cartesian(ylim = c(0,50)) +
+  facet_wrap(~ celltype) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank())
 
+# Statistical tests
+print(proportions_df, n = 100)
+for (x in unique(proportions_df$celltype)) {
+  print(x)
+  print(t.test(filter(proportions_df, celltype == x, cohort == "Non-relapsed")$percent,
+               filter(proportions_df, celltype == x, cohort == "Relapsed")$percent,
+               var.equal = T)$p.value)
+}
+# CD56 Bright NK cells are significant (P < 0.05)
 
+# View table with percentages
+proportions_df %>%
+  pivot_wider(id_cols = "celltype", names_from = "id", values_from = "percent")
 
-
-
-
+# Heatmap
+proportions_df %>%
+  ggplot(aes(x = id, y = celltype, fill = percent)) +
+  geom_tile()
 
 
 

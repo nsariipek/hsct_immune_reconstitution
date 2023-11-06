@@ -7,11 +7,15 @@ library(janitor)
 library(ggforce)
 library(RColorBrewer)
 library(randomcoloR)
+library(ggrepel)
+library(fossil)
+library(ggpubr)
+library(readxl)
 
 
 #Load the saved dataframe that contains the information from the previous part
 # For Nurefsan
-combined_df <- read_csv(file = "/Dropbox/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv")
+combined_df <- read_csv(file = "/Users/dz855/Dropbox/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv")
 # For Peter
 combined_df <- read_csv(file = "~/DropboxMGB/Projects/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv")
 
@@ -103,6 +107,20 @@ proportions_df %>%
   ggplot(aes(x = id, y = celltype, fill = percent)) +
   geom_tile()
 
+
+#Plot 3, see how accurate souporcell results comparing with chimerism information
+
+df <- read_excel("/Dropbox/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output/similarity.xlsx")
+View(df)
+
+
+df %>% 
+  mutate(similarity= Souporcell/Chimerism) %>%
+  ggplot(aes(x = Souporcell, y = Chimerism, color= similarity)) +
+  geom_point(size=3.5)+
+  scale_color_distiller(palette = "Spectral")+
+  #geom_text(hjust=0, vjust=0)+ also add label= id inside of aes 
+  theme_bw()
 
 
 

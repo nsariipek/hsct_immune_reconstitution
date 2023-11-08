@@ -18,6 +18,8 @@ library(enrichplot)
 name = "all_celltypes"
 
 de_res_total = read.csv(file = paste0(name, ".pseudobulk_DE_res.csv"))
+#or
+de_res_total = read.csv(file = "~/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/DGE/posthsct/all_celltypes.pseudobulk_DE_res.csv"))
 total_result = data.frame()
 
 for (i in unique(de_res_total$celltype)) {

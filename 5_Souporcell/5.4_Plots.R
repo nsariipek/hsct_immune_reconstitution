@@ -35,10 +35,11 @@ combined_df_T_rem6mo <- subset(combined_df_T_rem, subset = id %in% c("P01.1Rem",
 #Plot 1, Post-transplant 3-6 months remission samples
 
 #Summarize the dataframe
- meta_summary <- 
-   combined_df_T_rem6mo  %>% group_by(celltype,cohort,id,assignment) %>%
-   summarize(n_cells = n())
-
+meta_summary <- 
+  combined_df_T_rem6mo  %>% group_by(celltype,cohort,id,assignment) %>%
+  mutate(cohort = gsub("Remission cohort", "Non-relapsed", gsub("Relapse cohort", "Relapsed", cohort)),
+         cohort = factor(cohort, levels = c("Non-relapsed", "Relapsed")))  %>%
+  summarize(n_cells = n())
 #add a color palette 
 palette <- distinctColorPalette(k = 34)
 
@@ -47,12 +48,21 @@ palette <- distinctColorPalette(k = 34)
 ggplot(data = meta_summary,
        aes(axis1 = cohort , axis2 = assignment, axis3 = celltype,
            y = n_cells)) +
-  scale_x_discrete(limits = c("cohort","origin","celltype"), expand = c(.2, .05)) +
+  scale_x_discrete(limits = c("Cohort","Origin","Celltype"), expand = c(.2, .05)) +
   geom_alluvium(aes(fill = celltype)) +
   geom_stratum(aes(fill=celltype), color="black") +
-  geom_text(stat = "stratum", aes(label =paste(after_stat(stratum)))) +
+  geom_text(stat = "stratum", aes(label =paste(after_stat(stratum))), size =5) +
   scale_fill_manual(values = palette) + 
+  theme(axis.text.x = element_text(face="bold", size=16, color="black"), 
+        axis.title.x = element_text(face="bold", size=16, color="black"),
+        axis.text.y = element_text(face="plain", size=12, color="black"),
+        axis.title.y = element_blank(),
+        strip.text = element_text(size=10, face="bold"),
+        plot.title = element_text(size=20, face="plain"),
+        legend.position = "none") +
   ggtitle("Post-transplant 3-6 months remission samples")
+
+  
 
 # Peter's quick additions
 # Bar/dot plots

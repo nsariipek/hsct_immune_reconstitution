@@ -82,6 +82,7 @@ proportions_df <- proportions_df %>% mutate(celltype = factor(celltype,
   cohort = gsub("Remission cohort", "Non-relapsed", gsub("Relapse cohort", "Relapsed", cohort)),
   cohort = factor(cohort, levels = c("Non-relapsed", "Relapsed")))
 
+#additions by Nurefsan , adding the p values to the plot and making it bigger 
 proportions_df %>%
   ggplot(aes(x = cohort, y = percent, color = cohort)) +
   geom_point(shape = 1, size = 2) +
@@ -89,7 +90,16 @@ proportions_df %>%
   facet_wrap(~ celltype) +
   theme_bw() +
   scale_color_manual(values = c("Relapsed"="red", "Non-relapsed"="green"))+
-  theme(panel.grid.minor = element_blank())
+  stat_compare_means(method = "t.test")+
+  theme(axis.text.x = element_text(face="plain", size=16, color="black"), 
+        axis.title.x = element_text(face="bold", size=20, color="black"),
+        axis.text.y = element_text(face="plain", size=12, color="black"),
+        axis.title.y = element_blank(),
+        plot.title = element_text(size=20, face="plain"),
+        strip.text = element_text(size=18, face="plain"),
+        legend.title=element_text(size=16), 
+        legend.text=element_text(size=14)) +
+       theme(panel.grid.minor = element_blank())
 
 # Statistical tests
 print(proportions_df, n = 100)

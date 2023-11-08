@@ -115,13 +115,24 @@ df <- read_excel("/Dropbox/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output/s
 View(df)
 
 
+ids = c("P01.1Rem",  "P01.1RemT", "P01.2Rem" , "P03.1Rem" , "P04.1Rem",  "P04.1RemT", "P05.1Rem" , "P05.Rel" ,  "P05.RelT" ,"P06.1Rem",  "P07.1Rem",  "P08.1Rem" , "P08.2Rem" ,"P09.1Rem", "P09.Rel", "P09.RelT", "P10.1Rem", "P10.Rel", "P11.1Rem" , "P11.1RemT", "P12.1Rem" )
+df$id = factor(df$id, levels= ids)
+
+
 df %>% 
-  mutate(similarity= Souporcell/Chimerism) %>%
-  ggplot(aes(x = Souporcell, y = Chimerism, color= similarity)) +
-  geom_point(size=3.5)+
-  scale_color_distiller(palette = "Spectral")+
+  ggplot(aes(x = Souporcell, y = Chimerism, colour = id)) +
+  geom_point(size=3.5, position = "jitter")+
+  #scale_color_distiller(palette = "Spectral")+
   #geom_text(hjust=0, vjust=0)+ also add label= id inside of aes 
-  theme_bw()
+  #theme_bw() +
+  theme(panel.grid.minor = element_blank()) +
+  coord_cartesian(expand = FALSE, xlim = c(0, 1.1), ylim = c(0, 1.1))+
+  theme(axis.title.x = element_text(color = "grey20", size = 16, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+        axis.title.y = element_text(color = "grey20", size = 16, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        plot.title = element_text(color = "grey20", size = 16, hjust = .5, vjust = .5, face = "plain"))+
+  theme(legend.text=element_text(size=12),legend.title=element_text(size=14))+
+  #ggtitle("Correlation of Souporcell Results with Clinical Chimerism Data")+
+  theme(aspect.ratio=1)
 
 
 

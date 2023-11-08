@@ -21,8 +21,9 @@ combined_df <- read_csv(file = "~/DropboxMGB/Projects/ImmuneEscapeTP53/AnalysisN
 
 #subset and summarise as you like to visualize 
 
+
 #select only T and NK cells
-combined_df_T <- subset(combined_df, subset = celltype %in% c("CD4 Memory","CD8 Effector","CD8 Memory","CD4 Naïve","Treg","CD8 Naïve","CD8 Effector","CD4 Naïve","CD56 Dim NK cells","CD8 Terminally Exhausted","CD4 Memory","NK T cells","γδ T lymphocytes","CD56 Bright NK cells", "CD4 Naïve")) # @nurefsan several cell types are duplicated here. It doesn't change the outcome but should be fixed.
+combined_df_T <- subset(combined_df, subset = celltype %in% c("CD4 Naïve","CD4 Memory","Treg","CD8 Naïve","CD8 Memory","CD8 Effector","CD8 Terminally Exhausted","γδ T lymphocytes","NK T cells","CD56 Dim NK cells","CD56 Bright NK cells")) 
 
 #select only remission cells
 combined_df_T_rem <- subset(combined_df_T, subset = status == "remission")

@@ -83,11 +83,12 @@ proportions_df <- proportions_df %>% mutate(celltype = factor(celltype,
   cohort = factor(cohort, levels = c("Non-relapsed", "Relapsed")))
 
 proportions_df %>%
-  ggplot(aes(x = cohort, y = percent)) +
+  ggplot(aes(x = cohort, y = percent, color = cohort)) +
   geom_point(shape = 1, size = 2) +
   coord_cartesian(ylim = c(0,50)) +
   facet_wrap(~ celltype) +
   theme_bw() +
+  scale_color_manual(values = c("Relapsed"="red", "Non-relapsed"="green"))+
   theme(panel.grid.minor = element_blank())
 
 # Statistical tests

@@ -7,7 +7,7 @@ library(circlize)
 
 
 View(celltype_names)
-t = read.table("/Users/dz855/Documents/all_celltypes.total_GSEA_result.tsv", sep = "\t", header = T)
+t = read.table("~/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/DGE/posthsct/all_celltypes.total_GSEA_result.tsv", sep = "\t", header = T)
 View(t)
 
 celltypes = c("Monocytes", "CD4 Memory", "Mid Erythroids", "CD8 Naïve", "CD4 Naïve", "CD8 Effector Memory", "NK T cells", "Late Erythroids", "Early Erythroids","CD8 Central Memory") 

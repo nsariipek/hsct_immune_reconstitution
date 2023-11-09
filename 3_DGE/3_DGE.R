@@ -317,13 +317,25 @@ top_genes = top20_sig_df$gene %>% unique()
 
 ## Generate plot
 p5 = ggplot() +
-  geom_point(data=res_table_thres, aes(x = log2FoldChange, y = -log10(padj), colour = threshold)) +
-  ggrepel::geom_text_repel(data=res_table_thres %>% filter(gene %in% top_genes), aes(x = log2FoldChange, y = -log10(padj), label = gene)) +
+  geom_point(data=res_table_thres, aes(x = log2FoldChange, y = -log10(padj), colour = threshold), size = 5) +
+  ggrepel::geom_text_repel(data=res_table_thres %>% filter(gene %in% top_genes), aes(x = log2FoldChange, y = -log10(padj), label = gene), size=8) +
   xlab("log2 fold change") +
   ylab("-log10 adjusted p-value") +
   scale_color_manual(values = c("grey60", "red3")) +
   theme_pubr() + 
-  ggtitle("DE")
+  theme(axis.text.x = element_text(face="plain", size=30, color="black"), 
+        axis.title.x = element_text(face="bold", size=30, color="black"),
+        axis.text.y = element_text(face="plain", size=30, color="black"),
+        axis.title.y = element_blank(),
+        plot.title = element_text(size=10, face="plain"),
+        legend.title=element_text(size=30), 
+        legend.text=element_text(size=20),
+        panel.grid.minor = element_blank()) +
+        coord_cartesian(xlim = c(-4,4))+
+        ggtitle("DE")
+
+p5
+
 
 res_table_thres$celltype = celltype
 total_res_table_thres = rbind(total_res_table_thres, res_table_thres)

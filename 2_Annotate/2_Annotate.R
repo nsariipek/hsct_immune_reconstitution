@@ -23,7 +23,7 @@ library(ggrepel)
 rm(list=ls())
 
 #Load the saved Seurat object
-seu_diet <- readRDS("~/seu_diet.rds")
+seu <- readRDS("~/seu_diet.rds")
 
 # Run FindAllMarkers to see the most expressed genes
 seu_markers <- FindAllMarkers(seu, min.pct = .3, logfc.threshold = .3)
@@ -91,6 +91,10 @@ FeaturePlot(seu_diet, features = c("HSPC_Score",	"EarlyEry_Score",	"LateEry_Scor
                               "B_Score",	"Plasma_Score",	"CD4Naive_Score",	"CD4Memory_Score",
                               "CD8Naive_Score",	"CD8Memory_Score",	"CD8TermExh_Score",
                               "GammaDeltaLike_Score",	"NKT_Score",	"NK_Score"))
+
+
+#Also we haved used several of published datasets, for annotation purposes which @Nurefsan will try to add those on here.
+
 
 
 ###### Rename clusters #####

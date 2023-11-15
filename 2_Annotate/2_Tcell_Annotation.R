@@ -24,9 +24,28 @@ DimPlot(Tcell_subset, reduction = "umap", label = TRUE) + theme(aspect.ratio = 1
 #Save for the next time
 saveRDS(Tcell_subset, file= "~/Tcellsubset.RDS")
 
-#You can save as diet seurat object
+#You can save as diet seurat object 
 tc_diet <- DietSeurat(Tcell_subset, dimreducs = names(Tcell_subset@reductions))
 saveRDS(tc_diet, file = "~/Tcellsubset_diet.rds")
+
+#use this library to visualize the numbers in different cohorts
+library("janitor")
+as_tibble(tc@meta.data) %>% tabyl(status)
+as_tibble(tc@meta.data) %>% tabyl(cohort)
+as_tibble(tc@meta.data) %>% tabyl(library_type)
+table(tc_diet$status)
+table(tc_diet$cohort)
+table(tc_diet$library_type)
+
+
+#Visualize the populations
+Tcell_UMAP_sample <- DimPlot(tc_diet2, reduction = "umap", group.by = "orig.ident") + theme(aspect.ratio = 1)
+Tcell_UMAP_sample
+Tcell_UMAP_status <- DimPlot(tc_diet, reduction = "umap", group.by = "status") + theme(aspect.ratio = 1)
+Tcell_UMAP_status
+Tcell_UMAP_cohort <- DimPlot(tc_diet2, reduction = "umap", group.by = "cohort") + theme(aspect.ratio = 1) 
+Tcell_UMAP_cohort
+
 
 #T cell Features to distinguish populations
 FeaturePlot(tc_diet, features = c("CD8A", "CD8B", "CD4", "NCAM1","IL10","TGFB","GATA3","TCF7","SELL","CCR7","SELL","TMIGD2","LEF1","CD28","CD27"))
@@ -49,23 +68,19 @@ gene_list = c("CD3E","CD4","CD8A","SELL","CCR7","IL7R","CD28","FAS","CD27","ITGA
 gene_list = c("CD3E","CD4","CD8A","SELL","CCR7","IL7R","CD28","FAS","CD27","ITGAE","ITGAL","ITGAM","ITGAX","PDCD1","TIGIT","HAVCR2","LAG3","CTLA4","VTCN1","CD244","KLRG1","TNFRSF14","BTLA","CD160","CD38","ENTPD1","NT5E","CD69", "IL2RA","ICOS","TNFRSF4","TNFRSF9","HLA-DRA","CD40LG","GZMA","GZMB","GZMH","GZMK","GZMM","PRF1","NKG7","GNLY")
 
 
-#CD8
+#CD8 genes
 gene_list = c("CD8", "CD8A", "CD8B", "CD4", "NKG7", "GNLY," "CST7", "PRF1", "GZMK," "GZMH", "GZMA," "GZMB," "IFNG," "CCL3", "PDCD1", "TIGIT", "LAG3", "HAVCR2", "CTLA4", "TCF7", "LEF1", "SELL," "CD27", "CD28", "CD57", "S1PR1", "VIM," "GPR183", "CCR7", "IL7R", "CCL3", "CCL3L1", "CCL4L2", "CCL4")
 
-#CD4 
-gene_list = c("CD4", "NKG7", "GNLY," "CCL4", "CST7", "PRF1", "GZMK," "GZMH," "GZMA," "GZMB," "IFNG," "CCL3", "PDCD1", "TIGIT," "LAG3", "HAVCR2", "CTLA4", "FOXP3", "IKZF2", "IL2RA", "CCR10", "TNFRSF4", "TIMP1", "USP10", "CCR7", "TCF7", "LEF1", "SELL," "IL7R", "ANXA1", "CD40LG", "RORA")
-
-#CD4
+#CD4 genes
 gene_list = c("CCR7","SELL","TMIGD2","LEF1","ANXA1","LGALS1","TIMP1","S100A11","ANXA2","KLBR1","CCL5","GZMA","GZMK")
 
-#CD56
+#CD56 NK cells genes
 gene_list = c("NCAM", "CD8","CD8A","CD8B", "GZMK", "XCL1", "IL7R", "TCF7", "GPR183", "GZMB", "PRF1", "CX3CR1", "CD7", "FCER1G", "KLRB1","KLRC2", "CD3E", "PATL2", "ZBTB38")
 
-#th1 and 2 
+#Th1 and Th2 
 gene_list = c("KLRD1","IFNGR1","CXCR3","CXCR6","CCR1","CCR5","STAT1","STAT4","TBX21","TNF","LTA","IFNG","IL2","IL12RB1","IL18R1","TNFSF11","HAVCR","CXCR4","BATF","IL4","CCR4","GATA3","IL5","IL13","CCR8","IRF4","AREG","STAT6","HAVCR1","PTGDR2","IL17RB","IL33","IL1R1", "AHR","CSF2","KLRB1","BATF","IL17A", "CCR4", "MAF", "IL17AF","CCR6","NFKBIZ","IL17F","IL21R","IRF4","IL21","IL22","RORA","RORC","STAT3","TBX21","PRF1","GZMB","GZMA")
 
 #AverageExpression will normalize and scale the data when you set the return.seurat = TRUE
-
 tc_diet_avg <- AverageExpression(tc_diet, return.seurat = TRUE)
 
 tc_diet_avg_cd8 <- AverageExpression(tc_diet %>% subset(seurat_clusters %in% c(1,6)), return.seurat = TRUE)
@@ -74,8 +89,7 @@ tc_diet_avg_nk <- AverageExpression(tc_diet %>% subset(seurat_clusters %in% c(8,
 
 tc_diet_avg_cd4 <- AverageExpression(tc_diet %>% subset(seurat_clusters %in% c(0,3,4,7,10,14)), return.seurat = TRUE)
 
-#Visualize it either as a heatmap or dot plot with the gene_list you provide
-
+#Visualize it either as a heatmap or dot plot with the gene_list you provide, change the object to visualize different ones
 #Heatmap
 DoHeatmap(tc_diet_avg, features = gene_list, draw.lines = FALSE)  +  scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(n = 5, name = "RdBu"))) + theme_pubr(base_size = 10) + guides(colour = "none")
 
@@ -94,7 +108,7 @@ Idents(tc_diet) = "seurat_clusters"
 DimPlot(tc_diet, reduction = "umap") + theme(aspect.ratio = 1)
 
 
-# Merge cell type annotation
+# Merge cell type annotations
 meta = seu_diet@meta.data
 tnk_meta = tc_diet@meta.data
 

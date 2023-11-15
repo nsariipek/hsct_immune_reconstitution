@@ -12,4 +12,4 @@ Add single-cell genotyping metadata to the Seurat objects containing gene expres
 
 Distuingish cells as donor and host cells using Souporcell package (Heaton,2019) (5.Souporcell)
 
-Analysis of TCR diversity (6.TCR Diversity)
+Analysis of TCR diversity from TCR-Seq(6.TCR Diversity)

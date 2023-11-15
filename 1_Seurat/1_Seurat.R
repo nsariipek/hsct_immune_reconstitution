@@ -85,6 +85,34 @@ seu <- JackStraw(seu, num.replicate = 100)
 seu <- ScoreJackStraw(seu, dims = 1:20)
 JackStrawPlot(seu, dims = 1:20)
 
+
+seu <- FindNeighbors(seu, dims = 1:20)
+seu <- FindClusters(seu, resolution = 1)
+ahead(Idents(seu), 5)
+
+# Run UMAP
+seu <- RunUMAP(seu, dims = 1:25)     
+
+# Visualize UMAP
+DimPlot(seu_diet_merged, reduction = "umap", label = TRUE) + theme(aspect.ratio = 1)
+
+# Visualize UMAPs with different identities
+UMAP_sample <- DimPlot(seu_diet2, reduction = "umap", group.by = "orig.ident") + theme(aspect.ratio = 1)
+UMAP_sample
+
+UMAP_cohort <- DimPlot(seu_diet2, reduction = "umap", group.by = "cohort") + theme(aspect.ratio = 1)
+UMAP_cohort
+
+UMAP_status <- DimPlot(seu, reduction = "umap", group.by = "status") + theme(aspect.ratio = 1)
+UMAP_status
+
+# Split the UMAPs
+UMAP2 <- DimPlot(seu, reduction = "umap", group.by = "orig.ident", split.by = "cohort") + theme(aspect.ratio = 1)
+UMAP2
+UMAP3 <- DimPlot(seu, reduction = "umap", group.by = "orig.ident", split.by = "status") + theme(aspect.ratio = 1)
+UMAP3
+
+
 # Add variables to metadata
 
 # Add library type either as enriched for T cells or not
@@ -92,9 +120,9 @@ seu$library_type <- case_when(grepl("CD3", seu$orig.ident) ~ "enriched_CD3",
                               grepl("MNC", seu$orig.ident) ~ "MNC")                 
 
 # Add cohort identities
-seu$cohorts <- case_when(grepl("9596|2737|2379|2434|2518|4618|6174|9931|1953|25809", seu$orig.ident) ~ "2-Relapse",
-                         grepl("2446|25802|2645|1972|2220|2621|9185|2599", seu$orig.ident) ~ "1-Remission",
-                         grepl("1677|5641|1732|1811|1195|1347|1285|6244|9355|1013", seu$orig.ident) ~ "3-Early relapse")
+seu$cohorts <- case_when(grepl("9596|2737|2379|2434|2518|4618|6174|9931|1953|25809", seu$orig.ident) ~ "2-Relapsed",
+                         grepl("2446|25802|2645|1972|2220|2621|9185|2599", seu$orig.ident) ~ "1-Non-relapsed",
+                         grepl("1677|5641|1732|1811|1195|1347|1285|6244|9355|1013", seu$orig.ident) ~ "3-Early relapsed")
 
 
 # Add timepoints of samples to metadata 
@@ -167,44 +195,61 @@ seu$id <- case_when( grepl("2446", seu$orig.ident) ~ "P01.0pre",
                                         grepl("9355", seu$orig.ident) ~ "P12.0pre",
                                         grepl("1013", seu$orig.ident) ~ "P12.1Rem")
 
+
+seu_diet$timepoint <- case_when(        grepl("2446", seu_diet_merged$orig.ident) ~ "pre-transplant",
+                                               grepl("25802", seu_diet_merged$orig.ident) ~ "3mo",
+                                               grepl("2645", seu_diet_merged$orig.ident) ~ "6mo",
+                                               grepl("1972", seu_diet_merged$orig.ident) ~ "pre-transplant",
+                                               grepl("2220", seu_diet_merged$orig.ident) ~ "5mo",
+                                               grepl("2621", seu_diet_merged$orig.ident) ~ "2years",
+                                               grepl("9185", seu_diet_merged$orig.ident) ~ "1year",
+                                               grepl("2599", seu_diet_merged$orig.ident) ~ "3mo",
+                                               
+                                               
+                                               
+                                               grepl("9596", seu_diet_merged$orig.ident) ~ "pre-transplant",
+                                               grepl("25809", seu_diet_merged$orig.ident) ~ "3mo",
+                                               grepl("2737", seu_diet_merged$orig.ident) ~ "relapse-9mo",
+                                               grepl("2379", seu_diet_merged$orig.ident) ~ "pre-transplant",
+                                               grepl("2434", seu_diet_merged$orig.ident) ~ "3mo",
+                                               grepl("2518", seu_diet_merged$orig.ident) ~ "3mo",
+                                               grepl("4618", seu_diet_merged$orig.ident) ~ "pre-transplant",
+                                               grepl("6174", seu_diet_merged$orig.ident) ~ "3mo",
+                                               grepl("9931", seu_diet_merged$orig.ident) ~ "1year", 
+                                               grepl("1953", seu_diet_merged$orig.ident) ~ "relapse_2years",
+                                               
+                                               
+                                               grepl("1677", seu_diet_merged$orig.ident) ~ "pre-transplant",
+                                               grepl("1732", seu_diet_merged$orig.ident) ~ "1mo",
+                                               grepl("1811", seu_diet_merged$orig.ident) ~ "relapse_3mo",
+                                               grepl("1195", seu_diet_merged$orig.ident) ~ "pre-transplant",
+                                               grepl("1285", seu_diet_merged$orig.ident) ~ "1.5mo",
+                                               grepl("1347", seu_diet_merged$orig.ident) ~ "relapse_3mo", 
+                                               grepl("5641", seu_diet_merged$orig.ident) ~ "pre-transplant",
+                                               grepl("6244", seu_diet_merged$orig.ident) ~ "1.5mo",
+                                               grepl("9355", seu_diet_merged$orig.ident) ~ "pre-transplant",
+                                               grepl("1013", seu_diet_merged$orig.ident) ~ "1.5mo")
+
+
+
+
+
+
+
                             
 # Convert each variable to a factor
+seu$timepoint <- as.factor(seu@meta.data$orig.ident)
 seu$orig.ident <- as.factor(seu@meta.data$orig.ident)
 seu$cohort <- as.factor(seu@meta.data$cohort)
 seu$id <- as.factor(seu@meta.data$id)
 seu$status <- as.factor(seu@meta.data$status)
 seu$library_type <- as.factor(seu@meta.data$library_type)
     
-seu <- FindNeighbors(seu, dims = 1:20)
-seu <- FindClusters(seu, resolution = 1)
-ahead(Idents(seu), 5)
-
-# Run UMAP
-seu <- RunUMAP(seu, dims = 1:25)     
-
-# Visualize UMAP
-DimPlot(seu_diet_merged, reduction = "umap", label = TRUE) + theme(aspect.ratio = 1)
-
-# Visualize UMAPs with different identities
-UMAP_sample <- DimPlot(seu_diet2, reduction = "umap", group.by = "orig.ident") + theme(aspect.ratio = 1)
-UMAP_sample
-
-UMAP_cohort <- DimPlot(seu_diet2, reduction = "umap", group.by = "cohort") + theme(aspect.ratio = 1)
-UMAP_cohort
-
-UMAP_status <- DimPlot(seu, reduction = "umap", group.by = "status") + theme(aspect.ratio = 1)
-UMAP_status
-
-# Split the UMAPs
-UMAP2 <- DimPlot(seu, reduction = "umap", group.by = "orig.ident", split.by = "cohort") + theme(aspect.ratio = 1)
-UMAP2
-UMAP3 <- DimPlot(seu, reduction = "umap", group.by = "orig.ident", split.by = "status") + theme(aspect.ratio = 1)
-UMAP3
 
 # Save the Seurat object at this point 
 saveRDS(seu, file = "~/p53_seu.rds")                 
 
-# You can also save as a diet object using the code below, which allows you to store big datasets in 10x less space
+# You can also save as a diet object using the code below, which allows you to store big datasets in much smaller space
 seu <-readRDS("~/p53_seu.rds")
 seu_diet <- DietSeurat(seu, dimreducs = names(seu@reductions))
 saveRDS(seu_diet, file ="~/seu_diet.rds")

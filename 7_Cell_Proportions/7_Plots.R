@@ -36,7 +36,7 @@ head(t)
 #only select the t cells
 t <- subset(t, subset = celltype %in% c("CD4 Naïve","CD4 Memory","Treg","CD8 Naïve","CD8 Memory","CD8 Effector",
                                         "CD8 Terminally Exhausted","γδ T lymphocytes","NK T cells","CD56 Dim NK cells",
-                                        "CD56 Bright NK cells")
+                                        "CD56 Bright NK cells"))
 
 #summarise and calculate the frequencies 
 t_sum = t %>% 

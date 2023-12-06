@@ -51,8 +51,11 @@ combined <- addVariable(combined, name = "cohort",
                         variables = c("cohort1","cohort1","cohort1","cohort1","cohort1","cohort1",
                                       "cohort2","cohort2","cohort2","cohort2","cohort2","cohort2"))
 
+combined <- addVariable(combined, variable.name = "ptnumber",
+                        variables = c("P01","P01","P01-2","P02","P04","P04","P05","P06","P07","P07","P08","P08"))
+
 # Quantify clonotypes
-quantContig(combined, cloneCall="gene+nt", scale = T, chain = "both") +
+clonalQuant(combined, cloneCall="strict", scale = T, chain = "both") +
   theme(aspect.ratio = 0.5,
         axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 10, color = "black"),
         axis.title.x = element_blank(), axis.text.y = element_text(size = 9),
@@ -74,10 +77,11 @@ compareClonotypes(combined, numbers = 5,
         legend.title = element_text(size = 10),
         legend.text = element_text(size = 8))    
 # As of 230723, we still don't understand why it shows >5 despite the numbers = 5 argument
+# As of 231128, in the updated version the authors removed the numbers section which did not make sense to us in the begginging see above.
 
 # Visualize diversity metrics
 clonalDiversity(combined,
-                cloneCall = "gene",
+                cloneCall = "strict",
                 group.by = "cohort",
                 x.axis = "sample",
                 n.boots = 100) +
@@ -109,6 +113,11 @@ UniqueBCs <- Tcells_meta[! Tcells_meta$fullbc %in% dup_cells,]$fullbc
 Tcells <- subset(x = Tcells, subset = fullbc %in% UniqueBCs)
 Tcells <- RenameCells(Tcells, new.names = UniqueBCs)
 
+#Select only CD8 
+Tcells <- subset(x = Tcells, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Terminally Exhausted"))
+
+#Select only CD4
+Tcells <- subset(x = Tcells, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg" ))
 
 # Plot UMAPs --------------------------------------------------------------------------------------
 
@@ -209,11 +218,19 @@ colorblind_vector <- colorRampPalette(rev(c("#0D0887FF", "#47039FFF",
 
 # Combine TCR and sc-RNAseq data
 Tcells_combined <- combineExpression(combined, Tcells, 
-                                     cloneCall = "gene",
+                                     cloneCall = "strict",
+                                     group.by = "ptnumber",
                                      proportion = FALSE,
                                      filterNA = T,
                                      cloneTypes=c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
 
+#calculate the frequency, setting group by to sample which is combined samples(T-cell enriched and MNC)
+clonalDiversity(Tcells_combined,
+                cloneCall = "strict",
+                group.by = "sample",
+                metrics = c("inv.simpson","gini.simpson"),
+                skip.boots = TRUE,
+                exportTable = T)
 
 # Recalculate Frequency ---------------------------------------------------------------------------
 

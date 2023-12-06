@@ -60,12 +60,12 @@ hostcd4 <- subset(x = hostcells, subset = celltype.y %in% c("CD4 Memory","CD4 Na
 donorcd8 <- subset(x = donorcells, subset = celltype.y %in% c("CD8 Memory","CD8 Naïve","CD8 Effector", "CD8 Terminally Exhausted"))
 hostcd8 <- subset(x = hostcells, subset = celltype.y %in% c("CD8 Memory","CD8 Naïve","CD8 Effector", "CD8 Terminally Exhausted"))
 
-newdf %>% tabyl(id.x)
+newdf %>% tabyl(pt_timepoint)
 
 ds = data.frame()
 
 for (i in c(1:1000)) {
-Tcells_subset_tib <- newdf %>% group_by(pt_timepoint) %>% slice_sample(n =500) %>%
+Tcells_subset_tib <- newdf %>% group_by(pt_timepoint) %>% slice_sample(n =190) %>%
   select(-n) %>% group_by(pt_timepoint_ct) %>% add_count() %>%
   ungroup() %>% arrange(pt_timepoint_ct) %>% arrange(pt_timepoint, n)
 
@@ -75,9 +75,49 @@ df <-Tcells_subset_tib %>%
   summarise(n= sum(n)) %>% 
   ungroup %>% 
   spread(CTstrict,n, fill=0) 
+
+
+rand <- Tcells_subset_tib%>%
+  uncount(clonalFrequency) %>%
+  mutate(name = sample(pt_timepoint)) %>%
+  count(name, name="value")
   
+richness <- function(x){
+  
+  # r <- sum(x > 0)
+  # return(r)
+  
+  sum(x>0)
+}
+
+shannon <- function(x){
+  
+  rabund <- x[x>0]/sum(x)
+  -sum(rabund * log(rabund))
+  
+}
+
+simpson <- function(x){
+  
+  n <- sum(x)
+  
+  # sum(x * (x-1) / (n * (n-1)))
+  1 - sum((x/n)^2)
+}
+
+
+rand %>%
+  group_by(name) %>%
+  summarize(sobs = richness(value),
+            simpson = simpson(value),
+            invsimpson = 1/simpson)
+           # n = sum(clonalFrequency)) 
+
+
 
 d = diversity(df[,-1], "invsimpson")
+
+
 ds = rbind(ds,d)
 }
 

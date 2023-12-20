@@ -44,7 +44,6 @@ newdf <- Tcells_combined_tib %>%
   left_join(combined_df, by ="cell") %>% 
   drop_na()
 
-
 unique(newdf$pt_timepoint)
 
 donorcells%>% tabyl(id.x)

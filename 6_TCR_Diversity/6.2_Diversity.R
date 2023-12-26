@@ -34,6 +34,7 @@ Tcells_combined_tib <- Tcells_combined_tib %>% group_by(pt_timepoint_ct) %>% add
 #load the metadata that contains souporcell information
 combined_df <- read_csv(paste0(my_wd, "/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv"))
 
+
 #wrangle the metadata to 
 combined_df$cell = gsub("_.*","", combined_df$cell)
 combined_df$id = gsub("\\.","_",combined_df$id )
@@ -60,6 +61,10 @@ donorcd8 <- subset(x = donorcells, subset = celltype.y %in% c("CD8 Memory","CD8 
 hostcd8 <- subset(x = hostcells, subset = celltype.y %in% c("CD8 Memory","CD8 Naïve","CD8 Effector", "CD8 Terminally Exhausted"))
 
 newdf %>% tabyl(pt_timepoint)
+
+# Add assignment calls to the Seurat metadata
+Tcells_combined <- AddMetaData(Tcells_combined, data.frame(select(newdf, cell, assignment), row.names = "cell"))
+Tcells_combined$assignment %>% tabyl
 
 ds = data.frame()
 

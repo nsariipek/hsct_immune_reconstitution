@@ -117,7 +117,7 @@ Tcells <- RenameCells(Tcells, new.names = UniqueBCs)
 Tcells <- subset(x = Tcells, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Terminally Exhausted"))
 
 #Select only CD4
-Tcells <- subset(x = Tcells, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg" ))
+Tcells <- subset(x = Tcells, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
 
 # Plot UMAPs --------------------------------------------------------------------------------------
 
@@ -222,7 +222,7 @@ Tcells_combined <- combineExpression(combined, Tcells,
                                      group.by = "ptnumber",
                                      proportion = FALSE,
                                      filterNA = T,
-                                     cloneTypes=c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
+                                     cloneSize = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
 
 #calculate the frequency, setting group by to sample which is combined samples(T-cell enriched and MNC)
 clonalDiversity(Tcells_combined,
@@ -232,7 +232,55 @@ clonalDiversity(Tcells_combined,
                 skip.boots = TRUE,
                 exportTable = T)
 
+# Adding Souporcell information
+
+#Load the metadata that contains souporcell information
+combined_df <- read_csv(paste0(my_wd, "/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv"))
+
+#wrangle the metadata to 
+combined_df$cell = gsub("_.*","", combined_df$cell)
+combined_df$id = gsub("\\.","_",combined_df$id )
+combined_df$cell= paste0(combined_df$id, "_",combined_df$cell)
+
+#left join the 2 metadata
+Tcells_combined_tib <- as_tibble(Tcells_combined@meta.data, rownames = "cell")
+newdf <- Tcells_combined_tib %>% 
+  left_join(combined_df, by ="cell") %>% 
+  drop_na()
+
+#Add assignment calls to the Seurat metadata
+Tcells_combined <- AddMetaData(Tcells_combined, data.frame(select(newdf, cell, assignment), row.names = "cell"))
+#Check the numbers
+Tcells_combined$assignment %>% tabyl
+
+#Subset only donor cells 
+Tcells_combined_donor <- subset(x = Tcells_combined, subset = assignment == "donor")
+Tcells_combined_donor_cd8 <- subset(x = Tcells_combined_donor, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Terminally Exhausted"))
+Tcells_combined_donor_cd4 <- subset(x = Tcells_combined_donor, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
+
+#Subset only host cells 
+Tcells_combined_host <- subset(x = Tcells_combined, subset = assignment == "host")
+Tcells_combined_host_cd8 <- subset(x = Tcells_combined_host, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Terminally Exhausted"))
+Tcells_combined_host_cd4 <- subset(x = Tcells_combined_host, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
+
+#Calculate the inverse simpson index for each 
+
+clonalDiversity(Tcells_combined_donor,
+                cloneCall = "strict",
+                group.by = "sample",
+                metrics = c("inv.simpson","gini.simpson"),
+                exportTable = T)
+
+clonalDiversity(Tcells_combined_host,
+                cloneCall = "strict",
+                group.by = "sample",
+                metrics = c("inv.simpson","gini.simpson"),
+                exportTable = T)
+
+
 # Recalculate Frequency ---------------------------------------------------------------------------
+
+#As of 231226 this section is unneccessary since we have corrected the way that screpertoire calculates the frequency and now both our calculation and screpertoires match up.
 
 # The combineExpression function from scRepertoire added a Frequency column to the object, which is
 # paramount. Here, I will recalculate the Frequency and compare it to the scRepertoire value.
@@ -452,10 +500,6 @@ dev.off()
 
 
 
-
-
-
-
 # CONNECTIVITY-3 (color/connect clonotypes with > 5 cells)
 
 p1 <- cohort1_tib %>%
@@ -483,7 +527,6 @@ p2 <- cohort2_tib %>%
 pdf("230728_Connectivity.pdf", width = 12, height = 4)
 plot_grid(p1, p2)
 dev.off()
-
 
 
 
@@ -521,13 +564,6 @@ p2 <- cohort2_tib %>%
 pdf("230728_Connectivity-2.pdf", width = 12, height = 4)
 plot_grid(p1, p2)
 dev.off()
-
-
-
-
-
-
-
 
 
 

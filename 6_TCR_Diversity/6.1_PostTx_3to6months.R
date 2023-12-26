@@ -220,7 +220,7 @@ colorblind_vector <- colorRampPalette(rev(c("#0D0887FF", "#47039FFF",
 # Combine TCR and sc-RNAseq data
 Tcells_combined <- combineExpression(combined, Tcells, 
                                      cloneCall = "strict",
-                                     group.by = "ptnumber",
+                                     group.by = "sample",
                                      proportion = FALSE,
                                      filterNA = T,
                                      cloneSize = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
@@ -230,7 +230,6 @@ clonalDiversity(Tcells_combined,
                 cloneCall = "strict",
                 group.by = "sample",
                 metrics = c("inv.simpson","gini.simpson"),
-                skip.boots = TRUE,
                 exportTable = T)
 
 # Adding Souporcell information

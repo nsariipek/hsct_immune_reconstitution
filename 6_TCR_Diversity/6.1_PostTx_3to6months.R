@@ -254,6 +254,13 @@ Tcells_combined <- AddMetaData(Tcells_combined, data.frame(select(newdf, cell, a
 #Check the numbers
 Tcells_combined$assignment %>% tabyl
 
+#Look into different CD8 T cells
+Tcells_combined_cd8_Effector <- subset(x = Tcells_combined, subset = celltype == "CD8 Effector")
+Tcells_combined_cd8_Memory <- subset(x = Tcells_combined, subset = celltype == "CD8 Memory")
+Tcells_combined_cd8_naive <- subset(x = Tcells_combined, subset = celltype == "CD8 Naïve")
+Tcells_combined_cd8_exhausted <- subset(x = Tcells_combined, subset = celltype =="CD8 Terminally Exhausted")
+
+
 #Subset only donor cells 
 Tcells_combined_donor <- subset(x = Tcells_combined, subset = assignment == "donor")
 Tcells_combined_donor_cd8 <- subset(x = Tcells_combined_donor, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Terminally Exhausted"))
@@ -266,18 +273,23 @@ Tcells_combined_host_cd4 <- subset(x = Tcells_combined_host, subset = celltype %
 
 #Calculate the inverse simpson index for each 
 
-clonalDiversity(Tcells_combined_donor,
+clonalDiversity(Tcells_combined_cd8_exhausted,
                 cloneCall = "strict",
                 group.by = "sample",
                 metrics = c("inv.simpson","gini.simpson"),
                 exportTable = T)
 
-clonalDiversity(Tcells_combined_host,
+clonalDiversity(Tcells_combined_cd8,
                 cloneCall = "strict",
                 group.by = "sample",
                 metrics = c("inv.simpson","gini.simpson"),
                 exportTable = T)
 
+clonalDiversity(Tcells_combined_cd8,
+                cloneCall = "strict",
+                group.by = "id",
+                x.axis = "celltype",
+                metrics = c("inv.simpson","gini.simpson"))
 
 # Recalculate Frequency ---------------------------------------------------------------------------
 

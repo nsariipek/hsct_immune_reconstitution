@@ -19,7 +19,7 @@ Tcells_combined <- combineExpression(combined, Tcells,
                                      cloneCall = "strict",
                                      proportion = FALSE,
                                      filterNA = T,
-                                     cloneTypes=c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
+                                     clone=c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
 
 Tcells_combined_tib <- as_tibble(Tcells_combined@meta.data, rownames = "cell")
 Tcells_combined_tib <- Tcells_combined_tib %>%

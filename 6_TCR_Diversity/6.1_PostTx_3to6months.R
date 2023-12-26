@@ -47,7 +47,7 @@ combined <- combineTCR(contig_list,
 #                       cells ="T-AB")
 
 # Add variables
-combined <- addVariable(combined, name = "cohort",
+combined <- addVariable(combined, variable.name = "cohort",
                         variables = c("cohort1","cohort1","cohort1","cohort1","cohort1","cohort1",
                                       "cohort2","cohort2","cohort2","cohort2","cohort2","cohort2"))
 
@@ -76,6 +76,7 @@ compareClonotypes(combined, numbers = 5,
         legend.position = "bottom",
         legend.title = element_text(size = 10),
         legend.text = element_text(size = 8))    
+  
 # As of 230723, we still don't understand why it shows >5 despite the numbers = 5 argument
 # As of 231128, in the updated version the authors removed the numbers section which did not make sense to us in the begginging see above.
 

@@ -36,9 +36,7 @@ P08_0pre <- read.csv(paste0(my_wd, "Single Cell Data/4618_MNC/vdj_t/filtered_con
 
 # Make a list 
 contig_list <- list(P01_0pre, P02_0pre, P02_0preT, P05_0pre, P05_0preT, P06_0pre, P06_0preT, P08_0pre)
-
-
-combined <- combineTCR(contig_list, 
+combined <- combineTCR(contig_list,
                        samples = c("P01_0pre", "P02_0pre", "P02_0preT", "P05_0pre", "P05_0preT", "P06_0pre", "P06_0preT", "P08_0pre"))
 
 # Add variables

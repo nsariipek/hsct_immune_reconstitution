@@ -23,7 +23,7 @@ library(Matrix.utils)
 
 #Load the saved seurat objects
 
-seu_diet_merged <- readRDS("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/GEX data/seu_diet_merged.rds")
+seu_diet_merged <- readRDS("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/RDS files/seu_diet_merged.rds")
 
 View(seu_diet_merged@meta.data)
 
@@ -166,7 +166,7 @@ celltype_names
 all(names(counts_ls) == names(metadata_ls))
 ##
 #Run this when you are running one celltype ----- for a test run#
-idx <- which(names(counts_ls) == "CD4 Memory")
+idx <- which(names(counts_ls) == "CD8 Terminally Exhausted")
 cluster_counts <- counts_ls[[idx]]
 cluster_metadata <- metadata_ls[[idx]]
 
@@ -202,7 +202,7 @@ dds = DESeqDataSetFromMatrix(cluster_counts,
                              design =  ~ cohort)
 
 #new line from Ksenia to make sure that the plots are generated according to correct reference
-ddsColl$cohort = relevel(dds$cohort, ref = "cohort1")
+dds$cohort = relevel(dds$cohort, ref = "cohort1")
 # Transform counts for data visualization
 rld = rlog(dds, blind=TRUE)
 
@@ -345,7 +345,7 @@ save_plot(paste0("~/", sub('/', '_', celltype), ".summary.pdf"), p, base_height 
 }
 ​
 ### Write all results to file
-name = "all_celltypes"
+name = "all_celltypes" 
 write.csv(x = total_res_table_thres, file = paste0(name, ".pseudobulk_DE_res.csv"), quote = F, row.names = F)
 
 

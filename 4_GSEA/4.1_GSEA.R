@@ -19,7 +19,7 @@ name = "all_celltypes"
 
 de_res_total = read.csv(file = paste0(name, ".pseudobulk_DE_res.csv"))
 #or
-de_res_total = read.csv(file = "~/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/DGE/posthsct/all_celltypes.pseudobulk_DE_res.csv"))
+de_res_total = read.csv(file = "~/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/DGE/posthsct/all_celltypes.pseudobulk_DE_res.csv")
 total_result = data.frame()
 
 for (i in unique(de_res_total$celltype)) {
@@ -72,7 +72,7 @@ for (i in unique(de_res_total$celltype)) {
     result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
   }
   
-  # GSE across MSigDB C2:C7 categories
+  # GSE across MSigDB C7 immunologic gene set
   dataset = msigdbr(species = "Homo sapiens",
                     category = "C7") %>% 
     dplyr::select(gs_name, entrez_gene)
@@ -87,22 +87,22 @@ for (i in unique(de_res_total$celltype)) {
     result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
   }
   
-  dataset = msigdbr(species = "Homo sapiens",
-                    category = "H") %>% 
-    dplyr::select(gs_name, entrez_gene)
+ # dataset = msigdbr(species = "Homo sapiens",
+  #                  category = "H") %>% 
+   # dplyr::select(gs_name, entrez_gene)
   
-  gsea_out = GSEA(named_list,
-                  TERM2GENE = dataset,
-                  pvalueCutoff = 1,
-                  pAdjustMethod = "fdr",
-                  verbose = FALSE,
-                  eps = 0)
-  if (dim(gsea_out@result)[1] > 0) {
-    result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
-  }
+  #gsea_out = GSEA(named_list,
+   #               TERM2GENE = dataset,
+    #              pvalueCutoff = 1,
+     #             pAdjustMethod = "fdr",
+      #            verbose = FALSE,
+       #           eps = 0)
+  #if (dim(gsea_out@result)[1] > 0) {
+   # result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
+  #}
   
-  dotplot(gsea_out, showCategory=20)
-   gseaplot2(gsea_out, geneSetID = 1)
+  #dotplot(gsea_out, showCategory=20)
+   #gseaplot2(gsea_out, geneSetID = 1)
    
   # temp = gsea_out@result
   # temp %>% 

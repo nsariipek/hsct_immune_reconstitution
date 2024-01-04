@@ -53,7 +53,6 @@ P05_1Rem <-  read.csv(paste0(my_wd, "Single Cell Data/25809_MNC/vdj_t/filtered_c
 P05_Rel <-  read.csv(paste0(my_wd, "Single Cell Data/2737_MNC/vdj_t/filtered_contig_annotations.csv"))
 P05_RelT <-  read.csv(paste0(my_wd, "Single Cell Data/2737_CD3/vdj_t/filtered_contig_annotations.csv"))
 
-
 P06_0pre <-   read.csv(paste0(my_wd, "Single Cell Data/2379_MNC/vdj_t/filtered_contig_annotations.csv"))
 P06_0preT <- read.csv(paste0(my_wd, "Single Cell Data/2379_CD3/vdj_t/filtered_contig_annotations.csv"))
 P06_1Rem <-   read.csv(paste0(my_wd, "Single Cell Data/2434_MNC/vdj_t/filtered_contig_annotations.csv"))
@@ -61,7 +60,6 @@ P06_1Rem <-   read.csv(paste0(my_wd, "Single Cell Data/2434_MNC/vdj_t/filtered_c
 
 P07_1Rem <-  read.csv(paste0(my_wd, "Single Cell Data/2518_MNC/vdj_t/filtered_contig_annotations.csv"))
 P07_1RemT <-  read.csv(paste0(my_wd, "Single Cell Data/2518_CD3/vdj_t/filtered_contig_annotations.csv"))
-
 
 P08_0pre <- read.csv(paste0(my_wd, "Single Cell Data/4618_MNC/vdj_t/filtered_contig_annotations.csv"))
 
@@ -73,13 +71,34 @@ P08_2RemT <-  read.csv(paste0(my_wd, "Single Cell Data/9931_CD3/vdj_t/filtered_c
 
 P08_0Rel <-  read.csv(paste0(my_wd, "Single Cell Data/1953_MNC/vdj_t/filtered_contig_annotations.csv"))
 P08_0RelT <-  read.csv(paste0(my_wd, "Single Cell Data/1953_CD3/vdj_t/filtered_contig_annotations.csv"))
-                       
+
+P09_0pre <- read.csv(paste0(my_wd, "Single Cell Data/1677_MNC/vdj_t/filtered_contig_annotations.csv"))
+P09_0preT <- read.csv(paste0(my_wd, "Single Cell Data/1677_CD3/vdj_t/filtered_contig_annotations.csv"))
+
+P09_1Rem <-  read.csv(paste0(my_wd, "Single Cell Data/1732_MNC/vdj_t/filtered_contig_annotations.csv"))
+
+P09_Rel <-  read.csv(paste0(my_wd, "Single Cell Data/1811_MNC/vdj_t/filtered_contig_annotations.csv"))
+P09_RelT <-  read.csv(paste0(my_wd, "Single Cell Data/1811_CD3/vdj_t/filtered_contig_annotations.csv"))
+
+P10_0pre <- read.csv(paste0(my_wd, "Single Cell Data/1195_MNC/vdj_t/filtered_contig_annotations.csv"))
+
+P10_1Rem <-  read.csv(paste0(my_wd, "Single Cell Data/1285_MNC/vdj_t/filtered_contig_annotations.csv"))
+P10_Rel <- read.csv(paste0(my_wd, "Single Cell Data/1347_MNC/vdj_t/filtered_contig_annotations.csv"))
+P10_RelT <- read.csv(paste0(my_wd, "Single Cell Data/1347_CD3/vdj_t/filtered_contig_annotations.csv"))
+
+P11_0pre <-  read.csv(paste0(my_wd, "Single Cell Data/5641_MNC/vdj_t/filtered_contig_annotations.csv"))
+P11_1Rem <- read.csv(paste0(my_wd, "Single Cell Data/6244_MNC/vdj_t/filtered_contig_annotations.csv"))
+P11_1RemT <- read.csv(paste0(my_wd, "Single Cell Data/6244_CD3/vdj_t/filtered_contig_annotations.csv"))
+
+
+P12_0pre <-  read.csv(paste0(my_wd, "Single Cell Data/9355_MNC/vdj_t/filtered_contig_annotations.csv"))
+P12_1Rem <-  read.csv(paste0(my_wd, "Single Cell Data/1013_MNC/vdj_t/filtered_contig_annotations.csv"))
+
 # Make a list 
-contig_list <- list(P01_0pre, P01_1Rem, P01_1RemT, P01_2Rem, P02_0pre, P02_0preT, P02_1Rem, P02_2Rem ,P02_2RemT, P03_1Rem, P03_1RemT, P04_1Rem, P04_1RemT, P05_0pre, P05_0preT, P05_1Rem, P05_Rel, P06_0pre, P06_0preT, P06_1Rem, P07_1Rem,  P07_1RemT, P08_0pre, P08_1Rem, P08_1RemT, P08_2Rem, P08_2RemT, P08_0Rel, P08_0RelT)                       
+contig_list <- list("P01_0pre", "P01_1Rem", "P01_1RemT", "P01_2Rem", "P02_0pre", "P02_0preT", "P02_1Rem", "P02_2Rem", "P02_2RemT", "P03_1Rem", "P03_1RemT", "P04_1Rem","P04_1RemT", "P05_0pre", "P05_0preT", "P05_1Rem", "P05_Rel", "P05_RelT", "P06_0pre", "P06_0preT", "P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_0Rel", "P08_0RelT", "P08_0pre", "P08_1Rem", "P08_1RemT", "P08_2Rem", "P08_2RemT", "P09_0pre", "P09_0preT", "P09_1Rem", "P09_Rel", "P09_RelT", "P10_0pre", "P10_1Rem", "P10_Rel", "P10_RelT","P11_1Rem", "P11_1RemT", "P12_0pre", "P12_1Rem")
  
 combined <- combineTCR(contig_list, 
-                       samples = c("P01_pre", "P01_Rem1", "P01_Rem1_T", "P01_Rem2", "P02_pre", "P02_pre_T", "P02_Rem1", "P02_Rem2", "P02_Rem2_T", "P03_Rem1", "P03_Rem1_T", "P04_Rem1", "P04_Rem1_T", "P05_pre", "P05_pre_T", "P05_Rem", "P05_Rel", "P05_Rel_T", "P06_pre", "P06_pre_T", "P06_Rem", "P07_Rem", "P07_Rem_T", "P08_pre", "P08_Rem1", "P08_Rem1_T",  "P08_Rem2", "P08_Rem2_T", "P08_Rel", "P08_Rel_T"))
-                                
+                       samples = c("P01_0pre", "P01_1Rem", "P01_1RemT", "P01_2Rem", "P02_0pre", "P02_0preT", "P02_1Rem", "P02_2Rem", "P02_2RemT", "P03_1Rem", "P03_1RemT", "P04_1Rem","P04_1RemT", "P05_0pre", "P05_0preT", "P05_1Rem", "P05_Rel", "P05_RelT", "P06_0pre", "P06_0preT", "P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_0Rel", "P08_0RelT", "P08_0pre", "P08_1Rem", "P08_1RemT", "P08_2Rem", "P08_2RemT", "P09_0pre", "P09_0preT", "P09_1Rem", "P09_Rel", "P09_RelT", "P10_0pre", "P10_1Rem", "P10_Rel", "P10_RelT", "P11_1Rem", "P11_1RemT", "P12_0pre", "P12_1Rem"))                    
                        
  combined <- addVariable(combined, variable.name = "status", 
                          variables = c("pre", "rem", "rem", "rem", "pre", "pre","rem","rem","rem","rem","rem","rem","rem","pre","pre","rem","rel","rel","pre","pre","rem","rem","rem","pre","rem","rem","rem","rem","rel","rel"))                      
@@ -111,6 +130,8 @@ combined <- combineTCR(contig_list,
  #View(Tcells@meta.data)
  # Check the T cell types
  table(Idents(Tcells))
+ 
+ tabyl(Tcells@meta.data$id)
  
  # Wrangle the metadata to make it compatible with the TCR metadata (combined)
  Tcells_meta <- Tcells@meta.data

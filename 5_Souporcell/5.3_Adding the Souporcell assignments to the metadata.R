@@ -7,36 +7,45 @@ library(ggplot2)
 library(RColorBrewer)
 library(janitor)
 
+
+# Empty environment
+rm(list=ls())
+
+# For Nurefsan:
+my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/"
+# For Peter:
+
 # Load the metadata
-seu_diet_merged <- readRDS("~/seu_diet_merged.rds")
+seu_diet_merged <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/seu_diet_merged.rds"))
 
 # Subset the patient9 from the metadata        
-P9 <- subset(x = seu_diet_merged, subset = orig.ident %in% c("1677_MNC","1677_CD3","1732_MNC","1811_MNC","1811_CD3"))
+P12 <- subset(x = seu_diet_merged, subset = orig.ident %in% c("9355_MNC","1013_MNC"))
         
 # Load the souporcell output tsv file that contains the assignments from the souporcell
-Df1 <- read_tsv("~/souporcell_Pt9_clusters.tsv")
+Df1 <- read_tsv(paste0(my_wd, "Souporcell/output/clusters/souporcell_Pt11_clusters.tsv"))
+
 
 # Wrangle the data frame 
-P9 = as.data.frame(P9@meta.data) %>% rownames_to_column("barcode")
-P9$barcode <- gsub("_.*", "", P9$barcode)
+P12 = as.data.frame(P12@meta.data) %>% rownames_to_column("barcode")
+P12$barcode <- gsub("_.*", "", P12$barcode)
 
 # Merge 2 data frames  by using the joint column.
-df9 <- P9 %>% left_join(Df1, by="barcode")
+df11 <- P11 %>% left_join(Df1, by="barcode")
 
 # Check each sample with their souporcell assignment and decide on the host and donor cells using the pretransplant sample as a guide. 
-df9 %>%
+df11 %>%
   tabyl(celltype, assignment,id , show_missing_levels = FALSE) %>%
   adorn_totals("row")
 
 # Only keep the correct assignments
-df9 <- subset(df9, subset = assignment %in% c("0","1")) 
+df11 <- subset(df11, subset = assignment %in% c("0","1")) 
 
 # Rename the assignments, checking with pre-transplant samples which would be host cells
-df9$assignment <- gsub("1", "donor", df9$assignment)
-df9$assignment <- gsub("0", "host", df9$assignment) 
+df11$assignment <- gsub("0","host", df11$assignment)
+df11$assignment <- gsub("1", "donor", df11$assignment) 
 
 
-# Repeat this for each patient repeatedly, ask Peter or Ksenia how to make this in a loop
+#### Repeat this for each patient repeatedly, ask Peter or Ksenia how to make this in a loop
 
 #combine each cohorts seperately 
 
@@ -52,6 +61,15 @@ combined_df1 <- read_csv(file = "~/cohort1_souporcell.csv")
 combined_df2 <- bind_rows(df5,df6,df8)
 write_csv(combined_df2, "~/cohort2_souporcell.csv")
 combined_df2 <- read_csv(file = "~/cohort2_souporcell.csv")
+
+write_csv(df3,paste0(my_wd, "/Souporcell/output/cohort3_souporcell.csv"))
+
+
+#Cohort 3= P09, P10, P11, P12
+
+combined_df3 <- bind_rows(df9,df10,df11,df12)
+
+
 
 
 #For patient03 and patient07 we did not have pre-transplant samples that's why we could not run them on the souporcell and since they had >95% chimerism it was safe to assume they were all donor origin at this time point.
@@ -94,13 +112,13 @@ combined_df1 <- bind_rows(df1,df3)
 
 combined_df2 <- read_csv(file = "~/cohort2_souporcell.csv")
 
-df2 <- 
-combined_df2 %>%
+df3 <- 
+combined_df3 %>%
 dplyr::select(orig.ident, celltype, library_type, patient_identity, cell, id, status.x, assignment, cohort)
 
 #rename the status.x object since souporcell changed to .x and .y
-df2$status <- df2$status.x
-df2 <- df2 %>% 
+df3$status <- df3$status.x
+df3 <- df3 %>% 
   dplyr::select(orig.ident, celltype, library_type, patient_identity, cell, id, status, assignment, cohort)
   
 View(P7)
@@ -141,8 +159,7 @@ combined_df_T <- subset(combined_df, subset = celltype %in% c("CD4 Memory","CD8 
 combined_df_T_rem <- subset(combined_df_T, subset = status == "remission")
 
 #select only 6mo remission cells and MNC libraries only to prevent any skewing
-combined_df_T_rem6mo <- subset(combined_df_T_rem, subset = id %in% c("P01.1Rem","P01.2Rem","P02.1Rem","P05.1Rem
-  "."P06.1Rem","P07.1Rem","P08.1Rem"))
+combined_df_T_rem6mo <- subset(combined_df_T_rem, subset = id %in% c("P01.1Rem","P01.2Rem","P02.1Rem","P05.1Rem","P06.1Rem","P07.1Rem","P08.1Rem"))
 
 #select the donor cells only for the statistical analysis purposes
 

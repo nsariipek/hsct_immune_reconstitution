@@ -101,7 +101,6 @@ clonalDiversity(Tcells_combined,
                 cloneCall = "strict",
                 group.by = "sample",
                 metrics = c("inv.simpson","gini.simpson"),
-                skip.boots = TRUE,
                 exportTable = T)
 
                                            

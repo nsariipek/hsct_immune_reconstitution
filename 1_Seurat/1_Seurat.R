@@ -231,7 +231,54 @@ seu_diet$timepoint <- case_when(        grepl("2446", seu_diet_merged$orig.ident
                                                grepl("1013", seu_diet_merged$orig.ident) ~ "1.5mo")
 
 
+Tcells$timepoint <- case_when(grepl("2446", Tcells$orig.ident) ~ "pre-transplant",
+                                         grepl("25802", Tcells$orig.ident) ~ "postTx_3-6m",
+                                         grepl("2645", Tcells$orig.ident) ~ "postTx_3-6m",
+                                         grepl("1972", Tcells$orig.ident) ~ "pre-transplant",
+                                         grepl("2220", Tcells$orig.ident) ~ "postTx_3-6m",
+                                         grepl("2621", Tcells$orig.ident) ~ "rem>6m",
+                                         grepl("9185", Tcells$orig.ident) ~ "rem>6m",
+                                         grepl("2599", Tcells$orig.ident) ~ "postTx_3-6m",
+                                         
+                                         
+                                         
+                                         grepl("9596", Tcells$orig.ident) ~ "pre-transplant",
+                                         grepl("25809", Tcells$orig.ident) ~ "postTx_3-6m",
+                                         grepl("2737", Tcells$orig.ident) ~ "relapse",
+                                         grepl("2379", Tcells$orig.ident) ~ "pre-transplant",
+                                         grepl("2434", Tcells$orig.ident) ~ "postTx_3-6m",
+                                         grepl("2518", Tcells$orig.ident) ~ "postTx_3-6m",
+                                         grepl("4618", Tcells$orig.ident) ~ "pre-transplant",
+                                         grepl("6174", Tcells$orig.ident) ~ "postTx_3-6m",
+                                         grepl("9931", Tcells$orig.ident) ~ "rem>6m", 
+                                         grepl("1953", Tcells$orig.ident) ~ "relapse",
+                                         
+                                         
+                                         grepl("1677", Tcells$orig.ident) ~ "pre-transplant",
+                                         grepl("1732", Tcells$orig.ident) ~ "rem<3m",
+                                         grepl("1811", Tcells$orig.ident) ~ "relapse",
+                                         grepl("1195", Tcells$orig.ident) ~ "pre-transplant",
+                                         grepl("1285", Tcells$orig.ident) ~ "rem<3m",
+                                         grepl("1347", Tcells$orig.ident) ~ "relapse", 
+                                         grepl("5641", Tcells$orig.ident) ~ "pre-transplant",
+                                         grepl("6244", Tcells$orig.ident) ~ "rem<3m",
+                                         grepl("9355", Tcells$orig.ident) ~ "pre-transplant",
+                                         grepl("1013", Tcells$orig.ident) ~ "rem<3m")
 
+
+Tcells$patient_identity <- case_when(grepl("2446|25802|2645", Tcells$orig.ident) ~ "pt01",
+                                     grepl("1972|2220|2621", Tcells$orig.ident) ~ "pt02",
+                                     grepl("9185", Tcells$orig.ident) ~ "pt03",
+                                     grepl("2599", Tcells$orig.ident) ~ "pt04",
+                                     grepl("9596|25809|2737", Tcells$orig.ident) ~ "pt05",
+                                     grepl("2379|2434", Tcells$orig.ident) ~ "pt06",
+                                     grepl("2518", Tcells$orig.ident) ~ "pt07",
+                                     grepl("4618|6174|9931|1953", Tcells$orig.ident) ~ "pt08",
+                                     grepl("1677|1732|1811", Tcells$orig.ident) ~ "pt09",
+                                     grepl("1195|1285|1347", Tcells$orig.ident) ~ "pt10",
+                                     grepl("5641|6244", Tcells$orig.ident) ~ "pt11",
+                                     grepl("9355|1013", Tcells$orig.ident) ~ "pt12")
+ 
 
 
 

@@ -302,7 +302,55 @@ seu_diet <- DietSeurat(seu, dimreducs = names(seu@reductions))
 saveRDS(seu_diet, file ="~/seu_diet.rds")
 
 
-                 
+seu$sample <- case_when( grepl("2446", seu$orig.ident) ~ "P01.0pre",
+                     grepl("25802_MNC", seu$orig.ident) ~ "P01.1Rem",
+                     grepl("25802_CD3", seu$orig.ident) ~ "P01.1Rem",
+                     grepl("2645", seu$orig.ident) ~ "P01.2Rem",
+                     grepl("1972_MNC", seu$orig.ident) ~ "P02.0pre",
+                     grepl("1972_CD3", seu$orig.ident) ~ "P02.0pre",
+                     grepl("2220", seu$orig.ident) ~ "P02.1Rem",
+                     grepl("2621_MNC", seu$orig.ident) ~ "P02.2Rem",
+                     grepl("2621_CD3", seu$orig.ident) ~ "P02.2Rem",
+                     grepl("9185_MNC", seu$orig.ident) ~ "P03.1Rem",
+                     grepl("9185_CD3", seu$orig.ident) ~ "P03.1Rem",
+                     grepl("2599_MNC", seu$orig.ident) ~ "P04.1Rem",
+                     grepl("2599_CD3", seu$orig.ident) ~ "P04.1Rem",
+                     grepl("9596_MNC", seu$orig.ident) ~ "P05.0pre",
+                     grepl("9596_CD3", seu$orig.ident) ~ "P05.0pre",
+                     grepl("25809", seu$orig.ident) ~ "P05.1Rem",
+                     grepl("2737_MNC", seu$orig.ident) ~ "P05.Rel",
+                     grepl("2737_CD3", seu$orig.ident) ~ "P05.Rel",
+                     grepl("2379_MNC", seu$orig.ident) ~ "P06.0pre",
+                     grepl("2379_CD3", seu$orig.ident) ~ "P06.0pre",
+                     grepl("2434", seu$orig.ident) ~ "P06.1Rem",
+                     grepl("2518_MNC", seu$orig.ident) ~ "P07.1Rem",
+                     grepl("2518_CD3", seu$orig.ident) ~ "P07.1Rem",
+                     
+                     grepl("4618", seu$orig.ident) ~ "P08.0pre",
+                     grepl("6174_MNC", seu$orig.ident) ~ "P08.1Rem",
+                     grepl("6174_CD3", seu$orig.ident) ~ "P08.1Rem",
+                     grepl("9931_MNC", seu$orig.ident) ~ "P08.2Rem",
+                     grepl("9931_CD3", seu$orig.ident) ~ "P08.2Rem",
+                     grepl("1953_MNC", seu$orig.ident) ~ "P08.0Rel",
+                     grepl("1953_CD3", seu$orig.ident) ~ "P08.0Rel",
+                     
+                     grepl("1677_MNC", seu$orig.ident) ~ "P09.0pre",
+                     grepl("1677_CD3", seu$orig.ident) ~ "P09.0pre",
+                     grepl("1732", seu$orig.ident) ~ "P09.1Rem",
+                     grepl("1811_MNC", seu$orig.ident) ~ "P09.Rel",
+                     grepl("1811_CD3", seu$orig.ident) ~ "P09.Rel",
+                     
+                     grepl("1195", seu$orig.ident) ~ "P10.0pre",
+                     grepl("1285", seu$orig.ident) ~ "P10.1Rem",
+                     grepl("1347_MNC", seu$orig.ident) ~ "P10.Rel",
+                     grepl("1347_CD3", seu$orig.ident) ~ "P10.Rel",
+                     
+                     grepl("5641", seu$orig.ident) ~ "P11.0pre",
+                     grepl("6244_MNC", seu$orig.ident) ~ "P11.1Rem",
+                     grepl("6244_CD3", seu$orig.ident) ~ "P11.1Rem",
+                     
+                     grepl("9355", seu$orig.ident) ~ "P12.0pre",
+                     grepl("1013", seu$orig.ident) ~ "P12.1Rem")
            
 
                  

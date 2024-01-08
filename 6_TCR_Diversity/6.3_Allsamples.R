@@ -146,10 +146,9 @@ Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/TCR data/RDS/Tcellsfinal.rds")
  Tcells_combined <- combineExpression(combined, Tcells, 
                                       cloneCall = "strict",
                                       proportion = FALSE,
-                                      group.by = "sample",
+                                      group.by = "ptnumber",
                                       filterNA = T,
                                       cloneSize = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
-
 
  # Adding Souporcell information
  # Load the metadata that contains souporcell information
@@ -205,8 +204,7 @@ cohort12 <- subset(x= Tcells_combined, subset = cohort %in% c("cohort1", "cohort
   
 cohort12pre <- subset(x= cohort12, subset = status == "pre_transplant")
 cohort12rem <- subset(x= cohort12, subset = status == "remission")
-x <-  subset(x= Tcells_combined, subset =id %in% c("P01_1Rem", "P01_1RemT", "P02_1Rem", "P04_1Rem", "P04_1RemT", "P05_1Rem",
-                                            "P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))
+x <-  subset(x= Tcells_combined, subset =id %in% c("P01_1Rem", "P01_1RemT", "P02_1Rem", "P04_1Rem", "P04_1RemT", "P05_1Rem","P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))
 
  # Calculate the frequency, setting group by to sample which is combined samples(T-cell enriched and MNC)
  clonalDiversity(x,

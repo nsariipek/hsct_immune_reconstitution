@@ -93,7 +93,7 @@ clonalDiversity(combined,
         axis.title.y = element_text(size = 15, color = "black"))
 
 # Load the Seurat object subsetted for T cells
-Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/TCR data/RDS/Tcellsubset.rds"))
+Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/TCR data/RDS/Tcellsfinal.rds"))
 
 # Keep only annotated T cell clusters (remove NK cells)
 Tcells <- subset(x = Tcells, subset = seurat_clusters %in% c(0,1,2,3,4,5,6,7,9,10,11,12,14)) 
@@ -220,7 +220,7 @@ colorblind_vector <- colorRampPalette(rev(c("#0D0887FF", "#47039FFF",
 # Combine TCR and sc-RNAseq data
 Tcells_combined <- combineExpression(combined, Tcells, 
                                      cloneCall = "strict",
-                                     group.by = "sample",
+                                     group.by = "ptnumber",
                                      proportion = FALSE,
                                      filterNA = T,
                                      cloneSize = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
@@ -326,7 +326,7 @@ Tcells_combined_tib %>% mutate(rown = row_number()) %>%
 
 # Compare scRepertoire: Frequency, my code: n
 Tcells_combined_tib %>%
-  ggplot(aes(x = Frequency, y = n, color = pt_timepoint)) +
+  ggplot(aes(x = clonalFrequency, y = n, color = pt_timepoint)) +
   geom_point() +
   theme_pubr() +
   theme(aspect.ratio = 1)

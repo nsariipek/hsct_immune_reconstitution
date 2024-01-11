@@ -9,11 +9,6 @@ library(RColorBrewer)
 library(ggpubr)
 library(tidyverse)
 library(janitor)
-library(ggrepel)
-library(cowplot)
-library(TSP)
-library(ggnewscale)
-library(ggrastr)
 
 # Empty environment
 rm(list=ls())
@@ -42,6 +37,20 @@ P03_1RemT <-  read.csv(paste0(my_wd, "Single Cell Data/9185_CD3/vdj_t/filtered_c
 P04_1Rem <-    read.csv(paste0(my_wd, "Single Cell Data/2599_MNC/vdj_t/filtered_contig_annotations.csv"))
 P04_1RemT <-  read.csv(paste0(my_wd, "Single Cell Data/2599_CD3/vdj_t/filtered_contig_annotations.csv"))
 
+# Combine only cohort 1 
+
+# Make a list 
+contig_list <- list(P01_0pre, P01_1Rem, P01_1RemT, P01_2Rem, P02_0pre, P02_0preT, P02_1Rem, P02_2Rem, P02_2RemT, P03_1Rem, P03_1RemT, P04_1Rem, P04_1RemT)
+
+combined <- combineTCR(contig_list, 
+                       samples = c("P01_0pre", "P01_1Rem", "P01_1RemT", "P01_2Rem", "P02_0pre", "P02_0preT", "P02_1Rem", "P02_2Rem", "P02_2RemT", "P03_1Rem", "P03_1RemT", "P04_1Rem","P04_1RemT"))                    
+
+
+combined <- addVariable(combined, variable.name = "ptnumber",
+                        variables = c("P01-0","P01-1","P01-1","P01-2","P02-0","P02-0","P02-1","P02-2","P02-2","P03-1","P03-1","P04-1","P04-1"))
+
+combined <- addVariable(combined, variable.name = "cohort",
+                        variables = c("cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1")) 
 
 # Cohort 2
 
@@ -62,7 +71,6 @@ P07_1Rem <-  read.csv(paste0(my_wd, "Single Cell Data/2518_MNC/vdj_t/filtered_co
 P07_1RemT <-  read.csv(paste0(my_wd, "Single Cell Data/2518_CD3/vdj_t/filtered_contig_annotations.csv"))
 
 
-
 P08_1Rem <-  read.csv(paste0(my_wd, "Single Cell Data/6174_MNC/vdj_t/filtered_contig_annotations.csv"))
 P08_1RemT <- read.csv(paste0(my_wd, "Single Cell Data/6174_CD3/vdj_t/filtered_contig_annotations.csv"))
 
@@ -72,6 +80,37 @@ P08_2RemT <-  read.csv(paste0(my_wd, "Single Cell Data/9931_CD3/vdj_t/filtered_c
 P08_0Rel <-  read.csv(paste0(my_wd, "Single Cell Data/1953_MNC/vdj_t/filtered_contig_annotations.csv"))
 P08_0RelT <-  read.csv(paste0(my_wd, "Single Cell Data/1953_CD3/vdj_t/filtered_contig_annotations.csv"))
 
+# combine only cohort 2 
+
+# Make a list 
+contig_list <- list(P05_0pre, P05_0preT, P05_1Rem, P05_Rel, P05_RelT, P06_0pre, P06_0preT, P06_1Rem, P07_1Rem, P07_1RemT, P08_0Rel, P08_0RelT, P08_1Rem, P08_1RemT, P08_2Rem, P08_2RemT)
+
+combined <- combineTCR(contig_list, 
+                       samples = c("P05_0pre", "P05_0preT", "P05_1Rem", "P05_Rel", "P05_RelT", "P06_0pre", "P06_0preT", "P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_0Rel", "P08_0RelT", "P08_1Rem", "P08_1RemT", "P08_2Rem", "P08_2RemT"))     
+
+combined <- addVariable(combined, variable.name = "ptnumber",
+                        variables = c("P05-0","P05-0","P05-1","P05-2","P05-2", "P06-0","P06-0", "P06-1","P07-1","P07-1","P08-3","P08-3","P08-1","P08-1","P08-2","P08-2"))
+
+combined <- addVariable(combined, variable.name = "cohort",
+                        variables = c("cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2")) 
+
+
+# just cohort1-2 
+# Make a list 
+contig_list <- list(P01_0pre, P01_1Rem, P01_1RemT, P01_2Rem, P02_0pre, P02_0preT, P02_1Rem, P02_2Rem, P02_2RemT, P03_1Rem, P03_1RemT, P04_1Rem, P04_1RemT, P05_0pre, P05_0preT, P05_1Rem, P05_Rel, P05_RelT, P06_0pre, P06_0preT, P06_1Rem, P07_1Rem, P07_1RemT, P08_0Rel, P08_0RelT, P08_1Rem, P08_1RemT, P08_2Rem, P08_2RemT)
+
+combined <- combineTCR(contig_list, 
+                       samples = c("P01_0pre", "P01_1Rem", "P01_1RemT", "P01_2Rem", "P02_0pre", "P02_0preT", "P02_1Rem", "P02_2Rem", "P02_2RemT", "P03_1Rem", "P03_1RemT", "P04_1Rem","P04_1RemT", "P05_0pre", "P05_0preT", "P05_1Rem", "P05_Rel", "P05_RelT", "P06_0pre", "P06_0preT", "P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_0Rel", "P08_0RelT", "P08_1Rem", "P08_1RemT", "P08_2Rem", "P08_2RemT"))                    
+
+
+combined <- addVariable(combined, variable.name = "ptnumber",
+                        variables = c("P01-0","P01-1","P01-1","P01-2","P02-0","P02-0","P02-1","P02-2","P02-2","P03-1","P03-1","P04-1","P04-1","P05-0","P05-0","P05-1","P05-2","P05-2", "P06-0","P06-0", "P06-1","P07-1","P07-1","P08-3","P08-3","P08-1","P08-1","P08-2","P08-2"))
+
+combined <- addVariable(combined, variable.name = "cohort",
+                        variables = c("cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2")) 
+
+
+#Cohort3
 P09_0pre <- read.csv(paste0(my_wd, "Single Cell Data/1677_MNC/vdj_t/filtered_contig_annotations.csv"))
 P09_0preT <- read.csv(paste0(my_wd, "Single Cell Data/1677_CD3/vdj_t/filtered_contig_annotations.csv"))
 
@@ -99,7 +138,7 @@ combined <- combineTCR(contig_list,
                        
  combined <- addVariable(combined, variable.name = "status", 
                          variables = c("pre", "rem", "rem", "rem", "pre", "pre","rem","rem","rem","rem","rem","rem","rem","pre","pre","rem","rel","rel","pre","pre","rem","rem","rem","rel", "rel", "rem","rem","rem","rem","pre","pre","rem","rel","rel","rel","rel","pre","rem","rem","pre"))                     
-                      
+ 
  combined <- addVariable(combined, variable.name = "ptnumber",
                          variables = c("P01-0","P01-1","P01-1","P01-2","P02-0","P02-0","P02-1","P02-2","P02-2","P03-1","P03-1","P04-1","P04-1","P05-0","P05-0","P05-1","P05-2","P05-2", "P06-0","P06-0", "P06-1","P07-1","P07-1","P08-3","P08-3","P08-1","P08-1","P08-2","P08-2", "P09-0","P09-0","P09-1","P09-2","P09-2","P10-2","P10-2","P11-0","P11-1","P11-1","P12-0"))
 
@@ -119,11 +158,15 @@ combined <- combineTCR(contig_list,
          axis.title.y = element_text(size = 15, color = "black"))
  
  # Load the Seurat object subsetted for T cells
-Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/TCR data/RDS/Tcellsfinal.rds"))
+ Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/TCR data/RDS/Tcellsfinal.rds"))
 
- 
  # Keep only annotated T cell clusters (remove NK cells)
  Tcells <- subset(x = Tcells, subset = seurat_clusters %in% c(0,1,2,3,4,5,6,7,9,10,11,12,14)) 
+ 
+# Tcells <- subset(x= Tcells, subset = cohort %in% c("cohort1", "cohort2"))
+# subset(x= Tcells_combined, subset =id %in% c("P01_1Rem", "P01_1RemT", "P02_1Rem", "P04_1Rem", "P04_1RemT", "P05_1Rem","P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))
+ 
+ 
  # Check the metadata 
  # View(Tcells@meta.data)
  # Check the T cell types
@@ -182,41 +225,30 @@ combined_df <- bind_rows(df1,df3)
  
 
  # Subset the dataset
- pt1 <- subset(x= Tcells_combined, subset = sample %in% c("P01.0pre", "P01.1Rem", "P01.2Rem"))
- pt2 <- subset(x= Tcells_combined, subset = sample %in% c("P02.0pre", "P02.1Rem", "P02.2Rem"))
-    
- pt8 <- subset(x= Tcells_combined, subset = sample %in% c("P08.0Rel", "P08.0pre", "P08.1Rem", "P08.2Rem")) 
-pt10 <- subset(x= Tcells_combined, subset = sample %in% c("P10.Rel", "P10.0pre", "P10.1Rem"))
-
-Cohort1 <- subset(x= Tcells_combined, subset = cohort == "cohort1") 
- 
-Cohort2 <- subset(x= Tcells_combined, subset = cohort == "cohort2") 
-
-Cohort3 <- subset(x= Tcells_combined, subset = cohort == "cohort3") 
-
-Pre_tx <- subset(x= Tcells_combined, subset = status == "pre_transplant") 
-
-Rem <- subset(x= Tcells_combined, subset = status == "remission") 
-  
-Rel <-   subset(x= Tcells_combined, subset = status == "relapse") 
-
-cohort12 <- subset(x= Tcells_combined, subset = cohort %in% c("cohort1", "cohort2"))
-  
-cohort12pre <- subset(x= cohort12, subset = status == "pre_transplant")
-cohort12rem <- subset(x= cohort12, subset = status == "remission")
-x <-  subset(x= Tcells_combined, subset =id %in% c("P01_1Rem", "P01_1RemT", "P02_1Rem", "P04_1Rem", "P04_1RemT", "P05_1Rem","P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))
+x <-  subset(x= Tcells_combined, subset =id %in% c("P01_1Rem", "P01_1RemT","P01_2Rem", "P02_1Rem", "P04_1Rem", "P04_1RemT","P05_1Rem","P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))
 
  # Calculate the frequency, setting group by to sample which is combined samples(T-cell enriched and MNC)
- clonalDiversity(x,
+ clonalDiversity(Tcells_combined,
                  cloneCall = "strict",
-                 group.by = "sample",
-                 metrics = c("inv.simpson","gini.simpson"),
                  n.boots = 1000,
+                 group.by = "Sample",
+                 metrics = c("inv.simpson","shannon"),
                  exportTable = TRUE)
  
+ #+
+   theme(aspect.ratio = 1, axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 15, color = "black"),
+         axis.title.x = element_blank(),
+         axis.text.y = element_text(size = 15),
+         axis.title.y = element_text(size = 15, color = "black"),
+         legend.key.size = unit(2,"mm"),
+         legend.position = "right",
+         legend.title = element_text(size = 15),
+         legend.text = element_text(size = 15))    
  
  
-
+ ordered_timepoints= c("pre-transplant", "rem<3m","postTx_3-6m", "rem>6m","relapse")
+ Tcells_combined$groups= factor(Tcells_combined$groups, levels = ordered_timepoints)
+ 
  
  
  

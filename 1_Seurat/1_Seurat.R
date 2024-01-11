@@ -144,7 +144,6 @@ seu$patient_identity <- case_when(grepl("2446|25802|2645", seu$orig.ident) ~ "pt
                                        grepl("5641|6244", seu$orig.ident) ~ "pt11",
                                        grepl("9355|1013", seu$orig.ident) ~ "pt12")
 # Add individual sample ID                
-
 seu$id <- case_when( grepl("2446", seu$orig.ident) ~ "P01.0pre",
                                         grepl("25802_MNC", seu$orig.ident) ~ "P01.1Rem",
                                         grepl("25802_CD3", seu$orig.ident) ~ "P01.1RemT",
@@ -195,8 +194,8 @@ seu$id <- case_when( grepl("2446", seu$orig.ident) ~ "P01.0pre",
                                         grepl("9355", seu$orig.ident) ~ "P12.0pre",
                                         grepl("1013", seu$orig.ident) ~ "P12.1Rem")
 
-
-seu_diet$timepoint <- case_when(        grepl("2446", seu_diet_merged$orig.ident) ~ "pre-transplant",
+#add a point to show the samples timepoint in groups
+seu_diet$timepoint <- case_when(grepl("2446", seu_diet_merged$orig.ident) ~ "pre-transplant",
                                                grepl("25802", seu_diet_merged$orig.ident) ~ "3mo",
                                                grepl("2645", seu_diet_merged$orig.ident) ~ "6mo",
                                                grepl("1972", seu_diet_merged$orig.ident) ~ "pre-transplant",
@@ -231,67 +230,68 @@ seu_diet$timepoint <- case_when(        grepl("2446", seu_diet_merged$orig.ident
                                                grepl("1013", seu_diet_merged$orig.ident) ~ "1.5mo")
 
 
-Tcells$timepoint <- case_when(grepl("2446", Tcells$orig.ident) ~ "pre-transplant",
-                                         grepl("25802", Tcells$orig.ident) ~ "postTx_3-6m",
-                                         grepl("2645", Tcells$orig.ident) ~ "postTx_3-6m",
-                                         grepl("1972", Tcells$orig.ident) ~ "pre-transplant",
-                                         grepl("2220", Tcells$orig.ident) ~ "postTx_3-6m",
-                                         grepl("2621", Tcells$orig.ident) ~ "rem>6m",
-                                         grepl("9185", Tcells$orig.ident) ~ "rem>6m",
-                                         grepl("2599", Tcells$orig.ident) ~ "postTx_3-6m",
-                                         
-                                         
-                                         
-                                         grepl("9596", Tcells$orig.ident) ~ "pre-transplant",
-                                         grepl("25809", Tcells$orig.ident) ~ "postTx_3-6m",
-                                         grepl("2737", Tcells$orig.ident) ~ "relapse",
-                                         grepl("2379", Tcells$orig.ident) ~ "pre-transplant",
-                                         grepl("2434", Tcells$orig.ident) ~ "postTx_3-6m",
-                                         grepl("2518", Tcells$orig.ident) ~ "postTx_3-6m",
-                                         grepl("4618", Tcells$orig.ident) ~ "pre-transplant",
-                                         grepl("6174", Tcells$orig.ident) ~ "postTx_3-6m",
-                                         grepl("9931", Tcells$orig.ident) ~ "rem>6m", 
-                                         grepl("1953", Tcells$orig.ident) ~ "relapse",
-                                         
-                                         
-                                         grepl("1677", Tcells$orig.ident) ~ "pre-transplant",
-                                         grepl("1732", Tcells$orig.ident) ~ "rem<3m",
-                                         grepl("1811", Tcells$orig.ident) ~ "relapse",
-                                         grepl("1195", Tcells$orig.ident) ~ "pre-transplant",
-                                         grepl("1285", Tcells$orig.ident) ~ "rem<3m",
-                                         grepl("1347", Tcells$orig.ident) ~ "relapse", 
-                                         grepl("5641", Tcells$orig.ident) ~ "pre-transplant",
-                                         grepl("6244", Tcells$orig.ident) ~ "rem<3m",
-                                         grepl("9355", Tcells$orig.ident) ~ "pre-transplant",
-                                         grepl("1013", Tcells$orig.ident) ~ "rem<3m")
-
-
-Tcells$patient_identity <- case_when(grepl("2446|25802|2645", Tcells$orig.ident) ~ "pt01",
-                                     grepl("1972|2220|2621", Tcells$orig.ident) ~ "pt02",
-                                     grepl("9185", Tcells$orig.ident) ~ "pt03",
-                                     grepl("2599", Tcells$orig.ident) ~ "pt04",
-                                     grepl("9596|25809|2737", Tcells$orig.ident) ~ "pt05",
-                                     grepl("2379|2434", Tcells$orig.ident) ~ "pt06",
-                                     grepl("2518", Tcells$orig.ident) ~ "pt07",
-                                     grepl("4618|6174|9931|1953", Tcells$orig.ident) ~ "pt08",
-                                     grepl("1677|1732|1811", Tcells$orig.ident) ~ "pt09",
-                                     grepl("1195|1285|1347", Tcells$orig.ident) ~ "pt10",
-                                     grepl("5641|6244", Tcells$orig.ident) ~ "pt11",
-                                     grepl("9355|1013", Tcells$orig.ident) ~ "pt12")
- 
-
-
+#add a variable to combine MNC and CD3 libraries
+seu$Sample <- case_when( grepl("2446", seu$orig.ident) ~ "P01_0pre",
+                         grepl("25802_MNC", seu$orig.ident) ~ "P01_1Rem",
+                         grepl("25802_CD3", seu$orig.ident) ~ "P01_1Rem",
+                         grepl("2645", seu$orig.ident) ~ "P01_2Rem",
+                         grepl("1972_MNC", seu$orig.ident) ~ "P02_0pre",
+                         grepl("1972_CD3", seu$orig.ident) ~ "P02_0pre",
+                         grepl("2220", seu$orig.ident) ~ "P02_1Rem",
+                         grepl("2621_MNC", seu$orig.ident) ~ "P02_2Rem",
+                         grepl("2621_CD3", seu$orig.ident) ~ "P02_2Rem",
+                         grepl("9185_MNC", seu$orig.ident) ~ "P03_1Rem",
+                         grepl("9185_CD3", seu$orig.ident) ~ "P03_1Rem",
+                         grepl("2599_MNC", seu$orig.ident) ~ "P04_1Rem",
+                         grepl("2599_CD3", seu$orig.ident) ~ "P04_1Rem",
+                         grepl("9596_MNC", seu$orig.ident) ~ "P05_0pre",
+                         grepl("9596_CD3", seu$orig.ident) ~ "P05_0pre",
+                         grepl("25809", seu$orig.ident) ~ "P05_1Rem",
+                         grepl("2737_MNC", seu$orig.ident) ~ "P05_Rel",
+                         grepl("2737_CD3", seu$orig.ident) ~ "P05_Rel",
+                         grepl("2379_MNC", seu$orig.ident) ~ "P06_0pre",
+                         grepl("2379_CD3", seu$orig.ident) ~ "P06_0pre",
+                         grepl("2434", seu$orig.ident) ~ "P06_1Rem",
+                         grepl("2518_MNC", seu$orig.ident) ~ "P07_1Rem",
+                         grepl("2518_CD3", seu$orig.ident) ~ "P07_1Rem",
+                         
+                         grepl("4618", seu$orig.ident) ~ "P08_0pre",
+                         grepl("6174_MNC", seu$orig.ident) ~ "P08_1Rem",
+                         grepl("6174_CD3", seu$orig.ident) ~ "P08_1Rem",
+                         grepl("9931_MNC", seu$orig.ident) ~ "P08_2Rem",
+                         grepl("9931_CD3", seu$orig.ident) ~ "P08_2Rem",
+                         grepl("1953_MNC", seu$orig.ident) ~ "P08_0Rel",
+                         grepl("1953_CD3", seu$orig.ident) ~ "P08_0Rel",
+                         
+                         grepl("1677_MNC", seu$orig.ident) ~ "P09_0pre",
+                         grepl("1677_CD3", seu$orig.ident) ~ "P09_0pre",
+                         grepl("1732", seu$orig.ident) ~ "P09_1Rem",
+                         grepl("1811_MNC", seu$orig.ident) ~ "P09_Rel",
+                         grepl("1811_CD3", seu$orig.ident) ~ "P09_Rel",
+                         
+                         grepl("1195", seu$orig.ident) ~ "P10_0pre",
+                         grepl("1285", seu$orig.ident) ~ "P10_1Rem",
+                         grepl("1347_MNC", seu$orig.ident) ~ "P10_Rel",
+                         grepl("1347_CD3", seu$orig.ident) ~ "P10_Rel",
+                         
+                         grepl("5641", seu$orig.ident) ~ "P11_0pre",
+                         grepl("6244_MNC", seu$orig.ident) ~ "P11_1Rem",
+                         grepl("6244_CD3", seu$orig.ident) ~ "P11_1Rem",
+                         
+                         grepl("9355", seu$orig.ident) ~ "P12_0pre",
+                         grepl("1013", seu$orig.ident) ~ "P12_1Rem")
 
 
                             
 # Convert each variable to a factor
-seu$timepoint <- as.factor(seu@meta.data$orig.ident)
 seu$orig.ident <- as.factor(seu@meta.data$orig.ident)
 seu$cohort <- as.factor(seu@meta.data$cohort)
 seu$id <- as.factor(seu@meta.data$id)
 seu$status <- as.factor(seu@meta.data$status)
 seu$library_type <- as.factor(seu@meta.data$library_type)
-    
+seu$Sample <- as.factor(seu@meta.data$Sample)
+seu$groups <- as.factor(seu@meta.data$groups)
+
 
 # Save the Seurat object at this point 
 saveRDS(seu, file = "~/p53_seu.rds")                 
@@ -302,55 +302,39 @@ seu_diet <- DietSeurat(seu, dimreducs = names(seu@reductions))
 saveRDS(seu_diet, file ="~/seu_diet.rds")
 
 
-seu$sample <- case_when( grepl("2446", seu$orig.ident) ~ "P01.0pre",
-                     grepl("25802_MNC", seu$orig.ident) ~ "P01.1Rem",
-                     grepl("25802_CD3", seu$orig.ident) ~ "P01.1Rem",
-                     grepl("2645", seu$orig.ident) ~ "P01.2Rem",
-                     grepl("1972_MNC", seu$orig.ident) ~ "P02.0pre",
-                     grepl("1972_CD3", seu$orig.ident) ~ "P02.0pre",
-                     grepl("2220", seu$orig.ident) ~ "P02.1Rem",
-                     grepl("2621_MNC", seu$orig.ident) ~ "P02.2Rem",
-                     grepl("2621_CD3", seu$orig.ident) ~ "P02.2Rem",
-                     grepl("9185_MNC", seu$orig.ident) ~ "P03.1Rem",
-                     grepl("9185_CD3", seu$orig.ident) ~ "P03.1Rem",
-                     grepl("2599_MNC", seu$orig.ident) ~ "P04.1Rem",
-                     grepl("2599_CD3", seu$orig.ident) ~ "P04.1Rem",
-                     grepl("9596_MNC", seu$orig.ident) ~ "P05.0pre",
-                     grepl("9596_CD3", seu$orig.ident) ~ "P05.0pre",
-                     grepl("25809", seu$orig.ident) ~ "P05.1Rem",
-                     grepl("2737_MNC", seu$orig.ident) ~ "P05.Rel",
-                     grepl("2737_CD3", seu$orig.ident) ~ "P05.Rel",
-                     grepl("2379_MNC", seu$orig.ident) ~ "P06.0pre",
-                     grepl("2379_CD3", seu$orig.ident) ~ "P06.0pre",
-                     grepl("2434", seu$orig.ident) ~ "P06.1Rem",
-                     grepl("2518_MNC", seu$orig.ident) ~ "P07.1Rem",
-                     grepl("2518_CD3", seu$orig.ident) ~ "P07.1Rem",
-                     
-                     grepl("4618", seu$orig.ident) ~ "P08.0pre",
-                     grepl("6174_MNC", seu$orig.ident) ~ "P08.1Rem",
-                     grepl("6174_CD3", seu$orig.ident) ~ "P08.1Rem",
-                     grepl("9931_MNC", seu$orig.ident) ~ "P08.2Rem",
-                     grepl("9931_CD3", seu$orig.ident) ~ "P08.2Rem",
-                     grepl("1953_MNC", seu$orig.ident) ~ "P08.0Rel",
-                     grepl("1953_CD3", seu$orig.ident) ~ "P08.0Rel",
-                     
-                     grepl("1677_MNC", seu$orig.ident) ~ "P09.0pre",
-                     grepl("1677_CD3", seu$orig.ident) ~ "P09.0pre",
-                     grepl("1732", seu$orig.ident) ~ "P09.1Rem",
-                     grepl("1811_MNC", seu$orig.ident) ~ "P09.Rel",
-                     grepl("1811_CD3", seu$orig.ident) ~ "P09.Rel",
-                     
-                     grepl("1195", seu$orig.ident) ~ "P10.0pre",
-                     grepl("1285", seu$orig.ident) ~ "P10.1Rem",
-                     grepl("1347_MNC", seu$orig.ident) ~ "P10.Rel",
-                     grepl("1347_CD3", seu$orig.ident) ~ "P10.Rel",
-                     
-                     grepl("5641", seu$orig.ident) ~ "P11.0pre",
-                     grepl("6244_MNC", seu$orig.ident) ~ "P11.1Rem",
-                     grepl("6244_CD3", seu$orig.ident) ~ "P11.1Rem",
-                     
-                     grepl("9355", seu$orig.ident) ~ "P12.0pre",
-                     grepl("1013", seu$orig.ident) ~ "P12.1Rem")
-           
+#I had to run this since I added these variables long after I subsetted t cells but for who are just running the script from starch it won't be necessary to run these lines down below.
+#add a point to show the samples timepoint in groups
+Tcells$groups <- case_when(grepl("2446", Tcells$orig.ident) ~ "pre-transplant",
+                           grepl("25802", Tcells$orig.ident) ~ "postTx_3-6m",
+                           grepl("2645", Tcells$orig.ident) ~ "postTx_3-6m",
+                           grepl("1972", Tcells$orig.ident) ~ "pre-transplant",
+                           grepl("2220", Tcells$orig.ident) ~ "postTx_3-6m",
+                           grepl("2621", Tcells$orig.ident) ~ "rem>6m",
+                           grepl("9185", Tcells$orig.ident) ~ "rem>6m",
+                           grepl("2599", Tcells$orig.ident) ~ "postTx_3-6m",
+                           
+                           
+                           
+                           grepl("9596", Tcells$orig.ident) ~ "pre-transplant",
+                           grepl("25809", Tcells$orig.ident) ~ "postTx_3-6m",
+                           grepl("2737", Tcells$orig.ident) ~ "relapse",
+                           grepl("2379", Tcells$orig.ident) ~ "pre-transplant",
+                           grepl("2434", Tcells$orig.ident) ~ "postTx_3-6m",
+                           grepl("2518", Tcells$orig.ident) ~ "postTx_3-6m",
+                           grepl("4618", Tcells$orig.ident) ~ "pre-transplant",
+                           grepl("6174", Tcells$orig.ident) ~ "postTx_3-6m",
+                           grepl("9931", Tcells$orig.ident) ~ "rem>6m", 
+                           grepl("1953", Tcells$orig.ident) ~ "relapse",
+                           
+                           
+                           grepl("1677", Tcells$orig.ident) ~ "pre-transplant",
+                           grepl("1732", Tcells$orig.ident) ~ "rem<3m",
+                           grepl("1811", Tcells$orig.ident) ~ "relapse",
+                           grepl("1195", Tcells$orig.ident) ~ "pre-transplant",
+                           grepl("1285", Tcells$orig.ident) ~ "rem<3m",
+                           grepl("1347", Tcells$orig.ident) ~ "relapse", 
+                           grepl("5641", Tcells$orig.ident) ~ "pre-transplant",
+                           grepl("6244", Tcells$orig.ident) ~ "rem<3m",
+                           grepl("9355", Tcells$orig.ident) ~ "pre-transplant",
+                           grepl("1013", Tcells$orig.ident) ~ "rem<3m")
 
-                 

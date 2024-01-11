@@ -43,8 +43,7 @@ contig_list <- list(P01_1Rem, P01_1RemT, P01_2Rem, P02_1Rem, P04_1Rem, P04_1RemT
 # Combine all the samples
 combined <- combineTCR(contig_list,
                        samples = c("P01_1Rem", "P01_1RemT", "P01_2Rem", "P02_1Rem", "P04_1Rem", "P04_1RemT",
-                                   "P05_1Rem","P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))#,
-#                       cells ="T-AB")
+                                   "P05_1Rem","P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))
 
 # Add variables
 combined <- addVariable(combined, variable.name = "cohort",

@@ -10,11 +10,6 @@ library(RColorBrewer)
 library(ggpubr)
 library(tidyverse)
 library(janitor)
-library(ggrepel)
-library(cowplot)
-library(TSP)
-library(ggnewscale)
-library(ggrastr)
 
 # Empty environment
 rm(list=ls())
@@ -62,7 +57,7 @@ clonalDiversity(combined,
 
 
 # Load the Seurat object subsetted for T cells
-Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/TCR data/RDS/Tcellsubset.rds"))
+Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/TCR data/RDS/Tcellsfinal.rds"))
 
 tabyl(Tcells$id)
   
@@ -99,7 +94,7 @@ Tcells_combined <- combineExpression(combined, Tcells,
 #calculate the frequency, setting group by to sample which is combined samples(T-cell enriched and MNC)
 clonalDiversity(Tcells_combined,
                 cloneCall = "strict",
-                group.by = "sample",
+                group.by = "Sample",
                 metrics = c("inv.simpson","gini.simpson"),
                 exportTable = T)
 

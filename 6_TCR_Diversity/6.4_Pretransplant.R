@@ -57,7 +57,7 @@ clonalDiversity(combined,
 
 
 # Load the Seurat object subsetted for T cells
-Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/TCR data/RDS/Tcellsfinal.rds"))
+Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/Tcellsfinal.rds"))
 
 tabyl(Tcells$id)
   

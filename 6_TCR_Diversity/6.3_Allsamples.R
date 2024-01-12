@@ -158,7 +158,7 @@ combined <- combineTCR(contig_list,
          axis.title.y = element_text(size = 15, color = "black"))
  
  # Load the Seurat object subsetted for T cells
- Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/TCR data/RDS/Tcellsfinal.rds"))
+ Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/Tcellsfinal.rds"))
 
  # Keep only annotated T cell clusters (remove NK cells)
  Tcells <- subset(x = Tcells, subset = seurat_clusters %in% c(0,1,2,3,4,5,6,7,9,10,11,12,14)) 

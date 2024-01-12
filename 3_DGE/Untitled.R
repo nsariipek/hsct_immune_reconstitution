@@ -29,9 +29,14 @@ library(Matrix.utils)
 # Empty environment
 rm(list=ls())
 
-#Load the saved seurat objects
+# For Nurefsan:
+my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
 
+#Load the saved seurat objects
 seu_diet_merged <- readRDS("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/RDS files/seu_diet_merged.rds")
+
+#Load the T cells only if you want to see only T cells
+seu_diet_merged <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/Tcellsfinal.rds"))
 
 View(seu_diet_merged@meta.data)
 
@@ -204,13 +209,15 @@ for (celltype in unique(sce$celltype)) {
   idx = which(names(counts_ls) == celltype)
   cluster_counts = counts_ls[[idx]]
   cluster_metadata = metadata_ls[[idx]]
+  
   # Create DESeq2 object 
   dds = DESeqDataSetFromMatrix(cluster_counts, 
                                colData = cluster_metadata, 
                                design =  ~ cohort)
   
-  #new line from Ksenia to make sure that the plots are generated according to correct reference
+  # New line from Ksenia to make sure that the plots are generated according to correct reference
   dds$cohort = relevel(dds$cohort, ref = "cohort1")
+  
   # Transform counts for data visualization
   rld = rlog(dds, blind=TRUE)
   
@@ -252,11 +259,12 @@ for (celltype in unique(sce$celltype)) {
     arrange(padj)
   
   
-  #sec-option for those do not have p-adj <0.05
-  sig_res= res_tbl %>% dplyr::arrange(padj)
+  #sec-option for those do not have p-adj <0.05 so we'll remove the threshold and rename some variable since the genes we'll be seeing won't be significantly different 
+  
+  adj_res= res_tbl %>% dplyr::arrange(padj)
   
   
-  if (nrow(sig_res) < 2) {
+  if (nrow(adj_res) < 2) {
     print(paste0(celltype, ' doesn\'t have enough DEGs, skip'))
     next
   }
@@ -265,56 +273,54 @@ for (celltype in unique(sce$celltype)) {
   normalized_counts = counts(dds, normalized = TRUE)
   
   ## Extract top 20 DEG from resLFC (make sure to order by padj)
-  top20_sig_genes = sig_res %>%
+  top20_genes = adj_res %>%
     dplyr::arrange(padj) %>%
     dplyr::pull(gene) %>%
     head(n = 20)
   
   ## Extract matching normalized count values from matrix
-  top20_sig_counts = normalized_counts[rownames(normalized_counts) %in% top20_sig_genes, ]
+  top20_counts = normalized_counts[rownames(normalized_counts) %in% top20_genes, ]
   
   ## Convert wide matrix to long data frame for ggplot2
-  top20_sig_df = data.frame(top20_sig_counts)
-  top20_sig_df$gene = rownames(top20_sig_counts)
+  top20_df = data.frame(top20_counts)
+  top20_df$gene = rownames(top20_counts)
   
-  top20_sig_df = melt(setDT(top20_sig_df), 
+  top20_df = melt(setDT(top20_df), 
                       id.vars = c("gene"),
                       variable.name = "sample") %>% 
     data.frame()
   
   ## Replace "." by " " in cluster_sample_id variable (melt() introduced the ".")
-  top20_sig_df$sample= gsub("\\.", " ", top20_sig_df$sample)
+  top20_df$sample= gsub("\\.", " ", top20_df$sample)
   
   
-  top20_sig_df$celltype_sample_id= top20_sig_df$sample
+  top20_df$celltype_sample_id= top20_df$sample
   
-  top20_sig_df = plyr::join(top20_sig_df, as.data.frame(colData(dds)),
+  top20_df = plyr::join(top20_df, as.data.frame(colData(dds)),
                             by = "celltype_sample_id")
   
   ## Generate plot
-  p3 = ggplot(top20_sig_df, aes(y = value, x = cohort, col = cohort)) +
+  p3 = ggplot(top20_df, aes(y = value, x = cohort, col = cohort)) +
     geom_jitter(height = 0, width = 0.15) +
     scale_y_continuous(trans = 'log10') +
     ylab("log10 of normalized expression level") +
     xlab("condition") +
-    ggtitle("Top 20 Significant DE Genes") +
+    ggtitle("Top 20 DE Genes") +
     theme(plot.title = element_text(hjust = 0.5)) +
     facet_wrap(~ gene)
-  
+  p3
   
   ###I don't know why but heatmap crashes the code so I removed the heatmap part. 
   
   ## Extract normalized counts for significant genes only
-  sig_counts = normalized_counts[rownames(normalized_counts) %in% sig_res$gene, ]
+  adj_counts = normalized_counts[rownames(normalized_counts) %in% adj_res$gene, ]
 
-  ## Run pheatmap using the metadata data frame for the annotation
-  
   # Volcano plot
   log2fc_cutoff = 0.26 # (20% increase)
   res_table_thres = res_tbl[!is.na(res_tbl$padj), ] %>% 
     mutate(threshold = abs(log2FoldChange) >= log2fc_cutoff)
   
-  top_genes = top20_sig_df$gene %>% unique()
+  top_genes = top20_df$gene %>% unique()
   
   ## Generate plot
   p5 = ggplot() +

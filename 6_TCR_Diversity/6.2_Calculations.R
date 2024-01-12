@@ -1,5 +1,20 @@
+#Nov,2023
+
+#Trying to calculate indeces by ourselves with this code 
+library(scRepertoire)
+library(Seurat)
+library(randomcoloR)
+library(RColorBrewer)
+library(ggpubr)
+library(tidyverse)
+library(janitor)
+library(vegan)
+
+# For Nurefsan:
+my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
 # Load the Seurat object subsetted for T cells
-Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/TCR data/RDS/Tcellsubset.rds"))
+Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/Tcellsfinal.rds"))
+
 
 # Keep only annotated T cell clusters (remove NK cells)
 Tcells <- subset(x = Tcells, subset = seurat_clusters %in% c(0,1,2,3,4,5,6,7,9,10,11,12,14)) 

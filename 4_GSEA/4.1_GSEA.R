@@ -1,4 +1,8 @@
+#Nurefsan Sariipek
+# latest update on January 14, 2024
+
 # GSEA based on pseudobulk DE results
+#this script is based on harvard tutorial and Ksenia's note which you can find on your local files under R/R scripts
 
 # Load libraries
 library(SingleCellExperiment)
@@ -15,11 +19,14 @@ library(org.Hs.eg.db)
 library(msigdbr)
 library(enrichplot)
 
-name = "all_celltypes"
+# For Nurefsan:
+my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/"
 
-de_res_total = read.csv(file = paste0(name, ".pseudobulk_DE_res.csv"))
-#or
-de_res_total = read.csv(file = "~/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/DGE/posthsct/all_celltypes.pseudobulk_DE_res.csv")
+name = "all_celltypes"
+#load the table you created end of 3_DGE script
+#Make sure and pray these are pre-ranked
+de_res_total = read.csv(file = paste0(my_wd, "DGE/unsignificant genes only T cells/nonsig_celltypes.pseudobulk_DE_res.csv"))
+ 
 total_result = data.frame()
 
 for (i in unique(de_res_total$celltype)) {
@@ -38,28 +45,10 @@ for (i in unique(de_res_total$celltype)) {
   
   result = data.frame()
   
-  # GSE across GO-BP categories
-  dataset = msigdbr(species = "Homo sapiens",
-                    category = "C5",
-                    subcategory = "BP") %>% 
-    dplyr::select(gs_name, entrez_gene)
-  
-  gsea_out = GSEA(named_list,
-                  TERM2GENE = dataset,
-                  pvalueCutoff = 1,
-                  pAdjustMethod = "fdr",
-                  verbose = FALSE,
-                  eps = 0)
-  if (dim(gsea_out@result)[1] > 0) {
-    result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
-  }
-  
-  # same for MSigDB C2:CP:KEGG, MSigDB:C7, and MSigDB:H
-  
-  # GSE across MSigDB C2:CP:KEGG categories
+# select C2- CP category, check wiht Peter if this is right 
   dataset = msigdbr(species = "Homo sapiens",
                     category = "C2",
-                    subcategory = "CP:KEGG") %>% 
+                    subcategory = "CP") %>% 
     dplyr::select(gs_name, entrez_gene)
   
   gsea_out = GSEA(named_list,
@@ -71,8 +60,9 @@ for (i in unique(de_res_total$celltype)) {
   if (dim(gsea_out@result)[1] > 0) {
     result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
   }
-  
+
   # GSE across MSigDB C7 immunologic gene set
+  # Note to future Nurefsan, Is this selecting all of the C7- curated pathways ?
   dataset = msigdbr(species = "Homo sapiens",
                     category = "C7") %>% 
     dplyr::select(gs_name, entrez_gene)
@@ -87,39 +77,9 @@ for (i in unique(de_res_total$celltype)) {
     result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
   }
   
- # dataset = msigdbr(species = "Homo sapiens",
-  #                  category = "H") %>% 
-   # dplyr::select(gs_name, entrez_gene)
-  
-  #gsea_out = GSEA(named_list,
-   #               TERM2GENE = dataset,
-    #              pvalueCutoff = 1,
-     #             pAdjustMethod = "fdr",
-      #            verbose = FALSE,
-       #           eps = 0)
-  #if (dim(gsea_out@result)[1] > 0) {
-   # result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
-  #}
-  
-  #dotplot(gsea_out, showCategory=20)
-   #gseaplot2(gsea_out, geneSetID = 1)
-   
-  # temp = gsea_out@result
-  # temp %>% 
-  #   dplyr::select(ID, NES, p.adjust) %>%
-  #   filter(p.adjust<0.05) %>%
-  #   arrange(desc(NES)) %>%
-  #   mutate(ID = sub('REACTOME_', '', ID)) %>%
-  #   mutate(ID = stringr::str_trunc(ID, 40)) %>%
-  #   mutate(ID = factor(ID, levels = ID)) %>%
-  #   ggplot(aes(y=NES,x=ID,fill=p.adjust)) +
-  #   geom_bar(stat = "identity") +
-  #   theme_pubr(base_size = 10) +
-  #   theme(axis.text.x = element_text(angle=90,vjust=0.5))
-  
+ 
   result$celltype = i
   total_result = rbind(total_result, result)
-  
 }
 
 

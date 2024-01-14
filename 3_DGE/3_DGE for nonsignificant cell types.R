@@ -35,13 +35,14 @@ my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
 #Load the saved seurat objects
 seu_diet_merged <- readRDS("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/RDS files/seu_diet_merged.rds")
 
-#Load the T cells only if you want to see only T cells
+#Load the T and NK cells only if you want to see only T cells
 seu_diet_merged <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/Tcellsfinal.rds"))
 
 View(seu_diet_merged@meta.data)
 
 ex <- subset(x= seu_diet_merged, subset =cohort %in% c("cohort1","cohort2"))
 ex <- subset(x= ex, subset =status %in% c("remission"))
+ex$id =gsub("\\_", ".", ex$id)
 ex <- subset(x=ex, subset = id %in% c("P01.1Rem", "P01.1RemT", "P01.2Rem", "P02.1Rem", "P04.1Rem", "P04.1RemT", "P05.1Rem", "P06.1Rem", "P07.1Rem", "P07.1RemT", "P08.1Rem", "P08.1RemT"))
 
 #Pool MNC and CD3 samples
@@ -318,7 +319,7 @@ for (celltype in unique(sce$celltype)) {
   # Volcano plot
   log2fc_cutoff = 0.26 # (20% increase)
   res_table_thres = res_tbl[!is.na(res_tbl$padj), ] %>% 
-    mutate(threshold = abs(log2FoldChange) >= log2fc_cutoff)
+    mutate(threshold = abs(log2FoldChange) >= log2fc_cutoff) %>% dplyr::arrange(padj)
   
   top_genes = top20_df$gene %>% unique()
   

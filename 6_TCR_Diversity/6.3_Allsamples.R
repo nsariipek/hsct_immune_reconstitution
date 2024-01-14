@@ -16,6 +16,9 @@ rm(list=ls())
 # For Nurefsan:
 my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
 
+
+###### Load the all dataset#####
+
 # Cohort 1
 P01_0pre <- read.csv(paste0(my_wd, "Single Cell Data/2446_MNC/vdj_t/filtered_contig_annotations.csv"))
 
@@ -37,7 +40,7 @@ P03_1RemT <-  read.csv(paste0(my_wd, "Single Cell Data/9185_CD3/vdj_t/filtered_c
 P04_1Rem <-    read.csv(paste0(my_wd, "Single Cell Data/2599_MNC/vdj_t/filtered_contig_annotations.csv"))
 P04_1RemT <-  read.csv(paste0(my_wd, "Single Cell Data/2599_CD3/vdj_t/filtered_contig_annotations.csv"))
 
-# Combine only cohort 1 
+##### Combine only cohort 1 ####
 
 # Make a list 
 contig_list <- list(P01_0pre, P01_1Rem, P01_1RemT, P01_2Rem, P02_0pre, P02_0preT, P02_1Rem, P02_2Rem, P02_2RemT, P03_1Rem, P03_1RemT, P04_1Rem, P04_1RemT)
@@ -70,6 +73,7 @@ P06_1Rem <-   read.csv(paste0(my_wd, "Single Cell Data/2434_MNC/vdj_t/filtered_c
 P07_1Rem <-  read.csv(paste0(my_wd, "Single Cell Data/2518_MNC/vdj_t/filtered_contig_annotations.csv"))
 P07_1RemT <-  read.csv(paste0(my_wd, "Single Cell Data/2518_CD3/vdj_t/filtered_contig_annotations.csv"))
 
+P08_0pre <-  read.csv(paste0(my_wd, "Single Cell Data/4618_MNC/vdj_t/filtered_contig_annotations.csv"))
 
 P08_1Rem <-  read.csv(paste0(my_wd, "Single Cell Data/6174_MNC/vdj_t/filtered_contig_annotations.csv"))
 P08_1RemT <- read.csv(paste0(my_wd, "Single Cell Data/6174_CD3/vdj_t/filtered_contig_annotations.csv"))
@@ -80,22 +84,22 @@ P08_2RemT <-  read.csv(paste0(my_wd, "Single Cell Data/9931_CD3/vdj_t/filtered_c
 P08_0Rel <-  read.csv(paste0(my_wd, "Single Cell Data/1953_MNC/vdj_t/filtered_contig_annotations.csv"))
 P08_0RelT <-  read.csv(paste0(my_wd, "Single Cell Data/1953_CD3/vdj_t/filtered_contig_annotations.csv"))
 
-# combine only cohort 2 
+##### Combine only cohort 2 #####
 
 # Make a list 
-contig_list <- list(P05_0pre, P05_0preT, P05_1Rem, P05_Rel, P05_RelT, P06_0pre, P06_0preT, P06_1Rem, P07_1Rem, P07_1RemT, P08_0Rel, P08_0RelT, P08_1Rem, P08_1RemT, P08_2Rem, P08_2RemT)
+contig_list <- list(P05_0pre, P05_0preT, P05_1Rem, P05_Rel, P05_RelT, P06_0pre, P06_0preT, P06_1Rem, P07_1Rem, P07_1RemT,P08_0pre, P08_0Rel, P08_0RelT, P08_1Rem, P08_1RemT, P08_2Rem, P08_2RemT)
 
 combined <- combineTCR(contig_list, 
-                       samples = c("P05_0pre", "P05_0preT", "P05_1Rem", "P05_Rel", "P05_RelT", "P06_0pre", "P06_0preT", "P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_0Rel", "P08_0RelT", "P08_1Rem", "P08_1RemT", "P08_2Rem", "P08_2RemT"))     
+                       samples = c("P05_0pre", "P05_0preT", "P05_1Rem", "P05_Rel", "P05_RelT", "P06_0pre", "P06_0preT", "P06_1Rem", "P07_1Rem", "P07_1RemT","P08_0pre", "P08_0Rel", "P08_0RelT", "P08_1Rem", "P08_1RemT", "P08_2Rem", "P08_2RemT"))     
 
 combined <- addVariable(combined, variable.name = "ptnumber",
-                        variables = c("P05-0","P05-0","P05-1","P05-2","P05-2", "P06-0","P06-0", "P06-1","P07-1","P07-1","P08-3","P08-3","P08-1","P08-1","P08-2","P08-2"))
+                        variables = c("P05-0","P05-0","P05-1","P05-2","P05-2", "P06-0","P06-0", "P06-1","P07-1","P07-1","P08-0",  "P08-3","P08-3","P08-1","P08-1","P08-2","P08-2"))
 
 combined <- addVariable(combined, variable.name = "cohort",
                         variables = c("cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2")) 
 
 
-# just cohort1-2 
+#######Just cohort1-2#####
 # Make a list 
 contig_list <- list(P01_0pre, P01_1Rem, P01_1RemT, P01_2Rem, P02_0pre, P02_0preT, P02_1Rem, P02_2Rem, P02_2RemT, P03_1Rem, P03_1RemT, P04_1Rem, P04_1RemT, P05_0pre, P05_0preT, P05_1Rem, P05_Rel, P05_RelT, P06_0pre, P06_0preT, P06_1Rem, P07_1Rem, P07_1RemT, P08_0Rel, P08_0RelT, P08_1Rem, P08_1RemT, P08_2Rem, P08_2RemT)
 
@@ -145,7 +149,7 @@ combined <- combineTCR(contig_list,
  combined <- addVariable(combined, variable.name = "cohort",
                          variables = c("cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort3","cohort3","cohort3","cohort3","cohort3","cohort3","cohort3","cohort3","cohort3","cohort3","cohort3")) 
  
- # Visualize diversity metrics
+ # Visualize diversity metrics before combining with gene expression dataset
  clonalDiversity(combined,
                  cloneCall = "strict",
                  group.by = "cohort",
@@ -157,22 +161,19 @@ combined <- combineTCR(contig_list,
          axis.text.y = element_text(size = 15),
          axis.title.y = element_text(size = 15, color = "black"))
  
+ 
+ #######Adding the gene expression dataset#####
  # Load the Seurat object subsetted for T cells
  Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/Tcellsfinal.rds"))
 
  # Keep only annotated T cell clusters (remove NK cells)
  Tcells <- subset(x = Tcells, subset = seurat_clusters %in% c(0,1,2,3,4,5,6,7,9,10,11,12,14)) 
  
-# Tcells <- subset(x= Tcells, subset = cohort %in% c("cohort1", "cohort2"))
-# subset(x= Tcells_combined, subset =id %in% c("P01_1Rem", "P01_1RemT", "P02_1Rem", "P04_1Rem", "P04_1RemT", "P05_1Rem","P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))
- 
- 
  # Check the metadata 
  # View(Tcells@meta.data)
  # Check the T cell types
  table(Idents(Tcells))
 
-  
  # Wrangle the metadata to make it compatible with the TCR metadata (combined)
  Tcells_meta <- Tcells@meta.data
  Tcells_meta$renamedcells <- gsub("-\\d+_\\d+","", rownames(Tcells@meta.data))
@@ -193,7 +194,52 @@ combined <- combineTCR(contig_list,
                                       filterNA = T,
                                       cloneSize = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
 
- # Adding Souporcell information
+######Compare clonotypes#####
+# To create alluvial graphs as we discusse with Peter and to do list figure 2 I am using the clonal compare function from sc repertoire and subsetting each patient from the big combined seurat metadata thinkin this is right thing to do 
+# As 240114 I combined each cohort seperately using clonetype= strict and subsetted each patient I am unsure if this is the best method to create these plots 
+ 
+ #subset patient's seperately 
+ p1 <- subset(x = Tcells_combined, subset =id %in% c("P01_0pre", "P01_0preT", "P01_1Rem", "P01_1RemT","P01_2Rem"))
+ p2 <- subset(x = Tcells_combined, subset =id %in% c("P02_0pre", "P02_0preT", "P02_1Rem", "P02_2Rem", "P02_2RemT"))
+ 
+ p5 <- subset(x = Tcells_combined, subset =id %in% c("P05_0pre", "P05_0preT", "P05_1Rem", "P05_Rel","P05_RelT"))
+ p6 <- subset(x = Tcells_combined, subset =id %in% c("P06_0pre", "P06_0preT", "P06_1Rem")) 
+ p8 <-  subset(x = Tcells_combined, subset =id %in% c("P08_0pre", "P08_0Rel", "P08_0RelT", "P08_1Rem", "P08_1RemT", "P08_2Rem", "P08_2RemT"))
+ 
+ #unfortunately I could not find a wat to reorder x axis due to sc repertoire being so annoying so I am changing the name of object to put them in order 
+ 
+ Tcells_combined_meta <- Tcells_combined@meta.data
+ Tcells_combined_meta$groups <- gsub("rem>6m","re0m>6m", Tcells_combined_meta$groups)
+ Tcells_combined_meta$groups <- gsub("pre_transplant","0_Pre_transplant",    Tcells_combined_meta$groups)
+ 
+ Tcells_combined@meta.data <- Tcells_combined_meta  
+ 
+ 
+ 
+clonalCompare(p8, 
+                  group.by = "groups",
+                  cloneCall="aa", 
+                  top.clones = 10,
+                  relabel.clones = TRUE,
+                  graph = "alluvial")
+
+
+
+# actual function down below 
+clonalCompare <- function(input.data, 
+                           cloneCall = "strict", 
+                           chain = "both", 
+                           samples = NULL, 
+                           clones = NULL, 
+                           top.clones = NULL,
+                           highlight.clones = NULL,
+                           relabel.clones = FALSE,
+                           group.by = NULL, 
+                           graph = "alluvial", 
+                           exportTable = FALSE, 
+                           palette = "inferno")
+ 
+ ######Adding Souporcell information#####
  # Load the metadata that contains souporcell information
 df1 <- read_csv(paste0(my_wd, "/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv"))
 df3 <- read_csv(paste0(my_wd, "/AnalysisNurefsan/Souporcell/output/cohort3_souporcell.csv"))
@@ -235,19 +281,7 @@ x <-  subset(x= Tcells_combined, subset =id %in% c("P01_1Rem", "P01_1RemT","P01_
                  metrics = c("inv.simpson","shannon"),
                  exportTable = TRUE)
  
- #+
-   theme(aspect.ratio = 1, axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 15, color = "black"),
-         axis.title.x = element_blank(),
-         axis.text.y = element_text(size = 15),
-         axis.title.y = element_text(size = 15, color = "black"),
-         legend.key.size = unit(2,"mm"),
-         legend.position = "right",
-         legend.title = element_text(size = 15),
-         legend.text = element_text(size = 15))    
  
- 
- ordered_timepoints= c("pre-transplant", "rem<3m","postTx_3-6m", "rem>6m","relapse")
- Tcells_combined$groups= factor(Tcells_combined$groups, levels = ordered_timepoints)
  
  
  

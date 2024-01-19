@@ -15,9 +15,9 @@ library(readxl)
 
 #Load the saved dataframe that contains the information from the previous part
 # For Nurefsan
-combined_df <- read_csv(file = "/Users/dz855/Dropbox/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv")
+combined_df <- read_csv(file = "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/outputs/cohort1-2_souporcell.csv")
 # For Peter
-combined_df <- read_csv(file = "~/DropboxMGB/Projects/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv")
+combined_df <- read_csv(file = "~/DropboxMGB/Projects/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/outputs/cohort1-2_souporcell.csv")
 
 #subset and summarise as you like to visualize 
 

@@ -1,7 +1,6 @@
 #Checking all of the samples
 #Nurefsan Sariipek
 # date: "Dec 20th, 2023"
-
 library(scRepertoire)
 library(Seurat)
 library(randomcoloR)
@@ -17,9 +16,9 @@ rm(list=ls())
 my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
 
 
-###### Load the all dataset#####
+###### Load the VDJ libraries #####
 
-# Cohort 1
+###### Load Cohort 1 ####
 P01_0pre <- read.csv(paste0(my_wd, "Single Cell Data/2446_MNC/vdj_t/filtered_contig_annotations.csv"))
 
 P01_1Rem <- read.csv(paste0(my_wd, "Single Cell Data/25802_MNC/vdj_t/filtered_contig_annotations.csv"))
@@ -55,7 +54,7 @@ combined <- addVariable(combined, variable.name = "ptnumber",
 combined <- addVariable(combined, variable.name = "cohort",
                         variables = c("cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1")) 
 
-# Cohort 2
+#### Load Cohort 2 ####
 
 P05_0pre <-  read.csv(paste0(my_wd, "Single Cell Data/9596_MNC/vdj_t/filtered_contig_annotations.csv"))
 P05_0preT <-  read.csv(paste0(my_wd, "Single Cell Data/9596_CD3/vdj_t/filtered_contig_annotations.csv"))
@@ -72,8 +71,8 @@ P06_1Rem <-   read.csv(paste0(my_wd, "Single Cell Data/2434_MNC/vdj_t/filtered_c
 
 P07_1Rem <-  read.csv(paste0(my_wd, "Single Cell Data/2518_MNC/vdj_t/filtered_contig_annotations.csv"))
 P07_1RemT <-  read.csv(paste0(my_wd, "Single Cell Data/2518_CD3/vdj_t/filtered_contig_annotations.csv"))
-
-P08_0pre <-  read.csv(paste0(my_wd, "Single Cell Data/4618_MNC/vdj_t/filtered_contig_annotations.csv"))
+#due to the low cell number 
+#P08_0pre <-  read.csv(paste0(my_wd, "Single Cell Data/4618_MNC/vdj_t/filtered_contig_annotations.csv"))
 
 P08_1Rem <-  read.csv(paste0(my_wd, "Single Cell Data/6174_MNC/vdj_t/filtered_contig_annotations.csv"))
 P08_1RemT <- read.csv(paste0(my_wd, "Single Cell Data/6174_CD3/vdj_t/filtered_contig_annotations.csv"))
@@ -87,19 +86,19 @@ P08_0RelT <-  read.csv(paste0(my_wd, "Single Cell Data/1953_CD3/vdj_t/filtered_c
 ##### Combine only cohort 2 #####
 
 # Make a list 
-contig_list <- list(P05_0pre, P05_0preT, P05_1Rem, P05_Rel, P05_RelT, P06_0pre, P06_0preT, P06_1Rem, P07_1Rem, P07_1RemT,P08_0pre, P08_0Rel, P08_0RelT, P08_1Rem, P08_1RemT, P08_2Rem, P08_2RemT)
+contig_list <- list(P05_0pre, P05_0preT, P05_1Rem, P05_Rel, P05_RelT, P06_0pre, P06_0preT, P06_1Rem, P07_1Rem, P07_1RemT, P08_0Rel, P08_0RelT, P08_1Rem, P08_1RemT, P08_2Rem, P08_2RemT)
 
 combined <- combineTCR(contig_list, 
-                       samples = c("P05_0pre", "P05_0preT", "P05_1Rem", "P05_Rel", "P05_RelT", "P06_0pre", "P06_0preT", "P06_1Rem", "P07_1Rem", "P07_1RemT","P08_0pre", "P08_0Rel", "P08_0RelT", "P08_1Rem", "P08_1RemT", "P08_2Rem", "P08_2RemT"))     
+                       samples = c("P05_0pre", "P05_0preT", "P05_1Rem", "P05_Rel", "P05_RelT", "P06_0pre", "P06_0preT", "P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_0Rel", "P08_0RelT", "P08_1Rem", "P08_1RemT", "P08_2Rem", "P08_2RemT"))     
 
 combined <- addVariable(combined, variable.name = "ptnumber",
-                        variables = c("P05-0","P05-0","P05-1","P05-2","P05-2", "P06-0","P06-0", "P06-1","P07-1","P07-1","P08-0",  "P08-3","P08-3","P08-1","P08-1","P08-2","P08-2"))
+                        variables = c("P05-0","P05-0","P05-1","P05-2","P05-2", "P06-0","P06-0", "P06-1","P07-1","P07-1",   "P08-3","P08-3","P08-1","P08-1","P08-2","P08-2"))
 
 combined <- addVariable(combined, variable.name = "cohort",
                         variables = c("cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2")) 
 
 
-#######Just cohort1-2#####
+####### Combine cohort1-2#####
 # Make a list 
 contig_list <- list(P01_0pre, P01_1Rem, P01_1RemT, P01_2Rem, P02_0pre, P02_0preT, P02_1Rem, P02_2Rem, P02_2RemT, P03_1Rem, P03_1RemT, P04_1Rem, P04_1RemT, P05_0pre, P05_0preT, P05_1Rem, P05_Rel, P05_RelT, P06_0pre, P06_0preT, P06_1Rem, P07_1Rem, P07_1RemT, P08_0Rel, P08_0RelT, P08_1Rem, P08_1RemT, P08_2Rem, P08_2RemT)
 
@@ -114,7 +113,7 @@ combined <- addVariable(combined, variable.name = "cohort",
                         variables = c("cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2")) 
 
 
-#Cohort3
+###### Load Cohort3 #####
 P09_0pre <- read.csv(paste0(my_wd, "Single Cell Data/1677_MNC/vdj_t/filtered_contig_annotations.csv"))
 P09_0preT <- read.csv(paste0(my_wd, "Single Cell Data/1677_CD3/vdj_t/filtered_contig_annotations.csv"))
 
@@ -130,10 +129,9 @@ P11_0pre <-  read.csv(paste0(my_wd, "Single Cell Data/5641_MNC/vdj_t/filtered_co
 P11_1Rem <- read.csv(paste0(my_wd, "Single Cell Data/6244_MNC/vdj_t/filtered_contig_annotations.csv"))
 P11_1RemT <- read.csv(paste0(my_wd, "Single Cell Data/6244_CD3/vdj_t/filtered_contig_annotations.csv"))
 
-
 P12_0pre <-  read.csv(paste0(my_wd, "Single Cell Data/9355_MNC/vdj_t/filtered_contig_annotations.csv"))
 
-
+######Combine all cohorts together####
 # Make a list 
 contig_list <- list(P01_0pre, P01_1Rem, P01_1RemT, P01_2Rem, P02_0pre, P02_0preT, P02_1Rem, P02_2Rem, P02_2RemT, P03_1Rem, P03_1RemT, P04_1Rem, P04_1RemT, P05_0pre, P05_0preT, P05_1Rem, P05_Rel, P05_RelT, P06_0pre, P06_0preT, P06_1Rem, P07_1Rem, P07_1RemT, P08_0Rel, P08_0RelT, P08_1Rem, P08_1RemT, P08_2Rem, P08_2RemT, P09_0pre, P09_0preT, P09_1Rem, P09_Rel, P09_RelT, P10_Rel, P10_RelT, P11_0pre, P11_1Rem, P11_1RemT, P12_0pre)
  
@@ -193,37 +191,32 @@ combined <- combineTCR(contig_list,
                                       group.by = "ptnumber",
                                       filterNA = T,
                                       cloneSize = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
-
+ 
 ######Compare clonotypes#####
-# To create alluvial graphs as we discusse with Peter and to do list figure 2 I am using the clonal compare function from sc repertoire and subsetting each patient from the big combined seurat metadata thinkin this is right thing to do 
-# As 240114 I combined each cohort seperately using clonetype= strict and subsetted each patient I am unsure if this is the best method to create these plots 
+# To create alluvial graphs as we discussed with Peter and to do list figure 2 I am using the clonal compare function from sc repertoire and subsetting each patient from the big combined seurat metadata thinking this is right thing to do 
+# As 240114 I combined each cohort separately using clonetype= strict and subsetted each patient I am unsure if this is the best method to create these plots 
+ 
+ # Unfortunately I could not find a way to reorder x axis due to sc-repertoire being so annoying so I am changing the name of object to put them in order 
+ 
+ Tcells_combined_meta <- Tcells_combined@meta.data
+ Tcells_combined_meta$groups <- gsub("rem>6m","re0m>6m", Tcells_combined_meta$groups)
+ Tcells_combined_meta$groups <- gsub("pre-transplant","0_Pre_transplant",Tcells_combined_meta$groups)
+ Tcells_combined@meta.data <- Tcells_combined_meta  
  
  #subset patient's seperately 
  p1 <- subset(x = Tcells_combined, subset =id %in% c("P01_0pre", "P01_0preT", "P01_1Rem", "P01_1RemT","P01_2Rem"))
  p2 <- subset(x = Tcells_combined, subset =id %in% c("P02_0pre", "P02_0preT", "P02_1Rem", "P02_2Rem", "P02_2RemT"))
- 
  p5 <- subset(x = Tcells_combined, subset =id %in% c("P05_0pre", "P05_0preT", "P05_1Rem", "P05_Rel","P05_RelT"))
  p6 <- subset(x = Tcells_combined, subset =id %in% c("P06_0pre", "P06_0preT", "P06_1Rem")) 
- p8 <-  subset(x = Tcells_combined, subset =id %in% c("P08_0pre", "P08_0Rel", "P08_0RelT", "P08_1Rem", "P08_1RemT", "P08_2Rem", "P08_2RemT"))
+ p8 <-  subset(x = Tcells_combined, subset =id %in% c("P08_0Rel", "P08_0RelT", "P08_1Rem", "P08_1RemT", "P08_2Rem", "P08_2RemT"))
  
- #unfortunately I could not find a wat to reorder x axis due to sc repertoire being so annoying so I am changing the name of object to put them in order 
- 
- Tcells_combined_meta <- Tcells_combined@meta.data
- Tcells_combined_meta$groups <- gsub("rem>6m","re0m>6m", Tcells_combined_meta$groups)
- Tcells_combined_meta$groups <- gsub("pre_transplant","0_Pre_transplant",    Tcells_combined_meta$groups)
- 
- Tcells_combined@meta.data <- Tcells_combined_meta  
- 
- 
- 
-clonalCompare(p8, 
+#Function from the sc-repertoire 
+clonalCompare(p1, 
                   group.by = "groups",
                   cloneCall="aa", 
                   top.clones = 10,
                   relabel.clones = TRUE,
                   graph = "alluvial")
-
-
 
 # actual function down below 
 clonalCompare <- function(input.data, 
@@ -250,7 +243,6 @@ combined_df <- bind_rows(df1,df3)
  combined_df$id = gsub("\\.","_",combined_df$id )
  combined_df$cell= paste0(combined_df$id, "_",combined_df$cell)
  
- 
  # Left join the 2 metadata
  Tcells_combined_tib <- as_tibble(Tcells_combined@meta.data, rownames = "cell")
  newdf <- Tcells_combined_tib %>% 
@@ -265,15 +257,14 @@ combined_df <- bind_rows(df1,df3)
  
  tabyl(Tcells_combined_tib, patient_identity, assignment)
  
- 
  # Save this RDS file which contains all the TCR data+ souporcell information on the cells 
   saveRDS(Tcells_combined, paste0(my_wd,"AnalysisNurefsan/RDS files/Tcells_combined_all.RDS"))
  
 
- # Subset the dataset
-x <-  subset(x= Tcells_combined, subset =id %in% c("P01_1Rem", "P01_1RemT","P01_2Rem", "P02_1Rem", "P04_1Rem", "P04_1RemT","P05_1Rem","P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))
+ # Subset the dataset to test our inital hypothesis which is 3-6 months post-HSCT samples being more diverse in patient don't relapse
+ x <-  subset(x= Tcells_combined, subset =id %in% c("P01_1Rem", "P01_1RemT","P01_2Rem", "P02_1Rem", "P04_1Rem",  "P04_1RemT","P05_1Rem","P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))
 
- # Calculate the frequency, setting group by to sample which is combined samples(T-cell enriched and MNC)
+ # Calculate the frequency, setting group by to "Sample" which is combined samples(T-cell enriched and MNC)
  clonalDiversity(Tcells_combined,
                  cloneCall = "strict",
                  n.boots = 1000,

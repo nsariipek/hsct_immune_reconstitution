@@ -13,7 +13,7 @@ library(ggpubr)
 # Start with a clean slate
 rm(list=ls())
 
-setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/output")
+setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/outputs")
 
 #Create a file that combines reference and alternative matrices output of the souporcell.
 # The way to create this file in bash is
@@ -21,7 +21,7 @@ setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNuref
 
 # t = read.table("ptbm.combined.mtx2", skip=3, sep = '\t')
 
-t = read.table("souporcell_Pt9_combined.tsv", skip=3, sep = '\t')
+t = read.table("combined/souporcell_Pt9_combined.tsv", skip=3, sep = '\t')
 
 
 #muatate the coverage name, add a genotype column specifying if a variant is WT or MT
@@ -31,7 +31,7 @@ t = t %>%
   filter(cov > 0)
 
 #add the output of the souporcell, and select the barcode and assignment.
-cells = read.table("souporcell_Pt9_clusters.tsv", header = T)
+cells = read.table("clusters/souporcell_Pt9_clusters.tsv", header = T)
 cells = cells %>%
   dplyr::select(barcode, assignment)
 
@@ -111,13 +111,20 @@ t_f$barcode = factor(t_f$barcode, levels = ordered_barcodes)
 
 
 #Heatmap with top informative variants, cells are ordered by assignment column and colored by genotype (based on alt/ref counts)
-t_f %>%
+p1 = t_f %>%
   filter(pos %in% relevant_variants) %>%
   mutate(genotype = as.character(genotype)) %>%
   dplyr::select(pos, genotype, barcode, assignment) %>% 
   ggplot(aes(x=barcode,y=as.character(pos),fill=genotype)) + 
   geom_tile() +
   theme(axis.text.x = element_blank())
+
+p1
+#save as a pdf file 
+
+pdf("Pt9quality.pdf", width = 5, height = 7.5)
+p1
+dev.off()
 
 
 df <- subset(t_f, select = -c(alt,ref))

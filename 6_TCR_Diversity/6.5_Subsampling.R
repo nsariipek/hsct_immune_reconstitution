@@ -1,8 +1,7 @@
-
 #January 17th, 2024
-#Nurefsan will be using Ksenia's code for subsampling in this script everything else identical to 6.3_Allsamples.R
+# Nurefsan will be using Ksenia's code for subsampling in this script everything else identical to 6.3_Allsamples.R
 
-#Load the libraries
+# Load the libraries
 library(scRepertoire)
 library(Seurat)
 library(randomcoloR)
@@ -10,12 +9,15 @@ library(RColorBrewer)
 library(ggpubr)
 library(tidyverse)
 library(janitor)
+library(cowplot)
 
 # Empty environment
 rm(list=ls())
 
 # For Nurefsan:
 my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
+# For Peter:
+my_wd <- "~/DropboxMGB/Projects/ImmuneEscapeTP53/"
 
 ### Load the VDJ libraries ###
 
@@ -75,10 +77,11 @@ combined <- combineTCR(contig_list,
 
 #add this variable to combine MNC and T selected libraries later in the script
 combined <- addVariable(combined, variable.name = "ptnumber",
-                        variables = c("P01-0","P01-1","P01-1","P01-2","P02-0","P02-0","P02-1","P02-2","P02-2","P03-1","P03-1","P04-1","P04-1","P05-0","P05-0","P05-1","P05-2","P05-2", "P06-0","P06-0", "P06-1","P07-1","P07-1","P08-3","P08-3","P08-1","P08-1","P08-2","P08-2"))
+                        variables = c("P01_0pre","P01_1Rem","P01_1Rem", "P01_2Rem", "P02_0pre", "P02_0pre", "P02_1Rem", "P02_2Rem", "P02_2Rem", "P03_1Rem", "P03_1Rem", "P04_1Rem", "P04_1Rem", "P05_0pre", "P05_0pre", "P05_1Rem", "P05_Rel", "P05_Rel",       "P06_0pre", "P06_0pre", "P06_1Rem",   "P07_1Rem", "P07_1Rem", "P08_0Rel", "P08_0Rel", "P08_1Rem", "P08_1Rem", "P08_2Rem", "P08_2Rem"))
 
-combined <- addVariable(combined, variable.name = "cohort",
-                        variables = c("cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort1","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2","cohort2")) 
+# Optional: merge data if the same sample was analyzed as both MNC and sorted T cells
+combined2 <- do.call(rbind, combined)
+combined <- split(combined2, f = combined2$ptnumber)
 
 # Load the Seurat object subsetted for T cells
 Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/Tcellsfinal.rds"))
@@ -100,10 +103,10 @@ Tcells <- RenameCells(Tcells, new.names = UniqueBCs)
 
 # Turn to a dataframe and keep only needed variables
 meta = Tcells@meta.data
-meta = meta %>% mutate(barcode = paste0(fullbc)) %>%
-dplyr::select(barcode, celltype, cohort, orig.ident, id, Sample, groups, patient_identity, timepoint)
+meta = meta %>% mutate(barcode = paste0(fullbc), ptnumber = paste0(Sample))
+meta = meta %>% select(barcode, celltype, cohort, orig.ident, id, ptnumber, groups, patient_identity, timepoint)
 
-  
+
 # Combine VDJ libraries "combined", and metadata from single cell object "meta" 
 combined.sc = list()
   
@@ -115,7 +118,7 @@ for (i in names(combined)) {
 
 View(combined.sc)
 
-#this section down below is from sc-repertoire inside of clonal diversity function, different diversity indices
+# This section is from the scRepertoire clonal diversity function. It calculates different diversity indices.
 .diversityCall <- function(data) {
   shannon <- .shannon(data[,"Freq"])
   inv_simpson <- .invsimpson(data[,"Freq"])
@@ -123,7 +126,7 @@ View(combined.sc)
   gini_simpson <- .ginisimpson(data[,"Freq"]) 
   chao1 <- .chao1(data[,"Freq"])
   ACE <- .ACE(data[,"Freq"])
-  out <- c(shannon, inv_simpson, norm_entropy, gini_simpson, chao1,ACE)
+  out <- c(shannon, inv_simpson, norm_entropy, gini_simpson, chao1, ACE)
   return(out)
 }
 
@@ -188,17 +191,20 @@ View(combined.sc)
   return(ACE)
 }
 
-# Implement the function that Ksenia computed
+# Define the function that Ksenia wrote
 compute_diversity = function(df_list, cloneCall, n.boots) {
+  # df_list <- combined.sc
+  # cloneCall <- "CTstrict"
+  # n.boots <- 1000
   mat = NULL
   min_n = min(sapply(df_list, nrow))
   for (i in seq_along(df_list)) {
     data = df_list[[i]]
     mat_a = NULL
     for (j in seq(seq_len(n.boots))) {
-      x = sample_n(data, min_n)
-      x = as.data.frame(table(x[,cloneCall]))
-      sample = .diversityCall(x)
+      x = slice_sample(data, n = min_n)
+      y = as.data.frame(table(x[,cloneCall]))
+      sample = .diversityCall(y)
       mat_a = rbind(mat_a, sample)
     }
     mat_a[is.na(mat_a)] = 0
@@ -207,32 +213,51 @@ compute_diversity = function(df_list, cloneCall, n.boots) {
     mat = rbind(mat, mat_b)
   }
   colnames(mat) = c("shannon", "inv.simpson", "norm.entropy", "gini.simpson", "chao1", "ACE")
-  mat$id = names(df_list)
+  mat$ptnumber = names(df_list)
                     
   return(mat)
 }
 
-#calculate the diversity with the function, keep in mind only works with lists
-m = compute_diversity(combined.sc,"CTstrict", 1000)
+# First, calculate and visualize how many cells we will exclude by taking the minimum number
+print(paste0("Note you are excluding ",
+             round((1 - min(sapply(combined.sc, nrow)) * length(combined.sc) / sum(sapply(combined.sc, nrow))) * 100, 2),
+             "% of the cells by subsetting to ", min(sapply(combined.sc, nrow)),
+             " cells for each of the ", length(combined.sc), " samples."))
+plot(sapply(combined.sc, nrow), pch = 16, ylim = c(0, max(sapply(combined.sc, nrow))))
+abline(h = min(sapply(combined.sc, nrow)), col = "red")
+# Calculate the diversity with the function, keep in mind only works with lists 
+m = compute_diversity(combined.sc, "CTstrict", 1000)
 View(m)
 
-#add more information to calculation to make more annotated plots
-m = m %>% left_join(meta, by="id") 
+# Add more information to calculation to make more annotated plots
+joined_tibble <- as_tibble(meta) %>% 
+  select(id, cohort, timepoint, groups, patient_identity, ptnumber) %>% unique() %>%
+  right_join(m, by = "ptnumber")
 
-#Visualization of inverse simpson index longitudinally 
-order =c("pre-transplant", "postTx_3-6m", "rem>6m", "relapse")  
-m$groups= factor(m$groups, levels = order)
+# Visualization of inverse simpson index longitudinally
+joined_tibble$groups = factor(joined_tibble$groups, levels = c("pre-transplant", "postTx_3-6m", "rem>6m", "relapse"))
 
-#timepoint is actually numerical number of the sample's timeline post-transplant another option to visualize the samples longitudinally but we have to change it to numerical using the code down below
-m$timepoint = as.numeric(levels(m$timepoint)) [m$timepoint]
+# Change timepoint from factor to numerical value in order to visualize the samples longitudinally
+joined_tibble$timepoint = as.numeric(levels(joined_tibble$timepoint))[joined_tibble$timepoint]
 
-m1 = subset(x=m, subset = cohort == "cohort1")
-m2 =subset(x=m, subset = cohort == "cohort2")
+m1 = subset(x=joined_tibble, subset = cohort == "cohort1")
+m2 = subset(x=joined_tibble, subset = cohort == "cohort2")
 
 
+y_lim <- c(0,max(joined_tibble$inv.simpson))
+solid.line.points <- c('pre-transplant','postTx_3-6m')
+dashed.line.points <- c('postTx_3-6m','postTx_3-6m','rem>6m', 'relapse')  
 
 # Cohort 1
-p1 <- ggplot(data = m1, aes(x = timepoint, y = inv.simpson, group = "id")) + geom_line(aes(color =id)) +facet_grid(. ~ patient_identity) + geom_point() +
+p1 <- 
+  ggplot(m1,aes(groups,inv.simpson, group=patient_identity)) + 
+  facet_grid(. ~ patient_identity) + 
+  geom_point() +
+  stat_summary(data=subset(m1, groups %in% solid.line.points), fun=mean, geom="line", aes(x=groups, y=inv.simpson,linetype='solid line', color= patient_identity)) +
+  stat_summary(data=subset(m1, groups %in% dashed.line.points),fun=mean, geom="line", aes(x=groups, y=inv.simpson, linetype='dashed line',color= patient_identity))+
+  guides(linetype = "none")+
+  theme_bw() +
+  coord_cartesian(ylim = y_lim) +
   theme(aspect.ratio = 1, axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 10, color = "black"),
         axis.title.x = element_blank(),
         axis.text.y = element_text(size = 15),
@@ -240,21 +265,37 @@ p1 <- ggplot(data = m1, aes(x = timepoint, y = inv.simpson, group = "id")) + geo
         legend.key.size = unit(2,"mm"),
         legend.position = "right",
         legend.title = element_text(size = 10),
-        legend.text = element_text(size = 8))    
+        legend.text = element_text(size = 8)) 
+
+
 p1
+
 # Cohort 2
-p2 <- ggplot(data = m2, aes(x = groups, y = inv.simpson, group = "id")) + geom_line(aes(color =id)) +facet_grid(. ~ patient_identity) + geom_point() +
+p2 <- 
+ggplot(m2,aes(groups,inv.simpson, group=patient_identity)) + 
+  facet_grid(. ~ patient_identity) + 
+  geom_point() +
+  stat_summary(data=subset(m2, groups %in% solid.line.points), fun=mean, geom="line", aes(x=groups, y=inv.simpson,linetype='solid line', color= patient_identity)) +
+  stat_summary(data=subset(m2, groups %in% dashed.line.points),fun=mean, geom="line", aes(x=groups, y=inv.simpson, linetype='dashed line',color= patient_identity))+
+  guides(linetype = "none")+
+theme_bw() +
+  coord_cartesian(ylim = y_lim) +
   theme(aspect.ratio = 1, axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 10, color = "black"),
-      axis.title.x = element_blank(),
-      axis.text.y = element_text(size = 15),
-      axis.title.y = element_text(size = 15, color = "black"),
-      legend.key.size = unit(2,"mm"),
-      legend.position = "right",
-      legend.title = element_text(size = 10),
-      legend.text = element_text(size = 8)) +
-theme_bw()
+        axis.title.x = element_blank(),
+        axis.text.y = element_text(size = 15),
+        axis.title.y = element_text(size = 15, color = "black"),
+        legend.key.size = unit(2,"mm"),
+        legend.position = "right",
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8)) 
+
 
 p2
+#save to your working directory
+setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/TCR data/Plots Nurefsan")
+pdf("longitudinaldiversity_all_patients.pdf", width = 8, height = 5)
+plot_grid(p1, p2, nrow = 2)
+dev.off()
 
 
 

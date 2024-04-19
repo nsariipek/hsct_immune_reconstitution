@@ -17,11 +17,11 @@ library(ggrastr)
 # Empty environment
 rm(list=ls())
 
-#Load the csv files only from cohort 1 and 2 from 2-6mo remission period
+# Load the csv files only from cohort 1 and 2 from 2-6mo remission period
 # For Nurefsan:
 my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
 # For Peter:
-my_wd <- "~/DropboxMGB/Projects/ImmuneEscapeTP53/"
+#my_wd <- "~/DropboxMGB/Projects/ImmuneEscapeTP53/"
 
 P01_1Rem <- read.csv(paste0(my_wd, "Single Cell Data/25802_MNC/vdj_t/filtered_contig_annotations.csv"))
 P01_1RemT <- read.csv(paste0(my_wd, "Single Cell Data/25802_CD3/vdj_t/filtered_contig_annotations.csv"))
@@ -46,53 +46,18 @@ combined <- combineTCR(contig_list,
                                    "P05_1Rem","P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))
 
 # Add variables
-combined <- addVariable(combined, variable.name = "cohort",
+combined <- addVariable(combined, name = "cohort",
                         variables = c("cohort1","cohort1","cohort1","cohort1","cohort1","cohort1",
                                       "cohort2","cohort2","cohort2","cohort2","cohort2","cohort2"))
 
-combined <- addVariable(combined, variable.name = "ptnumber",
-                        variables = c("P01","P01","P01-2","P02","P04","P04","P05","P06","P07","P07","P08","P08"))
+combined <- addVariable(combined, name = "ptnumber",
+                        variables = c("P01_1Rem", "P01_1Rem", "P01_2Rem", "P02_1Rem", "P04_1Rem", "P04_1Rem", "P05_1Rem","P06_1Rem", "P07_1Rem", "P07_1Rem", "P08_1Rem", "P08_1Rem"))
 
-# Quantify clonotypes
-clonalQuant(combined, cloneCall="strict", scale = T, chain = "both") +
-  theme(aspect.ratio = 0.5,
-        axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 10, color = "black"),
-        axis.title.x = element_blank(), axis.text.y = element_text(size = 9),
-        axis.title.y = element_text(size = 15, color = "black"),
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 12))
-
-# Visualize Clonotypes                        
-compareClonotypes(combined, numbers = 5,
-                  samples = c("P01_1Rem", "P01_1RemT", "P02_1Rem", "P04_1Rem", "P04_1RemT", "P05_1Rem",
-                              "P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"),
-                  cloneCall = "aa") +
-  theme(aspect.ratio = 1, axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 10, color = "black"),
-        axis.title.x = element_blank(),
-        axis.text.y = element_text(size = 15),
-        axis.title.y = element_text(size = 15, color = "black"),
-        legend.key.size = unit(2,"mm"),
-        legend.position = "bottom",
-        legend.title = element_text(size = 10),
-        legend.text = element_text(size = 8))    
-  
-# As of 230723, we still don't understand why it shows >5 despite the numbers = 5 argument
-# As of 231128, in the updated version the authors removed the numbers section which did not make sense to us in the begginging see above.
-
-# Visualize diversity metrics
-clonalDiversity(combined,
-                cloneCall = "strict",
-                group.by = "cohort",
-                x.axis = "sample",
-                n.boots = 100) +
-  theme(aspect.ratio = 1,
-        axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 10, color = "black"),
-        axis.title.x = element_blank(),
-        axis.text.y = element_text(size = 15),
-        axis.title.y = element_text(size = 15, color = "black"))
 
 # Load the Seurat object subsetted for T cells
 Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/Tcellsfinal.rds"))
+## UMAP dimensions are lost in the previous one check this one
+#Tcells <- readRDS(paste0(my_wd, "Trash/old RDS files/Tcellsubset.rds"))
 
 # Keep only annotated T cell clusters (remove NK cells)
 Tcells <- subset(x = Tcells, subset = seurat_clusters %in% c(0,1,2,3,4,5,6,7,9,10,11,12,14)) 
@@ -113,10 +78,10 @@ UniqueBCs <- Tcells_meta[! Tcells_meta$fullbc %in% dup_cells,]$fullbc
 Tcells <- subset(x = Tcells, subset = fullbc %in% UniqueBCs)
 Tcells <- RenameCells(Tcells, new.names = UniqueBCs)
 
-#Select only CD8 
+# Select only CD8 
 Tcells <- subset(x = Tcells, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Terminally Exhausted"))
 
-#Select only CD4
+# Select only CD4
 Tcells <- subset(x = Tcells, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
 
 # Plot UMAPs --------------------------------------------------------------------------------------
@@ -222,9 +187,12 @@ Tcells_combined <- combineExpression(combined, Tcells,
                                      group.by = "ptnumber",
                                      proportion = FALSE,
                                      filterNA = T,
-                                     cloneSize = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
+                                     cloneTypes = c(Rare = 1e-04, Small = 0.001, Medium = 0.01, Large = 0.1, Hyperexpanded =1))
 
-#calculate the frequency, setting group by to sample which is combined samples(T-cell enriched and MNC)
+# save this combined object to use in other purposes.
+saveRDS(Tcells_combined, file = "combined.RDS")
+
+# Calculate the frequency, setting group by to sample which is combined samples(T-cell enriched and MNC)
 clonalDiversity(Tcells_combined,
                 cloneCall = "strict",
                 group.by = "sample",
@@ -233,43 +201,43 @@ clonalDiversity(Tcells_combined,
 
 # Adding Souporcell information
 
-#Load the metadata that contains souporcell information
+# Load the metadata that contains souporcell information
 combined_df <- read_csv(paste0(my_wd, "/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv"))
 
-#wrangle the metadata to 
+# Wrangle the metadata to 
 combined_df$cell = gsub("_.*","", combined_df$cell)
 combined_df$id = gsub("\\.","_",combined_df$id )
 combined_df$cell= paste0(combined_df$id, "_",combined_df$cell)
 
-#left join the 2 metadata
+# Left join the 2 metadata
 Tcells_combined_tib <- as_tibble(Tcells_combined@meta.data, rownames = "cell")
 newdf <- Tcells_combined_tib %>% 
   left_join(combined_df, by ="cell") %>% 
   drop_na()
 
-#Add assignment calls to the Seurat metadata
+# Add assignment calls to the Seurat metadata
 Tcells_combined <- AddMetaData(Tcells_combined, data.frame(select(newdf, cell, assignment), row.names = "cell"))
-#Check the numbers
+# Check the numbers
 Tcells_combined$assignment %>% tabyl
 
-#Look into different CD8 T cells
+# Look into different CD8 T cells
 Tcells_combined_cd8_Effector <- subset(x = Tcells_combined, subset = celltype == "CD8 Effector")
 Tcells_combined_cd8_Memory <- subset(x = Tcells_combined, subset = celltype == "CD8 Memory")
 Tcells_combined_cd8_naive <- subset(x = Tcells_combined, subset = celltype == "CD8 Naïve")
 Tcells_combined_cd8_exhausted <- subset(x = Tcells_combined, subset = celltype =="CD8 Terminally Exhausted")
 
 
-#Subset only donor cells 
+# Subset only donor cells 
 Tcells_combined_donor <- subset(x = Tcells_combined, subset = assignment == "donor")
 Tcells_combined_donor_cd8 <- subset(x = Tcells_combined_donor, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Terminally Exhausted"))
 Tcells_combined_donor_cd4 <- subset(x = Tcells_combined_donor, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
 
-#Subset only host cells 
+# Subset only host cells 
 Tcells_combined_host <- subset(x = Tcells_combined, subset = assignment == "host")
 Tcells_combined_host_cd8 <- subset(x = Tcells_combined_host, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Terminally Exhausted"))
 Tcells_combined_host_cd4 <- subset(x = Tcells_combined_host, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
 
-#Calculate the inverse simpson index for each 
+# Calculate the inverse simpson index for each 
 
 clonalDiversity(Tcells_combined_cd8_exhausted,
                 cloneCall = "strict",
@@ -310,7 +278,7 @@ Tcells_combined_tib <- Tcells_combined_tib %>%
 # Now calculate the Frequency / clone size
 Tcells_combined_tib <- Tcells_combined_tib %>% group_by(pt_timepoint_ct) %>% add_count() %>%
   ungroup() %>% arrange(pt_timepoint_ct) %>% arrange(pt_timepoint, n)
-#view(Tcells_combined_tib)
+# Wiew(Tcells_combined_tib)
 
 # Visualizations the clonotype size
 Tcells_combined_tib %>% mutate(rown = row_number()) %>%

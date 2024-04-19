@@ -1,10 +1,8 @@
+# Nurefsan Sariipek
+# 240102
+# This is a replica of 3.DGE only difference removing padj treshold which is located in the second part of this script
 
-#Nurefsan Sariipek
-#240102
-#use only for the celltype that does not have cells that are statisically significant
-#this is a replica of 3.DGE only difference removing padj treshold which is located in the second part
-
-#Load the needed libraries
+# Load the needed libraries
 library(tidyverse)
 library(Seurat)
 library(ggplot2)
@@ -25,30 +23,41 @@ library(Matrix)
 library(ggforce)
 library(cloudml)
 library(Matrix.utils)
+library(dplyr)
 
 # Empty environment
 rm(list=ls())
 
 # For Nurefsan:
-my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
+my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/"
 
-#Load the saved seurat objects
-seu_diet_merged <- readRDS("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/RDS files/seu_diet_merged.rds")
-
-#Load the T and NK cells only if you want to see only T cells
-seu_diet_merged <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/Tcellsfinal.rds"))
-
+# Load the saved seurat object
+seu_diet_merged <- readRDS(paste0(my_wd, "RDS files/seu_diet_merged.rds"))
 View(seu_diet_merged@meta.data)
 
-ex <- subset(x= seu_diet_merged, subset =cohort %in% c("cohort1","cohort2"))
-ex <- subset(x= ex, subset =status %in% c("remission"))
+# add the donor host information if needed
+combined_df <- read_csv(paste0(my_wd, "Souporcell/outputs/cohort1-2_souporcell.csv"))
+combined_tib <- as_tibble(seu_diet_merged@meta.data, rownames = "cell")
+newdf <-  as_tibble(combined_tib %>% 
+                      left_join(combined_df, by ="cell") %>% 
+                      drop_na())
+newdf <- newdf %>%  column_to_rownames(var="cell") 
+combined <- AddMetaData(seu_diet_merged,(dplyr::select(newdf, assignment)))
+View(combined@meta.data)
 ex$id =gsub("\\_", ".", ex$id)
-ex <- subset(x=ex, subset = id %in% c("P01.1Rem", "P01.1RemT", "P01.2Rem", "P02.1Rem", "P04.1Rem", "P04.1RemT", "P05.1Rem", "P06.1Rem", "P07.1Rem", "P07.1RemT", "P08.1Rem", "P08.1RemT"))
+# Selec the the samples posst-HSCT 3-6 months
+ex <- subset(x=combined, subset = id %in% c("P01.1Rem", "P01.1RemT", "P01.2Rem", "P02.1Rem", "P04.1Rem", "P04.1RemT", "P05.1Rem", "P06.1Rem", "P07.1Rem", "P07.1RemT", "P08.1Rem", "P08.1RemT"))
 
-#Pool MNC and CD3 samples
+# Subset NK cells
+ex <- subset(x= ex, subset =celltype %in% c("CD56 Bright NK cells", "CD56 Dim NK cells"))
+
+# Subset the donor originated cells 
+ex <-subset(x= ex, subset = assignment == "donor")
+
+# Pool MNC and CD3 samples
 #ex <- ex%>% mutate(pt_timepoint = gsub("RemT", "Rem", id)) 
 
-#remove the . for the pseudobulk analysis
+# Remove the . for the pseudobulk analysis
 ex$id =gsub("\\.", "", ex$id)
 #ex$groups = NULL
 View(ex@meta.data)
@@ -128,7 +137,6 @@ head(metadata)
 
 t <- table(colData(sce)$sample_id,
            colData(sce)$celltype)
-t[1:6, 1:6]
 
 metadata_ls <- list()
 
@@ -178,7 +186,7 @@ str(metadata_ls)
 celltype_names
 
 all(names(counts_ls) == names(metadata_ls))
-##
+
 #Run this when you are running one celltype ----- for a test run#
 idx <- which(names(counts_ls) == "CD8 Terminally Exhausted")
 cluster_counts <- counts_ls[[idx]]
@@ -355,9 +363,7 @@ for (celltype in unique(sce$celltype)) {
 ### Write all results to file
 name = "all_celltypes" 
 write.csv(x = total_res_table_thres, file = paste0(name, ".pseudobulk_DE_res.csv"), quote = F, row.names = F)
-
-
-
+getwd()
 
 
 

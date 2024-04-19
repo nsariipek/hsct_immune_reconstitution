@@ -1,8 +1,8 @@
-#Nurefsan Sariipek
-# latest update on January 14, 2024
+# Nurefsan Sariipek
+# Latest update on January 14, 2024
 
 # GSEA based on pseudobulk DE results
-#this script is based on harvard tutorial and Ksenia's note which you can find on your local files under R/R scripts
+# This script is based on Harvard tutorial and Ksenia's note which you can find on your local files under R/R scripts
 
 # Load libraries
 library(SingleCellExperiment)
@@ -19,14 +19,17 @@ library(org.Hs.eg.db)
 library(msigdbr)
 library(enrichplot)
 
+# Empty environment
+rm(list=ls())
+
 # For Nurefsan:
 my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/"
 
 name = "all_celltypes"
 #load the table you created end of 3_DGE script
 #Make sure and pray these are pre-ranked
-de_res_total = read.csv(file = paste0(my_wd, "DGE/unsignificant genes only T cells/nonsig_celltypes.pseudobulk_DE_res.csv"))
- 
+de_res_total = read.csv(file = paste0(my_wd, "DGE/only_Tcells-nonsig/cd8exhaustedandeffector.pseudobulk_DE_res.csv"))
+
 total_result = data.frame()
 
 for (i in unique(de_res_total$celltype)) {
@@ -45,10 +48,9 @@ for (i in unique(de_res_total$celltype)) {
   
   result = data.frame()
   
-# select C2- CP category, check wiht Peter if this is right 
+  # GSE across MSigDB Hallmark immunologic gene set
   dataset = msigdbr(species = "Homo sapiens",
-                    category = "C2",
-                    subcategory = "CP") %>% 
+                    category = "H") %>% 
     dplyr::select(gs_name, entrez_gene)
   
   gsea_out = GSEA(named_list,
@@ -60,12 +62,101 @@ for (i in unique(de_res_total$celltype)) {
   if (dim(gsea_out@result)[1] > 0) {
     result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
   }
+  
+# GSE across MSigDB C1 immunologic gene set
+dataset = msigdbr(species = "Homo sapiens",
+                  category = "C1") %>% 
+  dplyr::select(gs_name, entrez_gene)
 
-  # GSE across MSigDB C7 immunologic gene set
-  # Note to future Nurefsan, Is this selecting all of the C7- curated pathways ?
+gsea_out = GSEA(named_list,
+                TERM2GENE = dataset,
+                pvalueCutoff = 1,
+                pAdjustMethod = "fdr",
+                verbose = FALSE,
+                eps = 0)
+if (dim(gsea_out@result)[1] > 0) {
+  result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
+}
+
+  
+ # GSE across MSigDB C2 immunologic gene set
   dataset = msigdbr(species = "Homo sapiens",
-                    category = "C7") %>% 
+                    category = "C2") %>% 
+  dplyr::select(gs_name, entrez_gene)
+  
+  gsea_out = GSEA(named_list,
+                  TERM2GENE = dataset,
+                  pvalueCutoff = 1,
+                  pAdjustMethod = "fdr",
+                  verbose = FALSE,
+                 eps = 0)
+  if (dim(gsea_out@result)[1] > 0) {
+  result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
+  }
+  
+ # GSE across MSigDB C3 immunologic gene set
+  dataset = msigdbr(species = "Homo sapiens",
+                    category = "C3") %>% 
+  dplyr::select(gs_name, entrez_gene)
+  
+  gsea_out = GSEA(named_list,
+                  TERM2GENE = dataset,
+                  pvalueCutoff = 1,
+                  pAdjustMethod = "fdr",
+                  verbose = FALSE,
+                 eps = 0)
+  if (dim(gsea_out@result)[1] > 0) {
+  result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
+  }
+  
+  # GSE across MSigDB C4 immunologic gene set
+  dataset = msigdbr(species = "Homo sapiens",
+                    category = "C4") %>% 
     dplyr::select(gs_name, entrez_gene)
+  
+  gsea_out = GSEA(named_list,
+                  TERM2GENE = dataset,
+                  pvalueCutoff = 1,
+                  pAdjustMethod = "fdr",
+                  verbose = FALSE,
+                  eps = 0)
+  if (dim(gsea_out@result)[1] > 0) {
+    result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
+  } 
+  
+  # GSE across MSigDB C5 immunologic gene set
+  dataset = msigdbr(species = "Homo sapiens",
+                    category = "C5") %>% 
+    dplyr::select(gs_name, entrez_gene)
+  
+  gsea_out = GSEA(named_list,
+                  TERM2GENE = dataset,
+                  pvalueCutoff = 1,
+                  pAdjustMethod = "fdr",
+                  verbose = FALSE,
+                  eps = 0)
+  if (dim(gsea_out@result)[1] > 0) {
+    result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
+  }  
+  # GSE across MSigDB C6 immunologic gene set
+  dataset = msigdbr(species = "Homo sapiens",
+                    category = "C6") %>% 
+    dplyr::select(gs_name, entrez_gene)
+  
+  gsea_out = GSEA(named_list,
+                  TERM2GENE = dataset,
+                  pvalueCutoff = 1,
+                  pAdjustMethod = "fdr",
+                  verbose = FALSE,
+                  eps = 0)
+  if (dim(gsea_out@result)[1] > 0) {
+    result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
+  } 
+  
+# GSE across MSigDB C7 immunologic gene set
+ dataset = msigdbr(species = "Homo sapiens",
+                    category = "C7") %>% 
+   dplyr::select(gs_name, entrez_gene)
   
   gsea_out = GSEA(named_list,
                   TERM2GENE = dataset,
@@ -77,15 +168,14 @@ for (i in unique(de_res_total$celltype)) {
     result = rbind(result, gsea_out@result %>% as_tibble() %>% dplyr::select(-c(core_enrichment,Description)))
   }
   
- 
   result$celltype = i
   total_result = rbind(total_result, result)
 }
 
-
-write.table(total_result, paste0(name, ".total_GSEA_result.tsv"), col.names = T, row.names = F, quote = F, sep = '\t')
+write.table(total_result, paste0(name, ".total_GSEA_cd8cells_result.tsv"), col.names = T, row.names = F, quote = F, sep = '\t')
 
 total_result %>% filter(grepl('ANTIGEN', ID)) %>% dplyr::select(-setSize, -enrichmentScore,-qvalue,-leading_edge) %>% View()
 
+getwd()
 
 

@@ -1,15 +1,14 @@
-#comparing the pre transplant samples only
+# Nurefsan Sariipek, 
+# Date January 22nd, 2024
+# Analyzing post 3-6 months samples and subsetting donor/host CD4/CD8 compartments using subsampling based on cell numbers which is different than scRepertoire built in subsampling which can be found on 6.1 script
 
-#Nurefsan Sariipek
-# date: "Dec 20th, 2023"
-
+# Load the libraries
 library(scRepertoire)
 library(Seurat)
-library(randomcoloR)
-library(RColorBrewer)
 library(ggpubr)
 library(tidyverse)
 library(janitor)
+library(rstatix)
 
 # Empty environment
 rm(list=ls())
@@ -18,31 +17,51 @@ rm(list=ls())
 my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
 # For Peter:
 #my_wd <- "~/DropboxMGB/Projects/ImmuneEscapeTP53/"
+# Load the csv files from cohort 1 and 2 from 3-6mo remission period + from cohort 3 remission period (2 patient only)
 
-P01_0pre <- read.csv(paste0(my_wd, "Single Cell Data/2446_MNC/vdj_t/filtered_contig_annotations.csv"))
-P02_0pre <-  read.csv(paste0(my_wd, "Single Cell Data/1972_MNC/vdj_t/filtered_contig_annotations.csv"))
-P02_0preT <- read.csv(paste0(my_wd, "Single Cell Data/1972_CD3/vdj_t/filtered_contig_annotations.csv"))
-                      
-P05_0pre <-  read.csv(paste0(my_wd, "Single Cell Data/9596_MNC/vdj_t/filtered_contig_annotations.csv"))
-P05_0preT <-  read.csv(paste0(my_wd, "Single Cell Data/9596_CD3/vdj_t/filtered_contig_annotations.csv"))
-P06_0pre <-  read.csv(paste0(my_wd, "Single Cell Data/2379_MNC/vdj_t/filtered_contig_annotations.csv"))
-P06_0preT <-read.csv(paste0(my_wd, "Single Cell Data/2379_CD3/vdj_t/filtered_contig_annotations.csv"))
-#remove due to low cell number 
-#P08_0pre <- read.csv(paste0(my_wd, "Single Cell Data/4618_MNC/vdj_t/filtered_contig_annotations.csv"))
+P01_1Rem <- read.csv(paste0(my_wd, "Single Cell Data/25802_MNC/vdj_t/filtered_contig_annotations.csv"))
+P01_1RemT <- read.csv(paste0(my_wd, "Single Cell Data/25802_CD3/vdj_t/filtered_contig_annotations.csv"))
+P01_2Rem <- read.csv(paste0(my_wd, "Single Cell Data/2645_MNC/vdj_t/filtered_contig_annotations.csv"))
+P02_1Rem <- read.csv(paste0(my_wd, "Single Cell Data/2220_MNC/vdj_t/filtered_contig_annotations.csv"))
+P04_1Rem <- read.csv(paste0(my_wd, "Single Cell Data/2599_MNC/vdj_t/filtered_contig_annotations.csv"))
+P04_1RemT <- read.csv(paste0(my_wd, "Single Cell Data/2599_CD3/vdj_t/filtered_contig_annotations.csv"))
+P05_1Rem <- read.csv(paste0(my_wd, "Single Cell Data/25809_MNC/vdj_t/filtered_contig_annotations.csv"))
+P06_1Rem <- read.csv(paste0(my_wd, "Single Cell Data/2434_MNC/vdj_t/filtered_contig_annotations.csv"))
+P07_1Rem <- read.csv(paste0(my_wd, "Single Cell Data/2518_MNC/vdj_t/filtered_contig_annotations.csv"))
+P07_1RemT <- read.csv(paste0(my_wd, "Single Cell Data/2518_CD3/vdj_t/filtered_contig_annotations.csv"))
+P08_1Rem <- read.csv(paste0(my_wd, "Single Cell Data/6174_MNC/vdj_t/filtered_contig_annotations.csv"))
+P08_1RemT <- read.csv(paste0(my_wd, "Single Cell Data/6174_CD3/vdj_t/filtered_contig_annotations.csv"))
+P09_1Rem <-  read.csv(paste0(my_wd, "Single Cell Data/1732_MNC/vdj_t/filtered_contig_annotations.csv"))
+P11_1Rem <- read.csv(paste0(my_wd, "Single Cell Data/6244_MNC/vdj_t/filtered_contig_annotations.csv"))
+P11_1RemT <- read.csv(paste0(my_wd, "Single Cell Data/6244_CD3/vdj_t/filtered_contig_annotations.csv"))
 
 # Make a list 
-contig_list <- list(P01_0pre, P02_0pre, P02_0preT, P05_0pre, P05_0preT, P06_0pre, P06_0preT)
+contig_list <- list(P01_1Rem, P01_1RemT, 
+                    P01_2Rem, P02_1Rem, 
+                    P04_1Rem, P04_1RemT,P05_1Rem, 
+                    P06_1Rem, 
+                    P07_1Rem, P07_1RemT, P08_1Rem, P08_1RemT,
+                    P09_1Rem,P11_1Rem, P11_1RemT)
+
+# Combine all the samples
 combined <- combineTCR(contig_list,
-                       samples = c("P01_0pre", "P02_0pre", "P02_0preT", "P05_0pre", "P05_0preT", "P06_0pre", "P06_0preT"))
+                       samples = c("P01_1Rem", "P01_1RemT", "P01_2Rem", "P02_1Rem", 
+                                   "P04_1Rem", "P04_1RemT","P05_1Rem",
+                                   "P06_1Rem", 
+                                   "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT", "P09_1Rem",  "P11_1Rem","P11_1RemT"))
+
 
 # Add variables
-combined <- addVariable(combined, variable.name = "cohort",
-                        variables = c("cohort1","cohort1","cohort1",
-                                      "cohort2","cohort2","cohort2","cohort2"))
+combined <- addVariable(combined, name = "ptnumber",
+                        variables = c("P01_1Rem", "P01_1Rem",
+                                      "P01_2Rem", "P02_1Rem", 
+                                      "P04_1Rem", "P04_1Rem", "P05_1Rem", "P06_1Rem",  "P07_1Rem", "P07_1Rem", "P08_1Rem", "P08_1Rem", "P09_1Rem", "P11_1Rem", "P11_1Rem"))
 
+# Add variables
+combined <- addVariable(combined, name = "cohort",
+                        variables = c("cohort1","cohort1","cohort1","cohort1","cohort1","cohort1",
+                                      "cohort2","cohort2","cohort2","cohort2","cohort2","cohort2", "cohort3", "cohort3", "cohort3"))
 
-combined <- addVariable(combined, variable.name = "ptnumber",
-                        variables = c("P01_0pre", "P02_0pre", "P02_0pre", "P05_0pre", "P05_0pre", "P06_0pre", "P06_0pre"))
 
 # Optional: merge data if the same sample was analyzed as both MNC and sorted T cells
 combined2 <- do.call(rbind, combined)
@@ -50,6 +69,9 @@ combined <- split(combined2, f = combined2$ptnumber)
 
 # Load the Seurat object subsetted for T cells
 Tcells <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/Tcellsfinal.rds"))
+
+## UMAP dimensions are lost in the previous one check this one
+#Tcells <- readRDS(paste0(my_wd, "Trash/old RDS files/Tcellsubset.rds"))
 
 # Keep only annotated T cell clusters (remove NK cells)
 Tcells <- subset(x = Tcells, subset = seurat_clusters %in% c(0,1,2,3,4,5,6,7,9,10,11,12,14)) 
@@ -71,8 +93,47 @@ meta = Tcells@meta.data
 meta = meta %>% mutate(barcode = paste0(fullbc), ptnumber = paste0(Sample))
 meta = meta %>% select(barcode, celltype, cohort, orig.ident, id, ptnumber, groups, patient_identity, timepoint)
 rownames(meta) <- NULL
-meta =meta %>% drop_na()
+meta = meta %>% drop_na()
 
+# Optional subsetting for exploring different cell types #
+####Subset celltypes#####
+# Only subset CD8+ cells
+meta <- subset(x = meta, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Terminally Exhausted"))
+#each CD8 celltype
+meta <- subset(x = meta, subset = celltype == "CD8 Memory")
+meta <- subset(x = meta, subset = celltype == "CD8 Naïve")
+meta <- subset(x = meta, subset = celltype == "CD8 Effector")
+meta <- subset(x = meta, subset = celltype == "CD8 Terminally Exhausted")
+
+# Only subset CD4+ cells
+meta <- subset(x = meta, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
+
+###Add Souporcell information####
+# Load the metadata that contains souporcell information
+combined_df <- read_csv(paste0(my_wd, "AnalysisNurefsan/Souporcell/outputs/cohort1-2_souporcell.csv"))
+# Wrangle the metadata 
+combined_df$cell = gsub("_.*","", combined_df$cell)
+combined_df$id = gsub("\\.","_",combined_df$id )
+combined_df$barcode= paste0(combined_df$id, "_",combined_df$cell)
+# For this code only just select the remission samples
+combined_df = subset(x=combined_df, subset = status == "remission")
+combined_df = combined_df %>% select(barcode, assignment, orig.ident)
+# Join 2 dataframe
+meta <- left_join(meta,combined_df, by="barcode") %>% drop_na()
+
+###Subset host cells only####
+meta = subset(x=meta, subset = assignment == "host")
+# Remove P07 since it has 0 host cells
+meta = subset(x=meta, subset = patient_identity %in% c("pt01","pt02","pt04","pt05","pt06","pt08"))
+# Remove also from combined
+combined <- subsetClones(combined, 
+                         name = "ptnumber", 
+                         variables = c("P01_1Rem","P02_1Rem", "P04_1Rem",  "P05_1Rem","P06_1Rem","P07_1Rem", "P08_1Rem"))
+
+###Subset donor cells only####
+meta = subset(x=meta, subset = assignment == "donor")
+
+####End of selection####
 # Combine VDJ libraries "combined", and metadata from single cell object "meta" 
 combined.sc = list()
 
@@ -200,13 +261,16 @@ joined_tibble <- as_tibble(meta) %>%
   select(id, cohort, timepoint, groups, patient_identity, ptnumber) %>% unique() %>%
   right_join(m, by = "ptnumber")
 
-#determine y axis
+# Determine y axis
 y_lim <- c(0,max(joined_tibble$inv.simpson))
 
+# Visualize the diversities
+
 p1 <- joined_tibble %>% filter(!duplicated(ptnumber)) %>%
-  mutate(cohort = gsub("cohort1", "Non-relapsed", gsub("cohort2", "Relapsed", cohort))) %>%
+  mutate(cohort = gsub("cohort1", "Non-relapsed", gsub("cohort3", "Early-Relapsed", gsub("cohort2", "Relapsed", cohort)))) %>%
   ggplot(aes(x = cohort, y = inv.simpson)) + 
-  geom_point(aes(color=patient_identity),size = 4) +
+  geom_boxplot()+
+  geom_jitter(aes(color=patient_identity), size = 4) +
   theme_bw() +
   coord_cartesian(ylim = y_lim) +
   ylab("Inverse Simpson Index") +
@@ -220,8 +284,14 @@ p1 <- joined_tibble %>% filter(!duplicated(ptnumber)) %>%
         legend.title = element_text(size = 14),
         legend.text = element_text(size = 12)) +
   stat_compare_means(aes(group = cohort), method = "t.test", method.args = list(var.equal = T),
-                     label = "p.signif", label.x = 1.3, label.y= 800, tip.length = 1, size = 6)
+                     label = "p.signif", label.x = 2, label.y=20, tip.length = 1, size = 6)
+# Check the plot
 p1
-pdf("Pre_transplant.pdf", width = 5, height = 7.5)
+# Save as a pdf
+pdf("Post-transplantcdeffector.pdf", width = 5, height = 7.5)
 p1
 dev.off()
+
+
+
+

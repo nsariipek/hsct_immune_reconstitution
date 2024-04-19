@@ -1,6 +1,5 @@
 #Nov,2023
-
-#Trying to calculate indeces by ourselves with this code 
+# Trying to calculate indeces by ourselves with this code 
 library(scRepertoire)
 library(Seurat)
 library(randomcoloR)
@@ -9,6 +8,9 @@ library(ggpubr)
 library(tidyverse)
 library(janitor)
 library(vegan)
+
+# Empty environment
+rm(list=ls())
 
 # For Nurefsan:
 my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
@@ -46,16 +48,16 @@ Tcells_combined_tib <- Tcells_combined_tib %>% group_by(pt_timepoint_ct) %>% add
   ungroup() %>% arrange(pt_timepoint_ct) %>% arrange(pt_timepoint, n)
 
 
-#load the metadata that contains souporcell information
-combined_df <- read_csv(paste0(my_wd, "/AnalysisNurefsan/Souporcell/output/cohort1-2_souporcell.csv"))
+# Load the metadata that contains souporcell information
+combined_df <- read_csv(paste0(my_wd, "AnalysisNurefsan/Souporcell/outputs/cohort1-2_souporcell.csv"))
 
 
-#wrangle the metadata to 
+# Wrangle the metadata to 
 combined_df$cell = gsub("_.*","", combined_df$cell)
 combined_df$id = gsub("\\.","_",combined_df$id )
 combined_df$cell= paste0(combined_df$id, "_",combined_df$cell)
 
-#left join the 2 metadata
+# Merge 2 metadata
 newdf <- Tcells_combined_tib %>% 
   left_join(combined_df, by ="cell") %>% 
   drop_na()
@@ -64,9 +66,7 @@ unique(newdf$pt_timepoint)
 
 donorcells%>% tabyl(id.x)
 
-
-
-#subset donor cells only
+# Subset donor cells only
 
 donorcells <- subset(x = newdf, subset = assignment == "donor")
 hostcells <- subset(x = newdf, subset = assignment == "host")

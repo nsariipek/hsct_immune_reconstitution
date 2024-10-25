@@ -17,7 +17,7 @@ rm(list=ls())
 # For Nurefsan:
 my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
 
-seu <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/seu_diet_merged.rds"))
+seu <- readRDS(paste0(my_wd, "RDS files/seu_diet_merged.rds"))
 
 # Add gene expression as metadata
 metadata <- as_tibble(seu@meta.data, rownames = "cell")

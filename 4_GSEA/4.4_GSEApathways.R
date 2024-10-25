@@ -11,7 +11,7 @@ rm(list=ls())
 # Load your Seurat object:
 my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
 # Load the seurat object
-seu1 <- readRDS(paste0(my_wd, "AnalysisNurefsan/RDS files/seu_diet_merged.rds"))
+seu1 <- readRDS(paste0(my_wd, "RDS files/seu_diet_merged.rds"))
 
 #Load the T cells
 #to use with assignments
@@ -25,7 +25,6 @@ seu <- subset(x=seu, subset = celltype %in% c("CD56 Bright NK cells","CD56 Dim N
 # Select only T cells and NK cells
 seu <- subset(x=seu1, subset = celltype %in% c("CD8 Effector", "CD8 Terminally Exhausted", "NK T cells","CD8 Memory","γδ T lymphocytes","CD4 Memory","Treg", "CD4 Naïve","CD8 Naïve","CD56 Dim NK cells", "CD56 Bright NK cells"))
 
-
 seu <- subset(x=seu1, subset = celltype %in% c("CD56 Dim NK cells"))
 
 # Select donor cells
@@ -37,7 +36,6 @@ gmt_file <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/Analysi
  # "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/DGE/signatures/GOMF_LIGAND_GATED_CHANNEL_ACTIVITY.v2023.2.Hs.gmt"
   #"/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/DGE/signatures/IL15_UP.V1_DN.v2023.2.Hs.gmt"
 
-  
 # Convert to a list 
 gene_sets <- read.gmt(gmt_file)
 
@@ -103,11 +101,5 @@ gene_sets <- as.list(t2)
 # Should I look into DGE again, maybe ?
 # But isn't that the same thing that i did on the number 1 ?
 
-
 # Load the GSEA 
-test3 <- read_tsv(paste0(my_wd, "AnalysisNurefsan/DGE/only_Tcells-nonsig/GSEA_NKcells_result.tsv"))
-
-
-
-
-
+#test3 <- read_tsv(paste0(my_wd, "AnalysisNurefsan/DGE/only_Tcells-nonsig/GSEA_NKcells_result.tsv"))

@@ -1,3 +1,8 @@
+# Custom additions
+.DS_Store
+# This is a temporary solution, we should make sure all necessary files are synchronized or stored elsewhere:
+souporcell*.tsv
+
 # History files
 .Rhistory
 .Rapp.history

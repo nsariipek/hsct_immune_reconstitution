@@ -34,7 +34,6 @@ table(seu$orig.ident)
 
 # QC Control Thresholds
 seu <- subset(seu, subset = nFeature_RNA > 250 & nCount_RNA > 500 & percent_mito < 20)   
-
 # Count the cells after filtering
 table(seu$orig.ident)
 
@@ -111,7 +110,6 @@ UMAP2 <- DimPlot(seu, reduction = "umap", group.by = "orig.ident", split.by = "c
 UMAP2
 UMAP3 <- DimPlot(seu, reduction = "umap", group.by = "orig.ident", split.by = "status") + theme(aspect.ratio = 1)
 UMAP3
-
 
 # Add variables to metadata
 
@@ -302,7 +300,7 @@ seu_diet <- DietSeurat(seu, dimreducs = names(seu@reductions))
 saveRDS(seu_diet, file ="~/seu_diet.rds")
 
 
-#I had to run this since I added these variables long after I subsetted t cells but for who are just running the script from starch it won't be necessary to run these lines down below.
+# I had to run this since I added these variables long after I subsetted t cells but for who are just running the script from starch it won't be necessary to run these lines down below.
 #add a point to show the samples timepoint in groups
 Tcells$groups <- case_when(grepl("2446", Tcells$orig.ident) ~ "pre-transplant",
                            grepl("25802", Tcells$orig.ident) ~ "postTx_3-6m",

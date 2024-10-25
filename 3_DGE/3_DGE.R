@@ -1,5 +1,6 @@
+# Nurefsan Sariipek, 240102
 
-#Load the needed libraries
+# Load the needed libraries
 library(tidyverse)
 library(Seurat)
 library(ggplot2)
@@ -21,12 +22,11 @@ library(ggforce)
 library(cloudml)
 library(Matrix.utils)
 
-#Load the saved seurat objects
-
-seu_diet_merged <- readRDS("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/RDS files/seu_diet_merged.rds")
+# Load the saved seurat objects
+seu_diet_merged <- readRDS("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/RDS files/seu_diet_merged.rds")
 
 View(seu_diet_merged@meta.data)
-
+# Select the group you want to run analysis
 ex <- subset(x= seu_diet_merged, subset =cohort %in% c("cohort1","cohort2"))
 ex <- subset(x= ex, subset =status %in% c("remission"))
 ex <- subset(x=ex, subset = id %in% c("P01.1Rem", "P01.1RemT", "P01.2Rem", "P02.1Rem", "P04.1Rem", "P04.1RemT", "P05.1Rem", "P06.1Rem", "P07.1Rem", "P07.1RemT", "P08.1Rem", "P08.1RemT"))
@@ -34,7 +34,7 @@ ex <- subset(x=ex, subset = id %in% c("P01.1Rem", "P01.1RemT", "P01.2Rem", "P02.
 #Pool MNC and CD3 samples
 #ex <- ex%>% mutate(pt_timepoint = gsub("RemT", "Rem", id)) 
 
-#remove the . for the pseudobulk analysis
+# Remove the . for the pseudobulk analysis
 ex$id =gsub("\\.", "", ex$id)
 #ex$groups = NULL
 View(ex@meta.data)
@@ -49,7 +49,7 @@ celltype_names = unique(sce$celltype)
 
 sce$sample_id = paste0(sce$id)
 
-#Subset metadata to include only the variables you want to aggregate across (here, we want to aggregate by sample and by celltype)
+# Subset metadata to include only the variables you want to aggregate across (here, we want to aggregate by sample and by celltype)
 
 groups = colData(sce)[, c("celltype", "sample_id")]
 head(groups)
@@ -71,7 +71,6 @@ aggr_counts[1:6, 1:6]
 
 tstrsplit(colnames(aggr_counts), "_") %>% str()
 
-
 head(colnames(aggr_counts), n = 10)
 head(tstrsplit(colnames(aggr_counts), "_")[[1]], n = 10)
 
@@ -79,7 +78,7 @@ celltype_names
 ## Initiate empty list
 counts_ls = list()
 
-#put in a loop
+# put in a loop
 for (i in 1:length(celltype_names)) {
   
   ## Extract indexes of columns in the global matrix that match a given cluster
@@ -344,7 +343,7 @@ save_plot(paste0("~/", sub('/', '_', celltype), ".summary.pdf"), p, base_height 
 
 }
 ​
-### Write all results to file
+# Write all results to file
 name = "all_celltypes" 
 write.csv(x = total_res_table_thres, file = paste0(name, ".pseudobulk_DE_res.csv"), quote = F, row.names = F)
 

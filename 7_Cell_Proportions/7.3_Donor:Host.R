@@ -14,11 +14,11 @@ library(readxl)
 rm(list=ls())
 
 # For Nurefsan:
-my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
+my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/TP53_ImmuneEscape/5_Souporcell/"
 
 # Load the saved dataframe that contains the information about souporcell information
 # For Nurefsan
-combined_df <- read_csv(paste0(my_wd,file = "AnalysisNurefsan/Souporcell/outputs/cohort1-2_souporcell.csv"))
+combined_df <- read_csv(paste0(my_wd,file = "/outputs/cohort1-2_souporcell.csv"))
 
 # Subset and summarise as you like to visualize 
 
@@ -29,7 +29,8 @@ proportions_df <- combined_df %>%
                          ,"CD56 Dim NK cells", "CD56 Bright NK cells"
          ),
          id %in% c("P01.1Rem","P01.2Rem","P02.1Rem","P04.1Rem", "P05.1Rem","P06.1Rem","P07.1Rem","P08.1Rem"),
-         assignment == "donor") %>% 
+       #optional  assignment == "donor"
+         ) %>% 
   group_by(id, cohort) %>% reframe(tabyl(celltype)) %>%
   mutate(percent = percent*100) %>% 
   mutate(celltype = factor(celltype,
@@ -61,7 +62,7 @@ p1 <- proportions_df %>%
 # Check the plot
 p1
 # Save as a pdf
-pdf("donor_proportions.pdf", width = 10, height = 8)
+pdf("all_proportions.pdf", width = 10, height = 8)
 p1
 dev.off()
 

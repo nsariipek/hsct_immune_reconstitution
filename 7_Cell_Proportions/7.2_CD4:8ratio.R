@@ -23,15 +23,16 @@ rm(list=ls())
 # For Nurefsan:
 my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
 
-# Load the data
-Tcells <- readRDS(paste0(my_wd,"AnalysisNurefsan/RDS files/Tcellsfinal.rds"))
+# Load the data that contains all cells+ assignments
+seu <- readRDS(paste0(my_wd,"RDS files/assignment_seu.rds"))
 
 #select only
-meta= Tcells@meta.data  %>%
-  dplyr::select(groups,celltype,patient_identity,cohort, Sample,id)
+meta= seu@meta.data  %>%
+  dplyr::select(celltype,patient_identity,cohort, Sample,id, assignment) 
+#choose donor or recipient cells if needed
+  meta <- subset(x=meta, subset = assignment== "host")
 
-
-meta <- subset(x=meta, subset = id %in% c("P01_1Rem", "P01_1RemT", "P01_2Rem", "P02_1Rem", "P04_1Rem", "P04_1RemT", "P05_1Rem", "P06_1Rem", "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))
+meta <- subset(x=meta, subset = Sample %in% c("P01_1Rem", "P01_2Rem", "P02_1Rem", "P04_1Rem",  "P05_1Rem", "P06_1Rem", "P07_1Rem", "P08_1Rem"))
 rownames(meta) <- NULL
 
 meta$type <- case_when(grepl("CD8.", meta$celltype) ~ "cd8",
@@ -53,11 +54,13 @@ t2 <-
 View(t2)
 
 p1 <- t2 %>%
+  mutate(cohort = gsub("cohort1", "Non-relapsed", gsub("cohort2", "Relapsed", cohort)),
+cohort = factor(cohort, levels = c("Non-relapsed", "Relapsed")))%>%
   ggplot(aes(x=cohort, y=ratio)) +
   geom_jitter(aes(color=cohort), size=4)+
-  theme_bw() +
   ylab("CD4/CD8 Ratio") +
   theme_pubr()+
+scale_color_manual(values = c("Relapsed"= "tomato1", "Non-relapsed"="royalblue1"))+
   theme(strip.text = element_text(size = 14, color = "black", face="bold"),
         aspect.ratio = 1.5, 
         axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 15, color = "black"),
@@ -72,11 +75,11 @@ p1 <- t2 %>%
   stat_compare_means(aes(group = cohort), method = "t.test", 
                      method.args = list(var.equal = T),
                      label = "p.format", label.x = 1.6, 
-                     label.y= 2, tip.length = 1, size = 6, inherit.aes = TRUE) 
+                     label.y= 4, tip.length = 1, size = 6, inherit.aes = TRUE) 
   
 
 p1
-pdf("CD4-CD8ratiopercohort.pdf", width = 5, height = 7.5)
+pdf("CD4__CD8ratio.pdf", width = 5, height = 7.5)
 p1
 dev.off()
 getwd()

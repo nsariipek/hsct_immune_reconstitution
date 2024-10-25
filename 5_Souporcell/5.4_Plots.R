@@ -1,6 +1,6 @@
 # Nurefsan Sariipek, 231103
 # Generating plots using souporcell information
-# Updated at 240418, 
+# Updated at 240418 
 # Load the libraries
 library(ggalluvial)
 library(tidyverse)
@@ -12,20 +12,75 @@ library(ggrepel)
 library(fossil)
 library(ggpubr)
 library(readxl)
+
 # Empty environment
 rm(list=ls())
 
 # Set the working directory 
 # For Nurefsan:
-my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
+my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/TP53_ImmuneEscape/5_Souporcell/"
 
 # For Peter:
 # my_wd <- "~/DropboxMGB/Projects/ImmuneEscapeTP53/" 
 # Load the saved dataframe that contains the information from the previous part
 # For Nurefsan
-combined_df <- read_csv(paste0(my_wd,file = "AnalysisNurefsan/Souporcell/outputs/cohort1-2_souporcell.csv"))
+# For cohorts 1-2
+combined_df <- read_csv(paste0(my_wd,file = "/results/cohort1-2_souporcell.csv"))
+# For cohort 3
+combined_df <- read_csv(paste0(my_wd,file="/results/cohort3_souporcell.csv"))
 
 # Subset and summarise as you like to visualize 
+
+######################### Plot 1 ##########################
+# Plot 1, visualize souporcell results per patient
+# Select the patient you want to visualize 
+pt1 <- subset(combined_df, subset = patient_identity=="pt01")
+pt2 <- subset(combined_df, subset = patient_identity=="pt02")
+pt5 <- subset(combined_df, subset = patient_identity=="pt05")
+pt6 <- subset(combined_df, subset = patient_identity=="pt06")
+pt8 <- subset(combined_df, subset = patient_identity=="pt08")
+pt9 <- subset(combined_df, subset = patient_identity=="pt09")
+pt10 <- subset(combined_df, subset = patient_identity=="pt10")
+pt11 <- subset(combined_df, subset = patient_identity=="pt11")
+pt12 <- subset(combined_df, subset = patient_identity=="pt12")
+
+
+# Re-order timepoints for better visualization
+ordered_timepoints= c("pre_transplant", "remission","relapse")
+pt1$status= factor(pt1$status, levels = ordered_timepoints)
+
+# Calculate the proportion for donor/host cells
+pt1 <- pt1 %>%
+  mutate(assignment = gsub("host", "recipient",assignment))%>%
+ group_by(status) %>% reframe(tabyl(assignment)) %>%
+  mutate(percent = percent*100) 
+
+# Plot
+
+plot1 <- ggplot(data = pt1,
+                aes(x = status,y = percent,fill= assignment))+  
+                geom_bar(stat = "identity", position = "stack")+
+               theme_bw() +
+  scale_fill_manual(values = c("donor"= "tomato1", "recipient"="royalblue1"),name = "Assignment")+
+  labs(y = "Percent of Cells") +
+  theme(aspect.ratio = 0.75,
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1,face="plain", size=18, color="black"), 
+        axis.text.y = element_text(face="plain", size=16, color="black"),
+        axis.title.y = element_text(size = 18),
+        axis.title.x = element_blank(),
+        plot.title = element_text(size=20, face="plain"),
+        strip.text = element_text(size=12, face="bold"),
+        legend.title=element_text(size=16), 
+        legend.text=element_text(size=16)) +
+        theme(panel.grid = element_blank()
+              )
+
+plot1
+# Save as a pdf
+pdf("pt1.pdf", width = 6, height = 8 )
+plot1
+dev.off()
+
 
 # Select only T and NK cells
 combined_df_T <- subset(combined_df, subset = celltype %in% c("CD4 Naïve","CD4 Memory","Treg","CD8 Naïve","CD8 Memory","CD8 Effector","CD8 Terminally Exhausted","γδ T lymphocytes","NK T cells","CD56 Bright NK cells","CD56 Dim NK cells")) 
@@ -33,8 +88,8 @@ combined_df_T <- subset(combined_df, subset = celltype %in% c("CD4 Naïve","CD4 
 # Select only 6mo remission cells and MNC libraries only to prevent any skewing
 combined_df_T_rem6mo <- subset(combined_df_T, subset = id %in% c("P01.1Rem","P01.2Rem","P02.1Rem","P04.1Rem", "P05.1Rem","P06.1Rem","P07.1Rem","P08.1Rem"))
  
-##################### Part 1 #############################
-# Plot 1, Post-transplant 3-6 months remission samples alluvial visuliazing
+##################### Plot 2 #############################
+# Plot 2, Post-transplant 3-6 months remission samples alluvial visuliazing
 
 # Summarize the dataframe
 meta_summary <- 
@@ -66,7 +121,7 @@ names(mycol) <- mycol_tib$celltype
 
 # Visualize
 
-plot1 <- ggplot(data = meta_summary,
+plot2 <- ggplot(data = meta_summary,
        aes(axis1 = cohort , axis2 = assignment, axis3 = celltype,
            y = n_cells)) +
   scale_x_discrete(limits = c("Cohort","Origin","Celltype"), expand = c(.2, .05)) +
@@ -86,14 +141,14 @@ plot1 <- ggplot(data = meta_summary,
     legend.position = "none") +
   ggtitle("Post-transplant 3-6 months remission samples")
 
-plot1
+plot2
 # Save as a pdf
 pdf("3-6moalluvial.pdf", width = 18, height = 9)
-plot1
+plot2
 dev.off()
 
-######################### Part 2 ##########################
-# Plot 2, see how accurate souporcell results comparing with chimerism information
+######################### Plot 3 ##########################
+# Plot 3, see how accurate souporcell results comparing with chimerism information
 
 # Load the dataframe contains comparision between chimerism and souporcell
 df <- read_excel(paste0(my_wd,"AnalysisNurefsan/Souporcell/outputs/similarity.xlsx"))
@@ -103,7 +158,7 @@ ids = c("P01.1Rem","P01.1RemT", "P01.2Rem" , "P03.1Rem" , "P04.1Rem",  "P04.1Rem
 df$id = factor(df$id, levels= ids)
 
 # Visualize
-plot2 =
+plot3 =
   df %>% 
   drop_na()%>%
   ggplot(aes(x = Souporcell, y = Chimerism, colour = id)) +
@@ -120,9 +175,9 @@ plot2 =
   ggtitle("Correlation of Souporcell Results \n with Clinical Chimerism Data")+
   theme(aspect.ratio=1)
 
-plot2 
+plot3
 # Save as a pdf
 pdf("similarity.pdf", width = 5, height = 7.5)
-plot2
+plot3
 dev.off()
 

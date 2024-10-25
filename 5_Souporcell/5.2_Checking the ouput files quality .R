@@ -9,36 +9,33 @@ library(fossil)
 library(ggrepel)
 library(ggpubr)
 
-
 # Start with a clean slate
 rm(list=ls())
 
-setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/AnalysisNurefsan/Souporcell/outputs")
+# For Nurefsan:
+my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/TP53_ImmuneEscape/5_Souporcell/"
 
-#Create a file that combines reference and alternative matrices output of the souporcell.
+# Create a file that combines reference and alternative matrices output of the souporcell.
 # The way to create this file in bash is
-# paste ref.mtx alt.mtx | sed 's/ /\t/g' > Pt03.combined.tsv
+#paste ref.mtx alt.mtx | sed 's/ /\t/g' > Pt03.combined.tsv
 
-# t = read.table("ptbm.combined.mtx2", skip=3, sep = '\t')
+t = read.table(paste0(my_wd,"outputs/combined/souporcell_Pt9_combined.tsv"), skip=3, sep = '\t')
 
-t = read.table("combined/souporcell_Pt9_combined.tsv", skip=3, sep = '\t')
-
-
-#muatate the coverage name, add a genotype column specifying if a variant is WT or MT
+# Mutate the coverage name, add a genotype column specifying if a variant is WT or MT
 t = t %>%
   dplyr::select(pos=V1, cell = V2, ref = V3, alt = V6) %>%
   mutate(cov = ref + alt, genotype = ifelse(alt > 0, 0,1)) %>%
   filter(cov > 0)
 
-#add the output of the souporcell, and select the barcode and assignment.
-cells = read.table("clusters/souporcell_Pt9_clusters.tsv", header = T)
+# Add the output of the souporcell, and select the barcode and assignment.
+cells = read.table(paste0(my_wd,"outputs/clusters/souporcell_Pt9_clusters.tsv"), header = T)
 cells = cells %>%
   dplyr::select(barcode, assignment)
 
 
 cells$cell = 1:nrow(cells)
 
-#select the cells only assigned correctly by souporcell
+# Select the cells only assigned correctly by souporcell
 cells = cells %>%
   filter(assignment %in% c(0,1))
 
@@ -46,7 +43,7 @@ t = t %>%
   left_join(cells) %>%
   drop_na()
 
-#call variants according to the unique position of each variance and filter the ones that have less than 100 cells.
+# Call variants according to the unique position of each variance and filter the ones that have less than 100 cells.
 
 variants = unique(t$pos)
 
@@ -58,7 +55,7 @@ variants = t %>%
 t_f = t %>%
   filter(pos %in% variants)
 
-#For each variance, calculate the rand index, which computes a similarity measure between 2 clusterings, in this case, genotype and assignment.
+# For each variance, calculate the rand index, which computes a similarity measure between 2 clusterings, in this case, genotype and assignment.
 
 results = data.frame()
 
@@ -76,11 +73,11 @@ t %>%
   ggplot(aes(x=n)) + geom_histogram() + scale_x_log10()
 
 
-#briefly visualize the results
+# briefly visualize the results
 results %>%
   ggplot(aes(x=rand,y=ncells)) + geom_point()
 
-#add "geno_frac" showing the fraction of wt cells fraction of mutated cells. Informative variants shouldn’t be close to 100%.
+# add "geno_frac" showing the fraction of wt cells fraction of mutated cells. Informative variants shouldn’t be close to 100%.
 
 geno_frac = t_f %>%
   group_by(pos, genotype) %>%
@@ -88,7 +85,7 @@ geno_frac = t_f %>%
   group_by(pos) %>%
   summarize(max_geno_frac = max(n/sum(n)))
 
-  #Plot down below selects and label the variants that have more than 1000 cells and rand index >0.8 and geno fraction <0.8
+# Plot down below selects and label the variants that have more than 1000 cells and rand index >0.8 and geno fraction <0.8
 results %>% 
   left_join(geno_frac, by = c("var" = "pos")) %>%
   ggplot(aes(x=rand,y=ncells,color=max_geno_frac, label = var, size =4)) + 
@@ -97,20 +94,20 @@ results %>%
   geom_label_repel(aes(label=ifelse(ncells>1000 & rand>0.8 & max_geno_frac<0.8, as.character(var),'')),hjust=0,vjust=0, label.size = 1)+
   scale_color_distiller(palette = "Spectral")
 
-#select the most informative variants for to see how strong Souporcell results are 
+# Select the most informative variants for to see how strong Souporcell results are 
 
 relevant_variants = results %>% left_join(geno_frac, by = c("var" = "pos")) %>% filter(rand > 0.8, ncells > 1000, max_geno_frac<0.8) %>% pull(var)
 
-relevant_variants = results %>% left_join(geno_frac, by = c("var" = "pos")) %>% filter(rand > 0.8, ncells > 200, max_geno_frac<0.8) %>% pull(var)
+#relevant_variants = results %>% left_join(geno_frac, by = c("var" = "pos")) %>% filter(rand > 0.8, ncells > 200, max_geno_frac<0.8) %>% pull(var)
 
-#arrange the x axes
+# Arrange the x axes
 
 ordered_barcodes = cells %>% arrange(assignment) %>% pull(barcode)
 
 t_f$barcode = factor(t_f$barcode, levels = ordered_barcodes)
 
 
-#Heatmap with top informative variants, cells are ordered by assignment column and colored by genotype (based on alt/ref counts)
+# Heatmap with top informative variants, cells are ordered by assignment column and colored by genotype (based on alt/ref counts)
 p1 = t_f %>%
   filter(pos %in% relevant_variants) %>%
   mutate(genotype = as.character(genotype)) %>%
@@ -120,18 +117,17 @@ p1 = t_f %>%
   theme(axis.text.x = element_blank())
 
 p1
-#save as a pdf file 
+# Save as a pdf file 
 
-pdf("Pt9quality.pdf", width = 5, height = 7.5)
+pdf("Pt9quality.pdf", width = 8, height = 4)
 p1
 dev.off()
-
 
 df <- subset(t_f, select = -c(alt,ref))
 
 rownames(df)  <- df$unique(barcode)      
 
-#see the number of cells that are plotted(unique barcodes)
+# See the number of cells that are plotted(unique barcodes)
   t_f %>% 
   filter(pos %in% relevant_variants) %>%
   mutate(genotype = as.character(genotype)) %>%
@@ -139,13 +135,3 @@ rownames(df)  <- df$unique(barcode)
 
 
 t %>% filter(pos %in% relevant_variants) %>% View()
-
-
-
-
-
-
-
-
-
-

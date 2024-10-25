@@ -7,8 +7,15 @@
 library(tidyverse)
 library(Seurat)
 
+# Start with a clean slate
+rm(list=ls())
+
+# Set the working directory 
+# For Nurefsan:
+my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
+
 # Load Seurat object
-seu_diet_merged <- readRDS("~/DropboxMGB/Projects/ImmuneEscapeTP53/AnalysisNurefsan/GEX data/seu_diet_merged.rds")
+seu_diet_merged <- readRDS(paste0(my_wd,file ="RDS files/seu_diet_merged.rds"))
 
 # Since we merged the bam files from each patient, we are merging the barcodes from each patient as well, and we are removing the barcodes that are present more than 2 sample.
 df1 <- seu_diet_merged@meta.data
@@ -48,6 +55,3 @@ overlap_list
 
 # Generate a dataframe
 do.call(cbind, overlap_list)
-
-
-

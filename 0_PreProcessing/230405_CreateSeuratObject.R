@@ -1,7 +1,7 @@
-#####beginning####
-#Nurefsan Sariipek, 230405
-#Analysis of data of TP53 project
-#Load libraries
+# Nurefsan Sariipek, 230405
+# Analysis of data of TP53 project
+
+# Load libraries
 library(tidyverse)
 library(Seurat)
 library(ggplot2)

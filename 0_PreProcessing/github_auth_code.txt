@@ -1,0 +1,4 @@
+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
+
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"

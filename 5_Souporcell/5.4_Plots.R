@@ -1,6 +1,7 @@
 # Nurefsan Sariipek, 231103
 # Generating plots using souporcell information
-# Updated at 240418 
+# Updated at 240418
+
 # Load the libraries
 library(ggalluvial)
 library(tidyverse)
@@ -21,7 +22,7 @@ rm(list=ls())
 my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/TP53_ImmuneEscape/5_Souporcell/"
 
 # For Peter:
-# my_wd <- "~/DropboxMGB/Projects/ImmuneEscapeTP53/" 
+# my_wd <- "~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/5_Souporcell/"
 # Load the saved dataframe that contains the information from the previous part
 # For Nurefsan
 # For cohorts 1-2

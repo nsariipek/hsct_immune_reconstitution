@@ -114,7 +114,7 @@ UMAP3
 # Add variables to metadata
 
 # Add library type either as enriched for T cells or not
-seu$library_type <- case_when(grepl("CD3", seu$orig.ident) ~ "enriched_CD3",
+seu$library_type <- case_when(grepl("CD3", seu$orig.ident) ~ "CD3",
                               grepl("MNC", seu$orig.ident) ~ "MNC",
                               grepl("MIX", seu$orig.ident) ~ "MIX")                 
 
@@ -123,10 +123,10 @@ seu$cohorts <- case_when(grepl("9596|2737|2379|2434|2518|4618|6174|9931|1953|258
                          grepl("2446|25802|2645|1972|2220|2621|9185|2599", seu$orig.ident) ~ "1-Non-relapsed",
                          grepl("1677|5641|1732|1811|1195|1347|1285|6244|9355|1013", seu$orig.ident) ~ "1-Early relapsed",
                          grepl("1764|1804|1964|2332|2448|2745", seu$orig.ident) ~ "2-Relapsed",
-                         grepl("1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu$orig.ident~ "2-Remission"))
+                         grepl("1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu$orig.ident~ "2-Non-relapsed"))
 
 
-# Add timepoints of samples to metadata 
+# Add sample status of samples to metadata 
 seu$sample_status <- case_when(grepl("9596|2379|4618|9355|2446|1972|1677|1195|5641", seu$orig.ident) ~ "pre_transplant",
                          grepl("25809|2434|2518|6174|9931|1013|25802|2645|2220|2621|9185|2599|1732|1285|6244|1764|1804|1964|2332|2448|2745|1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu$orig.ident) ~ "remission",
                          grepl("2737|1953|1811|1347", seu$orig.ident) ~ "relapse"
@@ -166,8 +166,6 @@ grepl("1964",seu$orig.ident) ~ "pt30",
 grepl("2332",seu$orig.ident) ~ "pt31",
 grepl("2448",seu$orig.ident) ~ "pt32",
 grepl("2745",seu$orig.ident) ~ "pt33" )
-
-
           
 
 # add a point to show the samples time as months after tx

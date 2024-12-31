@@ -123,8 +123,7 @@ seu$cohorts <- case_when(grepl("9596|2737|2379|2434|2518|4618|6174|9931|1953|258
                          grepl("2446|25802|2645|1972|2220|2621|9185|2599", seu$orig.ident) ~ "1-Non-relapsed",
                          grepl("1677|5641|1732|1811|1195|1347|1285|6244|9355|1013", seu$orig.ident) ~ "1-Early relapsed",
                          grepl("1764|1804|1964|2332|2448|2745", seu$orig.ident) ~ "2-Relapsed",
-                         grepl("1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu$orig.ident~ "2-Remission")
-                      )
+                         grepl("1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu$orig.ident~ "2-Remission"))
 
 
 # Add timepoints of samples to metadata 

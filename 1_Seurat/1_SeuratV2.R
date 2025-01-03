@@ -17,7 +17,7 @@ plan(multisession)
 # Start with a clean slate
 rm(list=ls())
 
-# Parameters to interact with Google bucket, this part only needed for Terra 
+# Parameters to interact with Google bucket, this part only needed for Terra
 project <- Sys.getenv('WORKSPACE_NAMESPACE')
 workspace <- Sys.getenv('WORKSPACE_NAME')
 bucket <- Sys.getenv('WORKSPACE_BUCKET')
@@ -31,9 +31,8 @@ Samples <- c("P1013_MNC","P1732_MNC","P1953_MNC","P2434_MNC", "P2599_CD3","P2791
              "P1347_MNC","P1804_MNC","P2220_MNC","P2518_CD3", "P2645_MNC","P2986_MNC","P9185_CD3",
              "P1665_MIX","P1811_CD3","P2332_MNC","P2518_MNC", "P2698_MIX","P2988_MNC","P9185_MNC",
              "P1671_MIX","P1811_MNC","P2379_CD3","P25809_MNC","P2737_CD3","P3000_MIX","P9355_MNC",
-             "P1677_CD3","P1817_MIX","P2379_MNC","P2580_CD3", "P2737_MNC","P4618_MNC","P9596_CD3",
-             "P1677_MNC","P1953_CD3","P2408_MNC","P2580_MNC", "P2745_MNC","P5641_MNC","P9596_MNC")
-
+             "P1677_CD3","P1817_MIX","P2379_MNC","P25802_CD3", "P2737_MNC","P4618_MNC","P9596_CD3",
+             "P1677_MNC","P1953_CD3","P2408_MNC","P25802_MNC", "P2745_MNC","P5641_MNC","P9596_MNC")
 
 
 matrices_ls <- future_lapply(Samples, function(x) {
@@ -43,6 +42,7 @@ matrices_ls <- future_lapply(Samples, function(x) {
   return(result)
 })
 
+options(future.globals.maxSize = 12 * 1024^3) # 12 GiB
 
 # Create Seurat objects with orig.ident metadata in parallel
 seu_ls <- future_lapply(seq_along(matrices_ls), function(i) {
@@ -192,51 +192,45 @@ seu$timepoint <- case_when(grepl("2446", seu$orig.ident) ~ "pre-transplant",
 
 # Add an unique sample identifier to combine MNC and CD3 libraries
 seu$sample_id <- case_when( grepl("2446", seu$orig.ident) ~ "P01_Pre",
-                            grepl("25802_MNC", seu$orig.ident) ~ "P01_Rem",
-                            grepl("25802_CD3", seu$orig.ident) ~ "P01_Rem",
-                            grepl("2645", seu$orig.ident) ~ "P01_Rem",
-                            grepl("1972_MNC", seu$orig.ident) ~ "P02_Pre",
-                            grepl("1972_CD3", seu$orig.ident) ~ "P02_Pre",
-                            grepl("2220", seu$orig.ident) ~ "P02_Rem",
-                            grepl("2621_MNC", seu$orig.ident) ~ "P02_Rem",
-                            grepl("2621_CD3", seu$orig.ident) ~ "P02_Rem",
-                            grepl("9185_MNC", seu$orig.ident) ~ "P03_Rem",
-                            grepl("9185_CD3", seu$orig.ident) ~ "P03_Rem",
-                            grepl("2599_MNC", seu$orig.ident) ~ "P04_Rem",
-                            grepl("2599_CD3", seu$orig.ident) ~ "P04_Rem",
+                            grepl("25802", seu$orig.ident) ~ "P01_Rem1",
+                            grepl("2645", seu$orig.ident) ~ "P01_Rem2",
                             
-                            grepl("9596_MNC", seu$orig.ident) ~ "P05_Pre",
-                            grepl("9596_CD3", seu$orig.ident) ~ "P05_Pre",
+                            grepl("1972", seu$orig.ident) ~ "P02_Pre",
+                            grepl("2220", seu$orig.ident) ~ "P02_Rem1",
+                            grepl("2621", seu$orig.ident) ~ "P02_Rem2",
+                            
+                            grepl("9185", seu$orig.ident) ~ "P03_Rem",
+                            
+                            grepl("2599", seu$orig.ident) ~ "P04_Rem",
+                            
+                            grepl("9596", seu$orig.ident) ~ "P05_Pre",
                             grepl("25809", seu$orig.ident) ~ "P05_Rem",
-                            grepl("2737_MNC", seu$orig.ident) ~ "P05_Rel",
-                            grepl("2737_CD3", seu$orig.ident) ~ "P05_Rel",
-                            grepl("2379_MNC", seu$orig.ident) ~ "P06_Pre",
-                            grepl("2379_CD3", seu$orig.ident) ~ "P06_Pre",
-                            grepl("2434", seu$orig.ident) ~ "P06_Rem",
-                            grepl("2518_MNC", seu$orig.ident) ~ "P07_Rem",
-                            grepl("2518_CD3", seu$orig.ident) ~ "P07_Rem",
-                            grepl("4618", seu$orig.ident) ~ "P08_Pre",
-                            grepl("6174_MNC", seu$orig.ident) ~ "P08_Rem",
-                            grepl("6174_CD3", seu$orig.ident) ~ "P08_Rem",
-                            grepl("9931_MNC", seu$orig.ident) ~ "P08_Rem",
-                            grepl("9931_CD3", seu$orig.ident) ~ "P08_Rem",
-                            grepl("1953_MNC", seu$orig.ident) ~ "P08_Rel",
-                            grepl("1953_CD3", seu$orig.ident) ~ "P08_Rel",
+                            grepl("2737", seu$orig.ident) ~ "P05_Rel",
                             
-                            grepl("1677_MNC", seu$orig.ident) ~ "P09_Pre",
-                            grepl("1677_CD3", seu$orig.ident) ~ "P09_Pre",
+                            grepl("2379", seu$orig.ident) ~ "P06_Pre",
+                            grepl("2434", seu$orig.ident) ~ "P06_Rem",
+                            
+                            grepl("2518", seu$orig.ident) ~ "P07_Rem",
+                            
+                            grepl("4618", seu$orig.ident) ~ "P08_Pre",
+                            grepl("6174", seu$orig.ident) ~ "P08_Rem1",
+                            grepl("9931", seu$orig.ident) ~ "P08_Rem2",
+                            grepl("1953", seu$orig.ident) ~ "P08_Rel",
+                            
+                            
+                            grepl("1677", seu$orig.ident) ~ "P09_Pre",
                             grepl("1732", seu$orig.ident) ~ "P09_Rem",
-                            grepl("1811_MNC", seu$orig.ident) ~ "P09_Rel",
-                            grepl("1811_CD3", seu$orig.ident) ~ "P09_Rel",
+                            grepl("1811", seu$orig.ident) ~ "P09_Rel",
+                            
                             
                             grepl("1195", seu$orig.ident) ~ "P10_Pre",
                             grepl("1285", seu$orig.ident) ~ "P10_Rem",
-                            grepl("1347_MNC", seu$orig.ident) ~ "P10_Rel",
-                            grepl("1347_CD3", seu$orig.ident) ~ "P10_Rel",
+                            grepl("1347", seu$orig.ident) ~ "P10_Rel",
+                            
                             
                             grepl("5641", seu$orig.ident) ~ "P11_Pre",
-                            grepl("6244_MNC", seu$orig.ident) ~ "P11_Rem",
-                            grepl("6244_CD3", seu$orig.ident) ~ "P11_Rem",
+                            grepl("6244", seu$orig.ident) ~ "P11_Rem",
+                            
                             
                             grepl("9355", seu$orig.ident) ~ "P12_Pre",
                             grepl("1013", seu$orig.ident) ~ "P12_Rem",
@@ -298,6 +292,9 @@ plot1
 plot2
 
 gc()
+
+#Save in case it fails in the 
+saveRDS(seu, file = "~/seu.rds")  
 
 # Scale the data  
 all.genes <- rownames(seu)

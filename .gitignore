@@ -1,5 +1,6 @@
 # Custom additions
 .DS_Store
+
 # This is a temporary solution, we should make sure all necessary files are synchronized or stored elsewhere:
 souporcell*.tsv
 
@@ -52,6 +53,3 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
-
-# Miscellaneous
-.DS_Store

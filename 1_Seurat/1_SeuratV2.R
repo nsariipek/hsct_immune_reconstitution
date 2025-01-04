@@ -58,6 +58,7 @@ plan(sequential)
 
 #Create the seurat object combining each sample, add.cell.ids will prevent any duplication due to the different run(same cell identifiers)
 seu <- merge(seu_ls[[1]], seu_ls[2:length(seu_ls)], add.cell.ids = Samples)
+seu <- JoinLayers(seu)
 
 # Add QC Metrics
 seu <- PercentageFeatureSet(seu, "^MT-", col.name = "percent_mito")

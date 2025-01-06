@@ -87,16 +87,16 @@ ggsave("1.2_FeatureScatter.pdf", width = 10, height = 6)
 gc()
 
 # Count the cells before filtering 
-cell_numbers <- seu$orig.ident %>% tabyl %>% select(".", "n") %>% rename(n_prefilter = n)
+cell_numbers <- as.data.frame(seu$orig.ident %>% tabyl %>% select(".", "n") %>% rename(n_prefilter = n))
 
 # Filter data by QC thresholds based on the plots above
 seu <- subset(seu, subset = nFeature_RNA > 250 & nCount_RNA > 500 & percent_mito < 20)   
 
 # Check how many cells were filtered
-seu$orig.ident %>% tabyl %>% select(".", "n") %>% rename(n_postfilter = n) %>%
-  full_join(cell_numbers) %>%
-  mutate(percent = n_postfilter/n_prefilter) %>% adorn_totals("row") %>%
-  mutate(percent = ifelse(data == "Total", NA, percent))
+t1 <- as.data.frame(seu$orig.ident %>% tabyl %>% select(".", "n") %>% rename(n_postfilter = n)) 
+cellnumbers_final <- merge(t1,cell_numbers, by=".") %>% mutate(percent = n_postfilter/n_prefilter) 
+colnames(cellnumbers_final)[1] <- "orig.id"
+write.csv(cellnumbers_final, "cellnumbers_final.csv")
   
 # Add variables to metadata
 # Add library type 
@@ -274,6 +274,9 @@ seu$patient_id <- as.factor(seu@meta.data$patient_id)
 seu$sample_status <- as.factor(seu@meta.data$sample_status)
 seu$library_type <- as.factor(seu@meta.data$library_type)
 seu$sample_id <- as.factor(seu@meta.data$sample_id)
+
+# Unfree memory
+gc()
 
 # Data Normalization
 seu <- NormalizeData(seu, normalization.method = "LogNormalize", scale.factor = 10000)

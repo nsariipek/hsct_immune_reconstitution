@@ -13,11 +13,11 @@ library(janitor)
 setwd("/home/rstudio/TP53_ImmuneEscape/1_Seurat")
 
 # Load the data from the previous script
-seu <- readRDS(seu, file = "~/250104_MergedSeuratObject.rds")
+seu <- readRDS(file = "~/250104_MergedSeuratObject.rds")
 
 # Scale the data (this increases the size a lot - remove the scale.data layer before saving again)
 seu <- ScaleData(seu, features = rownames(seu))
-
+gc()
 # Perform linear dimensional reduction
 seu <- RunPCA(seu, features = VariableFeatures(object = seu))
 
@@ -29,10 +29,8 @@ DimHeatmap(seu, dims = 1:15, cells = 500, balanced = TRUE)
 # Determine the ‘dimensionality’ of the dataset
 ElbowPlot(seu)
 
-#I don't know why this is here
-Idents(seu) = "seurat_clusters"
 
-# FInd Neighbors and Cluster cells
+# Find Neighbors and Cluster cells
 seu <- FindNeighbors(seu, dims = 1:15)
 seu <- FindClusters(seu, resolution = 1)
 head(Idents(seu), 5)

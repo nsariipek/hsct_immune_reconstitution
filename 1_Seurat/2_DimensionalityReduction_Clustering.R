@@ -14,21 +14,47 @@ setwd("/home/rstudio/TP53_ImmuneEscape/1_Seurat")
 
 # Load the data from the previous script
 seu <- readRDS(file = "~/250104_MergedSeuratObject.rds")
+#########################
+#Since this script failed many times Nurefsan tried this tutorial from Seurat:https://satijalab.org/seurat/archive/v4.3/integration_large_datasets
+# Next, select features for downstream integration, and run PCA on each object in the list, which is required for running the alternative reciprocal PCA workflow.
+seu.list <- SplitObject(seu, split.by = "orig.ident")
+seu.list <- lapply(X = seu.list, FUN = function(x) {
+  x <- NormalizeData(x, verbose = FALSE)
+  x <- FindVariableFeatures(x, verbose = FALSE)
+})
+#Next, select features for downstream integration, and run PCA on each object in the list, which is required for running the alternative reciprocal PCA workflow.
+
+features <- SelectIntegrationFeatures(object.list = seu.list)
+seu.list <- lapply(X = seu.list, FUN = function(x) {
+  x <- ScaleData(x, features = features, verbose = FALSE)
+  x <- RunPCA(x, features = features, verbose = FALSE)
+})
+
+anchors <- FindIntegrationAnchors(object.list = seu.list, reference = c(1, 2), reduction = "rpca",
+                                  dims = 1:50)
+seu.integrated <- IntegrateData(anchorset = anchors, dims = 1:50)
+seu.integrated <- ScaleData(seu.integrated, verbose = FALSE)
+seu.integrated <- RunPCA(seu.integrated, verbose = FALSE)
+seu.integrated <- RunUMAP(seu.integrated, dims = 1:50)
+DimPlot(seu.integrated, group.by = "orig.ident")
+
+#This created an object called seu.integrated( 46.4 GB) and Nurefsan saved this 
+saveRDS(seu.integrated, file = "~/250106_IntegratedSeuratObject.rds")
+##########################
 
 # Scale the data (this increases the size a lot - remove the scale.data layer before saving again)
 seu <- ScaleData(seu, features = rownames(seu))
 gc()
-# Perform linear dimensional reduction
+# Perform linear dimensional reduction --->this step failed due to lack of memory 
 seu <- RunPCA(seu, features = VariableFeatures(object = seu))
 
 # Visualize PCA results in a few different ways
-DimPlot(seu, reduction = "pca") #this turned empty?
+DimPlot(seu, reduction = "pca") 
 DimHeatmap(seu, dims = 1, cells = 500, balanced = TRUE)
 DimHeatmap(seu, dims = 1:15, cells = 500, balanced = TRUE)
 
 # Determine the ‘dimensionality’ of the dataset
 ElbowPlot(seu)
-
 
 # Find Neighbors and Cluster cells
 seu <- FindNeighbors(seu, dims = 1:15)

@@ -4,24 +4,23 @@
 # Load the needed libraries
 library(tidyverse)
 library(Seurat) # we are using version 5.1.0
-library(cloudml)
+library(googleCloudStorageR)
 library(janitor)
 library(future.apply)
 
-# Set working directory (in Terra)
-setwd("/home/rstudio/TP53_ImmuneEscape/1_Seurat")
+# Set working directory (in Terra). Setting the home directory is an exception to my usual advice of using the folder with the script.
+setwd("/home/rstudio/")
 
 # Start with a clean slate
 rm(list=ls())
 
 # Use multiple cores
-plan(multisession) 
+plan(multisession)
 
 # Parameters to interact with Google bucket, this part only needed for Terra
-project <- Sys.getenv('WORKSPACE_NAMESPACE')
-workspace <- Sys.getenv('WORKSPACE_NAME')
-bucket <- Sys.getenv('WORKSPACE_BUCKET')
-data_dir <- gs_data_dir_local(bucket) # after running this, at least on Peter's system, I need to click "STOP" in the Console
+gcs_global_bucket("fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b")
+# Check if you can list the objects. You may need to authenticate interatively using gcs_auth()
+gcs_list_objects()
 
 # Load matrices of all samples
 Samples <- c("P1013_MNC","P1732_MNC","P1953_MNC","P2434_MNC", "P2599_CD3","P2791_MNC","P6174_CD3","P9931_CD3",
@@ -34,27 +33,39 @@ Samples <- c("P1013_MNC","P1732_MNC","P1953_MNC","P2434_MNC", "P2599_CD3","P2791
              "P1677_CD3","P1817_MIX","P2379_MNC","P25802_CD3", "P2737_MNC","P4618_MNC","P9596_CD3",
              "P1677_MNC","P1953_CD3","P2408_MNC","P25802_MNC", "P2745_MNC","P5641_MNC","P9596_MNC")
 
-# Read count matrices from CellRanger, takes several minutes
-matrices_ls <- future_lapply(Samples, function(x) {
-  print(x)
-  result <- Read10X((data.dir = paste0("gs/fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/", x, "/sample_filtered_feature_bc_matrix/")))
-  gc()
-  return(result)
-})
+# If it already exists, make sure this folder is empty:
+dir.create("/home/rstudio/tmp")
 
-# This only needs to be run once (but it doesn't hurt to do it again)
-options(future.globals.maxSize = 12 * 1024^3) 
+# Define the function
+process_sample <- function(Sample) {
+  #Sample <- Samples[1]
+  print(Sample)
+  
+  # Create path
+  sample_path <- paste0(Sample, "/sample_filtered_feature_bc_matrix/")
+  
+  # Download files
+  files <- c("barcodes.tsv.gz", "features.tsv.gz", "matrix.mtx.gz")
+  for (file in files) {
+    gcs_get_object(object_name = paste0(sample_path, file),
+                   saveToDisk = file.path("/home/rstudio/tmp", file))
+  }
+  
+  # Read data and create Seurat object
+  data <- Read10X(data.dir = "/home/rstudio/tmp")
+  seu <- CreateSeuratObject(counts = data, project = Sample)
+  
+  # Remove downloaded files
+  unlink(file.path("/home/rstudio/tmp", files))
+  
+  # Create Seurat object
+  return(seu)
+}
 
-# Create Seurat objects with orig.ident metadata in parallel
-seu_ls <- future_lapply(seq_along(matrices_ls), function(i) {
-  print(Samples[i])
-  result <- CreateSeuratObject(matrices_ls[[i]])
-  result@meta.data$orig.ident <- Samples[i]  # Add orig.ident directly
-  gc()
-  return(result)
-})
+# Use lapply to populate the list with Seurat objects
+seu_ls <- lapply(Samples, process_sample)
 
-# Reverts processing to sequential execution
+# Revert processing to sequential execution
 plan(sequential)
 
 # Create the Seurat object combining each sample, add.cell.ids prevents duplicate cell identifiers
@@ -75,14 +86,14 @@ seu_subset_for_visualization <- subset(seu, cells = colnames(seu)[seq(1, ncol(se
 feats <- c("nFeature_RNA", "nCount_RNA", "percent_mito", "percent_ribo")
 VlnPlot(seu_subset_for_visualization, group.by = "orig.ident", features = feats,
         pt.size = 0.1, ncol = 2, alpha = 0.3) + NoLegend()
-ggsave("1.1_FeatureViolins.pdf", width = 25, height = 10)
+ggsave("~/TP53_ImmuneEscape/1_Seurat/1.1_FeatureViolins.pdf", width = 25, height = 10)
 
 FeatureScatter(seu_subset_for_visualization, "nCount_RNA", "nFeature_RNA", group.by = "orig.ident",
                pt.size = 0.5, shuffle = T, plot.cor = F) +
   theme(aspect.ratio = 1) +
   geom_vline(xintercept = 250, col="black") +
   geom_hline(yintercept = 500, col="black")
-ggsave("1.2_FeatureScatter.pdf", width = 10, height = 6)
+ggsave("~/TP53_ImmuneEscape/1_Seurat/1.2_FeatureScatter.pdf", width = 10, height = 6)
 
 gc()
 
@@ -96,7 +107,7 @@ seu <- subset(seu, subset = nFeature_RNA > 250 & nCount_RNA > 500 & percent_mito
 t1 <- as.data.frame(seu$orig.ident %>% tabyl %>% select(".", "n") %>% rename(n_postfilter = n)) 
 cellnumbers_final <- merge(t1,cell_numbers, by=".") %>% mutate(percent = n_postfilter/n_prefilter) 
 colnames(cellnumbers_final)[1] <- "orig.id"
-write.csv(cellnumbers_final, "cellnumbers_final.csv")
+write.csv(cellnumbers_final, "~/TP53_ImmuneEscape/1_Seurat/cellnumbers_final.csv")
   
 # Add variables to metadata
 # Add library type 
@@ -275,19 +286,5 @@ seu$sample_status <- as.factor(seu@meta.data$sample_status)
 seu$library_type <- as.factor(seu@meta.data$library_type)
 seu$sample_id <- as.factor(seu@meta.data$sample_id)
 
-# Unfree memory
-gc()
-
-# Data Normalization
-seu <- NormalizeData(seu, normalization.method = "LogNormalize", scale.factor = 10000)
-
-# Identify the variable genes
-seu <- FindVariableFeatures(seu, selection.method = "vst", nfeatures = 2000, verbose = FALSE)
-LabelPoints(plot = VariableFeaturePlot(seu), points = head(VariableFeatures(seu), 10), repel = TRUE) +
-  theme(aspect.ratio = 1)
-ggsave("1.3_VariableGenes.pdf", width = 10, height = 5)
-
-gc()
-
-# Save (this takes awhile, you can monitor progress (growing file size) in the Terminal - it's about 4.5 Gb in the end)
-saveRDS(seu, file = "~/250104_MergedSeuratObject.rds")
+# Save (this takes awhile, you can monitor progress (growing file size) in the Terminal - it's about 2.2 Gb in the end)
+saveRDS(seu, file = "~/250107_MergedSeuratObject.rds")

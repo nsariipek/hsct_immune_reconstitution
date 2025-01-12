@@ -63,7 +63,7 @@ process_sample <- function(Sample) {
 }
 
 # Use lapply to populate the list with Seurat objects
-seu_ls <- lapply(Samples, process_sample)
+seu_ls <- future_lapply(Samples, process_sample)
 
 # Revert processing to sequential execution
 plan(sequential)
@@ -287,4 +287,4 @@ seu$library_type <- as.factor(seu@meta.data$library_type)
 seu$sample_id <- as.factor(seu@meta.data$sample_id)
 
 # Save (this takes awhile, you can monitor progress (growing file size) in the Terminal - it's about 2.2 Gb in the end)
-saveRDS(seu, file = "~/250107_MergedSeuratObject.rds")
+saveRDS(seu, file = "~/250108_MergedSeuratObject.rds")

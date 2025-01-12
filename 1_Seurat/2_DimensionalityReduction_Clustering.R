@@ -7,84 +7,52 @@ library(Seurat)
 library(readxl)
 library(data.table)
 library(janitor)
-#library(Seurat.utils)
+library(future.apply)
+
+# Start with a clean slate
+rm(list=ls())
 
 # Set working directory (in Terra)
 setwd("/home/rstudio/TP53_ImmuneEscape/1_Seurat")
 
 # Load the data from the previous script
-seu <- readRDS(file = "~/250104_MergedSeuratObject.rds")
-#########################
-#Since this script failed many times Nurefsan tried this tutorial from Seurat:https://satijalab.org/seurat/archive/v4.3/integration_large_datasets
-# Next, select features for downstream integration, and run PCA on each object in the list, which is required for running the alternative reciprocal PCA workflow.
+seu <- readRDS(file = "~/250108_MergedSeuratObject.rds")
+
+#Since the regular downstream analysis failed many times Nurefsan tried this tutorial from Seurat:https://satijalab.org/seurat/archive/v4.3/integration_large_datasets
+# First perform standard normalization and variable feature selection
 seu.list <- SplitObject(seu, split.by = "orig.ident")
-seu.list <- lapply(X = seu.list, FUN = function(x) {
+
+# Use multiple cores
+plan(multisession)
+# This only needs to be run once (but it doesn't hurt to do it again)
+options(future.globals.maxSize = 160 * 1024^3) # 160 GB
+
+seu.list <- future_lapply(X = seu.list, FUN = function(x) {
+  print(as.character(x@meta.data$orig.ident[1]))
   x <- NormalizeData(x, verbose = FALSE)
   x <- FindVariableFeatures(x, verbose = FALSE)
 })
-#Next, select features for downstream integration, and run PCA on each object in the list, which is required for running the alternative reciprocal PCA workflow.
+
+# Select features for downstream integration, and run PCA on each object in the list, which is required for running the alternative reciprocal PCA workflow
 
 features <- SelectIntegrationFeatures(object.list = seu.list)
-seu.list <- lapply(X = seu.list, FUN = function(x) {
+seu.list <- future_lapply(X = seu.list, FUN = function(x) {
+  print(as.character(x@meta.data$orig.ident[1]))
   x <- ScaleData(x, features = features, verbose = FALSE)
   x <- RunPCA(x, features = features, verbose = FALSE)
-})
+},future.seed = T)
 
-anchors <- FindIntegrationAnchors(object.list = seu.list, reference = c(1, 2), reduction = "rpca",
-                                  dims = 1:50)
+# Revert processing to sequential execution
+plan(sequential)
+
+anchors <- FindIntegrationAnchors(object.list = seu.list, reduction = "rpca", dims = 1:50)
 seu.integrated <- IntegrateData(anchorset = anchors, dims = 1:50)
 seu.integrated <- ScaleData(seu.integrated, verbose = FALSE)
 seu.integrated <- RunPCA(seu.integrated, verbose = FALSE)
 seu.integrated <- RunUMAP(seu.integrated, dims = 1:50)
-DimPlot(seu.integrated, group.by = "orig.ident")
 
-#This created an object called seu.integrated( 46.4 GB) and Nurefsan saved this 
+# This created an object called seu.integrated(46.4 GB) and Nurefsan saved this 
 saveRDS(seu.integrated, file = "~/250106_IntegratedSeuratObject.rds")
-##########################
-
-# Scale the data (this increases the size a lot - remove the scale.data layer before saving again)
-seu <- ScaleData(seu, features = rownames(seu))
-gc()
-# Perform linear dimensional reduction --->this step failed due to lack of memory 
-seu <- RunPCA(seu, features = VariableFeatures(object = seu))
-
-# Visualize PCA results in a few different ways
-DimPlot(seu, reduction = "pca") 
-DimHeatmap(seu, dims = 1, cells = 500, balanced = TRUE)
-DimHeatmap(seu, dims = 1:15, cells = 500, balanced = TRUE)
-
-# Determine the ‘dimensionality’ of the dataset
-ElbowPlot(seu)
-
-# Find Neighbors and Cluster cells
-seu <- FindNeighbors(seu, dims = 1:15)
-seu <- FindClusters(seu, resolution = 1)
-head(Idents(seu), 5)
-
-# Run UMAP
-seu <- RunUMAP(seu, dims = 1:30)     
-
-# Visualize UMAP
-DimPlot(seu, reduction = "umap", label = TRUE) + theme(aspect.ratio = 1)
-
-# Visualize UMAPs with different identities
-UMAP_sample <- DimPlot(seu, reduction = "umap", group.by = "orig.ident") + theme(aspect.ratio = 1)
-UMAP_sample
-
-UMAP_cohort <- DimPlot(seu, reduction = "umap", group.by = "cohort") + theme(aspect.ratio = 1)
-UMAP_cohort
-
-UMAP_status <- DimPlot(seu, reduction = "umap", group.by = "sample_status") + theme(aspect.ratio = 1)
-UMAP_status
-
-# Split the UMAPs
-UMAP2 <- DimPlot(seu, reduction = "umap", group.by = "orig.ident", split.by = "cohort") + theme(aspect.ratio = 1)
-UMAP2
-UMAP3 <- DimPlot(seu, reduction = "umap", group.by = "orig.ident", split.by = "status") + theme(aspect.ratio = 1)
-UMAP3
-
-#To clear the memory
-gc()
 
 # We should save the Seurat object at this point (saveRDS), but first reduce the size
 # @Nurefsan: I have not tested these following methods (you should)

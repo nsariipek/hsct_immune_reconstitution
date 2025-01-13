@@ -6,20 +6,18 @@ library(tidyverse)
 library(Seurat) # we are using version 5.1.0
 library(googleCloudStorageR)
 library(janitor)
-library(future.apply)
 
 # Set working directory (in Terra). Setting the home directory is an exception to my usual advice of using the folder with the script.
 setwd("/home/rstudio/")
+# Google VM:
+#setwd("/home/unix/vangalen")
 
 # Start with a clean slate
 rm(list=ls())
 
-# Use multiple cores
-plan(multisession)
-
 # Parameters to interact with Google bucket, this part only needed for Terra
 gcs_global_bucket("fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b")
-# Check if you can list the objects. You may need to authenticate interatively using gcs_auth()
+# Check if you can list the objects. In Terra, you may need to authenticate using gcs_auth(). In VM, this did not work - hence the alternative function on line 65.
 gcs_list_objects()
 
 # Load matrices of all samples
@@ -33,10 +31,10 @@ Samples <- c("P1013_MNC","P1732_MNC","P1953_MNC","P2434_MNC", "P2599_CD3","P2791
              "P1677_CD3","P1817_MIX","P2379_MNC","P25802_CD3", "P2737_MNC","P4618_MNC","P9596_CD3",
              "P1677_MNC","P1953_CD3","P2408_MNC","P25802_MNC", "P2745_MNC","P5641_MNC","P9596_MNC")
 
-# If it already exists, make sure this folder is empty:
-dir.create("/home/rstudio/tmp")
+# If it already exists, make sure this folder is empty
+dir.create("~/tmp")
 
-# Define the function
+# Function to download data and create Seurat object (for Terra)
 process_sample <- function(Sample) {
   #Sample <- Samples[1]
   print(Sample)
@@ -50,7 +48,7 @@ process_sample <- function(Sample) {
     gcs_get_object(object_name = paste0(sample_path, file),
                    saveToDisk = file.path("/home/rstudio/tmp", file))
   }
-  
+    
   # Read data and create Seurat object
   data <- Read10X(data.dir = "/home/rstudio/tmp")
   seu <- CreateSeuratObject(counts = data, project = Sample)
@@ -62,11 +60,33 @@ process_sample <- function(Sample) {
   return(seu)
 }
 
-# Use lapply to populate the list with Seurat objects
-seu_ls <- future_lapply(Samples, process_sample)
+# Function to download data and create Seurat object (for VM)
+process_sample <- function(Sample) {
+  #Sample <- Samples[1]
+  print(Sample)
+  
+  # Create path
+  sample_path <- paste0(Sample, "/sample_filtered_feature_bc_matrix/")
+  
+  # Download files
+  files <- c("barcodes.tsv.gz", "features.tsv.gz", "matrix.mtx.gz")
+  for (file in files) {
+    system(paste0("gsutil cp gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/", sample_path, file, " /home/unix/vangalen/tmp"))
+  }
+    
+  # Read data and create Seurat object
+  data <- Read10X(data.dir = "/home/unix/vangalen/tmp")
+  seu <- CreateSeuratObject(counts = data, project = Sample)
+  
+  # Remove downloaded files
+  unlink(file.path("/home/unix/vangalen/tmp", files))
+  
+  # Create Seurat object
+  return(seu)
+}
 
-# Revert processing to sequential execution
-plan(sequential)
+# Use lapply to populate the list with Seurat objects
+seu_ls <- lapply(Samples, process_sample)
 
 # Create the Seurat object combining each sample, add.cell.ids prevents duplicate cell identifiers
 seu <- merge(seu_ls[[1]], seu_ls[2:length(seu_ls)], add.cell.ids = Samples)

@@ -4,9 +4,9 @@
 # Load the needed libraries
 library(tidyverse)
 library(Seurat)
-library(readxl)
-library(data.table)
-library(janitor)
+#library(readxl)
+#library(data.table)
+#library(janitor)
 
 # Start with a clean slate
 rm(list=ls())
@@ -46,17 +46,15 @@ seu20 <- FindNeighbors(seu20, dims = 1:n_dim)
 seu20 <- FindClusters(seu20, resolution = 1)
 
 # Visualize UMAPs with different groupings
-DimPlot(seu20, reduction = "umap", group.by = "orig.ident") + theme(aspect.ratio = 1, legend.position = "none")
-DimPlot(seu20, reduction = "umap", group.by = "cohort") + theme(aspect.ratio = 1)
-DimPlot(seu20, reduction = "umap", group.by = "sample_status") + theme(aspect.ratio = 1)
-DimPlot(seu20, reduction = "umap", group.by = "seurat_clusters") + theme(aspect.ratio = 1)
-FeaturePlot(seu20, features = "CD34")
+DimPlot(seu20, reduction = "umap", group.by = "orig.ident", shuffle = T) + theme(aspect.ratio = 1, legend.position = "none")
+DimPlot(seu20, reduction = "umap", group.by = "cohort", shuffle = T) + theme(aspect.ratio = 1)
+DimPlot(seu20, reduction = "umap", group.by = "sample_status", shuffle = T) + theme(aspect.ratio = 1)
+DimPlot(seu20, reduction = "umap", group.by = "seurat_clusters", shuffle = T) + theme(aspect.ratio = 1)
+FeaturePlot(seu20, features = "CD34") + theme(aspect.ratio = 1)
 
 # UMAP projection of the remaining 80% of cells (similar to https://satijalab.org/seurat/articles/integration_mapping.html#unimodal-umap-projection)
 seu80 <- NormalizeData(seu80)
 seu.anchors <- FindTransferAnchors(reference = seu20, query = seu80, dims = 1:n_dim, reference.reduction = "pca")
-
-# Here's how to project seu80 onto the same UMAP as seu20
 seu80 <- IntegrateEmbeddings(anchorset = seu.anchors, reference = seu20, query = seu80, new.reduction.name = "ref.pca")
 seu80 <- ProjectUMAP(query = seu80, query.reduction = "ref.pca", reference = seu20, reference.reduction = "pca", reduction.model = "umap")
 
@@ -65,13 +63,17 @@ p1 <- DimPlot(seu20, reduction = "umap", group.by = "orig.ident", shuffle = T) +
 p2 <- DimPlot(seu80, reduction = "ref.umap", group.by = "orig.ident", shuffle = T) + theme(aspect.ratio = 1, legend.position = "none")
 p1 + p2
 
-# Here's how you can transfer metadata. It's not that useful for seurat_clusters, but once we have celltype annotations, hopefully this will work well
+# Transfer metadata. It's not that useful for seurat_clusters, but once we have celltype annotations, hopefully this will work well. Note: it will be useful to save the full predictions table as a csv or txt file when you do this for cell types.
 predictions <- TransferData(anchorset = seu.anchors, refdata = seu20$seurat_clusters, dims = 1:n_dim)
-seu80 <- AddMetaData(seu80, metadata = predictions)
+predictions$predicted.id <- factor(predictions$predicted.id, levels = sort(as.numeric(unique(predictions$predicted.id))))
+seu80 <- AddMetaData(seu80, metadata = select(predictions, predicted.id))
 
+# Compare UMAPs
+p1 <- DimPlot(seu20, reduction = "umap", group.by = "seurat_clusters", shuffle = T) + theme(aspect.ratio = 1, legend.position = "none")
+p2 <- DimPlot(seu80, reduction = "ref.umap", group.by = "predicted.id", shuffle = T) + theme(aspect.ratio = 1, legend.position = "none")
+p1 + p2
 
-
-
+# Once the UMAP coordinates and cell type annotations are finalized, we can merge the seu20 and seu80 (I recommend storing the UMAP coordinates in new metadata colums UMAP_1 and UMAP2 and the cell type annotations in another metadata column...can help with this)
 
 
 

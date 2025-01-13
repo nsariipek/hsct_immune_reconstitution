@@ -1,5 +1,5 @@
 # Nurefsan Sariipek, 241219
-# Combine Numbat results with Seurat objects (Pt 5 and 8)
+# Combine Numbat results with gen-ex data
 
 # Load Libraries
 library(readr)
@@ -69,7 +69,7 @@ pt10 <- read.table("/Volumes/sariipek/numbat/Pt10/hostpt10_2/clone_post_1.tsv", 
 pt12 <- read.table("/Volumes/sariipek/numbat/Pt12/hostpt12/clone_post_2.tsv", row.names = 1, header = T)
 # For Peter
 #pt5 <- read.table("/Volumes/broad_vangalenlab/sariipek/numbat/Pt05/hostpt5/clone_post_2.tsv", row.names = 1, header = T)
-pt_select  <- pt10[, c("clone_opt", "compartment_opt")]
+pt_select  <- pt5[, c("clone_opt", "compartment_opt")]
 head(pt_select)
 
 # Check
@@ -88,13 +88,21 @@ View(seu_subset@meta.data)
 DimPlot(seu_subset, reduction = "umap", group.by = "compartment_opt") + theme(aspect.ratio = 1)
 DimPlot(seu_subset, reduction = "umap", group.by = "celltype", split.by = "compartment_opt", label = T) + scale_color_igv() + theme(aspect.ratio = 1, legend.position = "none")
 
+#Save this combined seurat object for each patient
+saveRDS(seu_subset,"/Users/dz855/Partners HealthCare Dropbox/Nurefsan Sariipek/ImmuneEscapeTP53/TP53_ImmuneEscape/9_Numbat/pt5.RDS")
 
 # End of combination of Numbat and Seurat object
 
 ############################# VISUALIZATIONS #############################
+# Empty environment
+rm(list=ls())
+
+#Load from saved object
+seu_subset <- readRDS("/Users/dz855/Partners HealthCare Dropbox/Nurefsan Sariipek/ImmuneEscapeTP53/TP53_ImmuneEscape/9_Numbat/pt9.RDS")
 
 # Make a dataframe of malignant cells according to Numbat
-metadata_subset1 <- as_tibble(seu_subset@meta.data, rownames = "cell") %>% subset(compartment_opt == "normal")
+metadata_subset1 <- as_tibble(seu_subset@meta.data, rownames = "cell") 
+#%>% subset(compartment_opt == "normal")
 
 # Group and summarize the data
 summarized_data <- metadata_subset1 %>%
@@ -106,12 +114,12 @@ summarized_data$status <- factor(summarized_data$status, levels = c("pre_transpl
 
 # Calculate normalized proportions and total cell numbers
 summarized_data <- summarized_data %>%
-  group_by(status) %>%
+  group_by(compartment_opt) %>%
   mutate(total_cells = sum(cells)) %>%
   mutate(cells_normalized = cells / total_cells)
 
-total_cells <- summarized_data %>%
-  group_by(status) %>%
+  total_cells <- summarized_data %>%
+  group_by(compartment_opt) %>%
   summarise(total_cells = sum(cells))
 
 # Create the bar graph to visualize different celltypes across the annotated cells
@@ -142,9 +150,9 @@ p1
 dev.off()
 
 # Normalized tumor cell ratio visualization
-p2 <- ggplot(summarized_data, aes(x = status, y = cells_normalized, fill = celltype)) +
+p2 <- ggplot(summarized_data, aes(x = compartment_opt, y = cells_normalized, fill = celltype)) +
   geom_bar(stat = "identity", position = "stack") +  # Stacked bar chart
-  geom_text(data = total_cells, aes(x = status, y = 1.05, label = total_cells),
+  geom_text(data = total_cells, aes(x = compartment_opt, y = 1.05, label = total_cells),
             inherit.aes = FALSE,  # Do not inherit aesthetics from the main ggplot
             size = 6, color = "black", fontface = "bold") +  
   labs(#title = "Cell Counts by Timepoint and Compartment",
@@ -170,3 +178,35 @@ pdf("9.4_Pt10_normalcells_normalized.pdf", width = 16, height = 8)
 p2
 dev.off()
 
+#All cells normalized
+p3 <- ggplot(summarized_data, aes(x = compartment_opt, y = cells_normalized, fill = celltype)) +
+  geom_bar(stat = "identity", position = "stack") +  # Stacked bar chart
+  # Add celltype labels on each stacked segment
+  geom_text(aes(label= ifelse(cells_normalized > 0.03, celltype, "")),
+            position = position_stack(vjust = 0.5),  # Centered within each stack
+            size = 3, 
+            color = "black", ) + 
+  # Add total cell counts at the top of each bar
+  geom_text(data = total_cells, aes(x = compartment_opt, y = 1.05, label = total_cells),
+            inherit.aes = FALSE,  # Do not inherit aesthetics from the main ggplot
+            size = 6, color = "black", fontface = "bold") +
+  labs(#title = "Cell Counts by Timepoint and Compartment",
+    x = "Timepoint",
+    y = "Proportion of Cells (Normalized to 1)",
+    fill = "Celltype") +
+  scale_fill_igv() +
+  theme_bw()+
+  theme(aspect.ratio = 0.75,
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1,face="plain", size=18, color="black"), 
+        axis.text.y = element_text(face="plain", size=16, color="black"),
+        axis.title.y = element_text(size = 18),
+        axis.title.x = element_blank(),
+        plot.title = element_text(size=20, face="plain"),
+        strip.text = element_text(size=12, face="bold"),
+        legend.position = "none",
+        panel.grid = element_blank())
+p3
+
+pdf("9.4_Pt9_allcells_normalized.pdf", width = 16, height = 8)
+p3
+dev.off()

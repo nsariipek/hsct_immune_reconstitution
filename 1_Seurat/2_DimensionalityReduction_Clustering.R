@@ -52,6 +52,9 @@ DimPlot(seu20, reduction = "umap", group.by = "sample_status", shuffle = T) + th
 DimPlot(seu20, reduction = "umap", group.by = "seurat_clusters", shuffle = T) + theme(aspect.ratio = 1)
 FeaturePlot(seu20, features = "CD34") + theme(aspect.ratio = 1)
 
+# Save seu20 to work on annotations
+saveRDS(seu20, "~/250113_SplittedSeuratObject.rds")
+
 # UMAP projection of the remaining 80% of cells (similar to https://satijalab.org/seurat/articles/integration_mapping.html#unimodal-umap-projection)
 seu80 <- NormalizeData(seu80)
 seu.anchors <- FindTransferAnchors(reference = seu20, query = seu80, dims = 1:n_dim, reference.reduction = "pca")
@@ -73,7 +76,7 @@ p1 <- DimPlot(seu20, reduction = "umap", group.by = "seurat_clusters", shuffle =
 p2 <- DimPlot(seu80, reduction = "ref.umap", group.by = "predicted.id", shuffle = T) + theme(aspect.ratio = 1, legend.position = "none")
 p1 + p2
 
-# Once the UMAP coordinates and cell type annotations are finalized, we can merge the seu20 and seu80 (I recommend storing the UMAP coordinates in new metadata colums UMAP_1 and UMAP2 and the cell type annotations in another metadata column...can help with this)
+# Once the UMAP coordinates and cell type annotations are finalized, we can merge the seu20 and seu80 (I recommend storing the UMAP coordinates in new metadata columns UMAP_1 and UMAP2 and the cell type annotations in another metadata column...can help with this)
 
 
 
@@ -140,15 +143,4 @@ seu_filtered <- removeLayersByPattern(seu_diet, pattern = "scale.data", perl = T
 # Save for quick loading later
 saveRDS(seu_filtered, file = "~/250105_ClusteredSeuratObject.rds")
 # @Nurefsan in downstream analyses, you should also save 2501xx_AnnotatedSeuratObject.rds, 2501xx_SeuratObject_SouporCell.rds, 2501xx_SeuratObject_numbat.rds, etc.
-
-# Run Clusters to do cell annotation(this is the most important step and it takes some time+memory)
-seu_markers <- FindAllMarkers(seu, min.pct = .3, logfc.threshold = .3)
-
-# Save as tibble for next time
-# @Nurefsan this code saves the markers as a csv file, not a tibble (which is fine, but you should update the explanation).
-seu_markers_tib <- as_tibble(seu_markers)
-write.csv(seu_markers_tib, file = "seu_markers_tib.csv")
-# @Nurefsan I think I would prefer the following, but would have to check output to make sure
-write.tsv(as_tibble(seu_markers), file = "marker_genes.tsv")
-
 

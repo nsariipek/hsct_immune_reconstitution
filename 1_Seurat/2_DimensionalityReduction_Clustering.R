@@ -86,11 +86,6 @@ p1 + p2
 
 
 
-
-
-
-
-
 # THE FOLLOWING IS OBSOLETE
 
 # Nurefsan and Peter tried this tutorial from Seurat (https://satijalab.org/seurat/archive/v4.3/integration_large_datasets), but this ultimately failed

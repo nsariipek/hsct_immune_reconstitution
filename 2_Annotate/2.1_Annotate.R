@@ -1,39 +1,26 @@
-# Nurefsan Sariipek, 230405
+# Nurefsan Sariipek, created at 230405, updated at 250113
 # Load the libraries
 library(tidyverse)
 library(Seurat)
-library(ggplot2)
-library(randomcoloR)
-library(readxl)
-library(data.table)
-library(ggforce)
-library(cloudml)
-library("RColorBrewer")
-library(ggpubr)
-library(fgsea)
-library(msigdbr)
-library(BiocManager)
-library("janitor")
-library(purrr)
-library(fossil)
-library(ggrepel)
 
 # Start with a clean slate
 rm(list=ls())
 
-# Load the saved Seurat object
-seu <- readRDS("~/seu_diet.rds")
+# Load the saved Seurat object from the last step that containes only 20% of the cells
+seu <- readRDS("~/250113_SplittedSeuratObject.rds")
 
 # Run FindAllMarkers to see the most expressed genes
 seu_markers <- FindAllMarkers(seu, min.pct = .3, logfc.threshold = .3)
 
-# Save as tibble and export as a CSV for next time and also to export and work on cell type annotations
+# Save as tibble, as Peter requested
+write.tsv(as_tibble(seu_markers), file = "~/250113_marker_genes.tsv")
+
+# And save as CVS since it will be easier to work it on
 seu_markers_tib <- as_tibble(seu_markers)
-write.csv(seu_markers_tib, file = "~/seu_markers_tib.csv")
+write.csv(seu_markers_tib, file = "~/250113_marker_genes.csv")
 
 # Load marker genes that you have saved before
-seu_markers <- read.csv(file = "~/seu_markers_tib.csv")
-
+seu_markers <- read.csv(file = "~/250113_marker_genes.csv")
 
 # To visualize and help with annotating clusters run the lines below
 #General Features

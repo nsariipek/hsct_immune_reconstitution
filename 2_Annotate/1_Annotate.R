@@ -7,7 +7,7 @@ library(Seurat)
 # Start with a clean slate
 rm(list=ls())
 
-# Load the saved Seurat object from the last step that containes only 20% of the cells
+# Load the saved Seurat object from the last step that contains only 20% of the cells
 seu <- readRDS("~/250113_SplittedSeuratObject.rds")
 
 # Run FindAllMarkers to see the most expressed genes
@@ -135,11 +135,6 @@ FeaturePlot(seu_diet, features = c("HSPC_Score",	"EarlyEry_Score",	"LateEry_Scor
                               "B_Score",	"Plasma_Score",	"CD4Naive_Score",	"CD4Memory_Score",
                               "CD8Naive_Score",	"CD8Memory_Score",	"CD8TermExh_Score",
                               "GammaDeltaLike_Score",	"NKT_Score",	"NK_Score"))
-
-
-
-
-
 
 
 

@@ -95,7 +95,7 @@ for (group_name in names(feature_groups)) {
   
   # Generate plots for each chunk
   for (chunk in feature_chunks) {
-    p <- FeaturePlot(seu, features = chunk, ncol = 2)
+    p <- FeaturePlot(seu, features = chunk, ncol = 2, raster = T)
     print(p)
   }
   

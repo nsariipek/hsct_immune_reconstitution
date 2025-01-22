@@ -1,7 +1,7 @@
 # Nurefsan Sariipek, 250115
 # Annotating T cells in a more granular way
 
-#Load the libraries
+# Load the libraries
 library(tidyverse)
 library(Seurat)
 library(janitor)
@@ -17,7 +17,7 @@ setwd("~/TP53_ImmuneEscape/2_Annotate/")
 seu <- readRDS("~/250113_SplittedSeuratObject.rds")
 
 # Subset only T cells from all metadata
-Tcell_subset <- subset(x = seu, subset = seurat_clusters %in% c(0,1,3,5,11,24,30))
+Tcell_subset <- subset(x = seu, subset = seurat_clusters %in% c(0,1,3,5,11))
 
 # Run FindVariables again (replace the ones inherited from the complete object)
 Tcell_subset <- FindVariableFeatures(Tcell_subset, selection.method = "vst", nfeatures = 2000, verbose = FALSE)
@@ -39,19 +39,40 @@ print(umap_plot)
 dev.off()
 
 # Save for the next time
-saveRDS(Tcell_subset, file= "~/Tcellsubset.RDS")
-
-# Load the saved Seurat object
-Tcell_subset <- readRDS("~/250116_Tcellsubset.RDS")
+saveRDS(Tcell_subset, file= "~/250122_Tcellsubset.RDS")
 
 # Run Find Markers
 Tcell_subset_markers <- FindAllMarkers(Tcell_subset, min.pct = .3, logfc.threshold = .3)
 
 # Convert to a tibble and export it as a csv
 Tcell_subset_markers_tibble <- as_tibble(Tcell_subset_markers)
-write.csv(Tcell_subset_markers_tibble, file = "~/Tcell_subset_markers.csv")
+write.csv(Tcell_subset_markers_tibble, file = "250122_Tcell_subset_markers.csv")
+
+markers_data <- read.csv("250122_Tcell_subset_markers.csv")
+
+# Preview the data
+head(markers_data)
+
+# Assuming the file has columns like 'Subset' and 'Score' to determine top markers,
+# modify the column names based on your data.
+# For example:
+# Subset: The column that identifies different T cell subsets.
+# Score: The column based on which you select the top 10 (e.g., p-value, log2FoldChange, etc.).
+
+# Group by 'Subset' and get the top 10 markers based on 'Score'
+top_markers <- markers_data %>%
+  group_by(cluster) %>%
+  top_n(n = 10, wt = avg_log2FC) %>%
+  arrange(cluster, desc(avg_log2FC))
+
+# Save the top markers to a new CSV
+output_file <- "Top_10_Tcell_subset_markers.csv"
+write.csv(top_markers, output_file, row.names = FALSE)
+cat("Top 10 markers for each cluster saved to:", output_file)
 
 #########Annotation##########
+# Load the saved Seurat object
+Tcell_subset <- readRDS("~/250116_Tcellsubset.RDS")
 
 # T cell Features to distinguish populations
 FeaturePlot(Tcell_subset, features = c("CD8A", "CD8B", "CD4", "NCAM1","IL10","TGFB","GATA3","TCF7","SELL","CCR7","SELL","TMIGD2","LEF1","CD28","CD27"))
@@ -119,29 +140,27 @@ gene_list = c("CD3E","CD4","CD8A","SELL","CCR7","IL7R","CD28","FAS","CD27","ITGA
 gene_list = c("CD3E","CD4","CD8A","SELL","CCR7","IL7R","CD28","FAS","CD27","ITGAE","ITGAL","ITGAM","ITGAX","PDCD1","TIGIT","HAVCR2","LAG3","CTLA4","VTCN1","CD244","KLRG1","TNFRSF14","BTLA","CD160","CD38","ENTPD1","NT5E","CD69", "IL2RA","ICOS","TNFRSF4","TNFRSF9","HLA-DRA","CD40LG","GZMA","GZMB","GZMH","GZMK","GZMM","PRF1","NKG7","GNLY")
 
 #CD8 genes
-gene_list = c("CD8", "CD8A", "CD8B", "CD4", "NKG7", "GNLY", "CST7", "PRF1", "GZMK", "GZMH", "GZMA", "GZMB", "IFNG" ,"CCL3", "PDCD1", "TIGIT", "LAG3", "HAVCR2", "CTLA4", "TCF7", "LEF1", "SELL", "CD27", "CD28", "CD57", "S1PR1", "VIM", "GPR183", "CCR7", "IL7R", "CCL3", "CCL3L1", "CCL4L2", "CCL4")
+gene_list = c("CD8", "CD8A", "CD8B", "CD4", "SELL", "ILR7A", "CD28", "CD27","TIGIT","HAVCR2", "LAG3", "CTLA4", "KIRG2" ,"PDCD1","CD160","CD38","ENTPD1","IL2RA","ICOS","HLA-DRA","CD40LG", "NKG7", "GNLY", "CST7", "PRF1", "GZMK", "GZMH", "GZMA", "GZMB", "IFNG", "TNF", "IL17A", "NKG7", "GNLY", "FASLG", "TRGV9", "TRDV2", "KLRB1", "KLRC3")
 
 #CD4 genes
-gene_list = c("CCR7","SELL","TMIGD2","LEF1","ANXA1","LGALS1","TIMP1","S100A11","ANXA2","KLBR1","CCL5","GZMA","GZMK")
+gene_list = c("CD4","NKG7","GNLY","CCL4","CST7","PRF1","GZMK","GZMH","GZMA","GZMB","IFNG","CCL3","PDCD1","TIGIT","LAG3","HAVCR2","CTLA4","FOXP3","IKZF2","TIMP1","CCL5","ANXA1","S100A11","ANXA2", "IL2RA","CCR10","TNFRSF4","TIMP4","CCR7","SELL","TCF7","LEF1","CD27","CD28")
 
 #CD56 NK cells genes
-gene_list = c("NCAM", "CD8","CD8A","CD8B", "GZMK", "XCL1", "IL7R", "TCF7", "GPR183", "GZMB", "PRF1", "CX3CR1", "CD7", "FCER1G", "KLRB1","KLRC2", "CD3E", "PATL2", "ZBTB38")
+gene_list = c("NCAM","CD56","CD57", "CD16","FCGR3A", "KIR", "NKG2C", "NKG2A", "CD57","GZMK","XCL1", "ITGA1", "IL7R", "TCF7","GPR183","GZMB","PRF1","CX3CR1","CD7","FCER1G", "RUNX2","BACH2","MAHML3","TCF4","ZEB1", "ZMAT4","ZBTB16","ZNF516","ZEB2","ARID5B","KLRB1","KLRC2","CD3E","PATL2", "ZBTB38")
 
-#Th1 and Th2 
-gene_list = c("KLRD1","IFNGR1","CXCR3","CXCR6","CCR1","CCR5","STAT1","STAT4","TBX21","TNF","LTA","IFNG","IL2","IL12RB1","IL18R1","TNFSF11","HAVCR","CXCR4","BATF","IL4","CCR4","GATA3","IL5","IL13","CCR8","IRF4","AREG","STAT6","HAVCR1","PTGDR2","IL17RB","IL33","IL1R1", "AHR","CSF2","KLRB1","BATF","IL17A", "CCR4", "MAF", "IL17AF","CCR6","NFKBIZ","IL17F","IL21R","IRF4","IL21","IL22","RORA","RORC","STAT3","TBX21","PRF1","GZMB","GZMA")
 
 # AverageExpression will normalize and scale the data when you set the return.seurat = TRUE
-Tcell_subset_avg <- AverageExpression(Tcell_subset, return.seurat = TRUE)
+Tcell_subset_avg <- AggregateExpression(Tcell_subset %>% subset(seurat_clusters %in% c(0,1,2,3,4,5,6,7,8,9,10,11,12,13)), return.seurat = TRUE) 
 
-Tcell_subset_avg_cd8 <- AverageExpression(Tcell_subset %>% subset(seurat_clusters %in% c(2,3,4,5,6,14)), return.seurat = TRUE)
+Tcell_subset_avg_cd8 <- AggregateExpression(Tcell_subset %>% subset(seurat_clusters %in% c(2,3,5)), return.seurat = TRUE)
 
-Tcell_subset_avg_nk <- AverageExpression(Tcell_subset %>% subset(seurat_clusters %in% c(7,8,10,13,9)), return.seurat = TRUE)
+Tcell_subset_avg_nk <- AggregateExpression(Tcell_subset %>% subset(seurat_clusters %in% c(7,8,10,13,9)), return.seurat = TRUE)
 
-Tcell_subset_avg_cd4 <- AverageExpression(Tcell_subset %>% subset(seurat_clusters %in% c(0,1,11,12,6)), return.seurat = TRUE)
+Tcell_subset_avg_cd4 <- AggregateExpression(Tcell_subset %>% subset(seurat_clusters %in% c(0,1,6,11,12)), return.seurat = TRUE)
 
 # Visualize it either as a heatmap or dot plot with the gene_list you provide, change the object to visualize different ones
 # Heatmap
-DoHeatmap(Tcell_subset_avg_cd4, features = gene_list, draw.lines = FALSE)  +  scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(n = 5, name = "RdBu"))) + theme_pubr(base_size = 10) + guides(colour = "none")
+DoHeatmap(Tcell_subset_avg_nk, features = gene_list, draw.lines = FALSE)  +  scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(n = 5, name = "RdBu"))) + theme_pubr(base_size = 10) + guides(colour = "none")
 
 # # DotPlot
 # DotPlot(Tcell_subset %>% subset(seurat_clusters %in% c(2,3,4,5,6,14)), features = gene_list, dot.scale = 10) + theme(axis.text.x = element_text(angle=90,vjust = 0.5), axis.text = element_text(size=11), text = element_text(size=11)) + scale_color_distiller(palette = "RdBu")

@@ -134,10 +134,8 @@ FeaturePlot(Tcell_subset, features = c("KLRB1", "NCR3", "ZBTB16", "SLC4A10", "RO
 # Heatmap the genes in your interest, providing them as gene_list
 # For the genes down below, we have used various published datasets, which will be referenced in our paper.
 
-# Melanoma paper
+# Whole genes(from Melanoma paper)
 gene_list = c("CD3E","CD4","CD8A","SELL","CCR7","IL7R","CD28","FAS","CD27","ITGAE","ITGAL","ITGAM","ITGAX","PDCD1","TIGIT","HAVCR2","LAG3","CTLA4","VTCN1","CD244","KLRG1","TNFRSF14","BTLA","CD160","CD38","ENTPD1","NT5E","CD69", "IL2RA","ICOS","TNFRSF4","TNFRSF9","HLA-DRA","CD40LG","GZMA","GZMB","GZMH","GZMK","GZMM","PRF1","NKG7","GNLY","IFNG","FASLG","TNF","IL17A","IL2","LEF1","TCF7","EOMES","TBX21","PRDM1","TOX","GATA3","ID2","ID3","NR4A1","ZNF683","FOXP3","MKI67","TOP2A","TRGV9","TRDV2","KLRB1","KLRC3")
-
-gene_list = c("CD3E","CD4","CD8A","SELL","CCR7","IL7R","CD28","FAS","CD27","ITGAE","ITGAL","ITGAM","ITGAX","PDCD1","TIGIT","HAVCR2","LAG3","CTLA4","VTCN1","CD244","KLRG1","TNFRSF14","BTLA","CD160","CD38","ENTPD1","NT5E","CD69", "IL2RA","ICOS","TNFRSF4","TNFRSF9","HLA-DRA","CD40LG","GZMA","GZMB","GZMH","GZMK","GZMM","PRF1","NKG7","GNLY")
 
 #CD8 genes
 gene_list = c("CD8", "CD8A", "CD8B", "CD4", "SELL", "ILR7A", "CD28", "CD27","TIGIT","HAVCR2", "LAG3", "CTLA4", "KIRG2" ,"PDCD1","CD160","CD38","ENTPD1","IL2RA","ICOS","HLA-DRA","CD40LG", "NKG7", "GNLY", "CST7", "PRF1", "GZMK", "GZMH", "GZMA", "GZMB", "IFNG", "TNF", "IL17A", "NKG7", "GNLY", "FASLG", "TRGV9", "TRDV2", "KLRB1", "KLRC3")
@@ -150,13 +148,13 @@ gene_list = c("NCAM","CD56","CD57", "CD16","FCGR3A", "KIR", "NKG2C", "NKG2A", "C
 
 
 # AverageExpression will normalize and scale the data when you set the return.seurat = TRUE
-Tcell_subset_avg <- AggregateExpression(Tcell_subset %>% subset(seurat_clusters %in% c(0,1,2,3,4,5,6,7,8,9,10,11,12,13)), return.seurat = TRUE) 
+Tcell_subset_avg <- AggregateExpression(Tcell_subset, return.seurat = TRUE) 
 
-Tcell_subset_avg_cd8 <- AggregateExpression(Tcell_subset %>% subset(seurat_clusters %in% c(2,3,5)), return.seurat = TRUE)
+Tcell_subset_avg_cd8 <- AggregateExpression(Tcell_subset %>% subset(seurat_clusters %in% c(1,4,6,7)), return.seurat = TRUE)
 
-Tcell_subset_avg_nk <- AggregateExpression(Tcell_subset %>% subset(seurat_clusters %in% c(7,8,10,13,9)), return.seurat = TRUE)
+Tcell_subset_avg_nk <- AggregateExpression(Tcell_subset %>% subset(seurat_clusters %in% c(8,10,11,12,13)), return.seurat = TRUE)
 
-Tcell_subset_avg_cd4 <- AggregateExpression(Tcell_subset %>% subset(seurat_clusters %in% c(0,1,6,11,12)), return.seurat = TRUE)
+Tcell_subset_avg_cd4 <- AggregateExpression(Tcell_subset %>% subset(seurat_clusters %in% c(0,2,3)), return.seurat = TRUE)
 
 # Visualize it either as a heatmap or dot plot with the gene_list you provide, change the object to visualize different ones
 # Heatmap

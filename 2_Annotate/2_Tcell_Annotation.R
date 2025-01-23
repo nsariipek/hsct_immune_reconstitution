@@ -72,7 +72,7 @@ cat("Top 10 markers for each cluster saved to:", output_file)
 
 #########Annotation##########
 # Load the saved Seurat object
-Tcell_subset <- readRDS("~/250116_Tcellsubset.RDS")
+Tcell_subset <- readRDS("~/250122_Tcellsubset.RDS")
 
 # T cell Features to distinguish populations
 FeaturePlot(Tcell_subset, features = c("CD8A", "CD8B", "CD4", "NCAM1","IL10","TGFB","GATA3","TCF7","SELL","CCR7","SELL","TMIGD2","LEF1","CD28","CD27"))
@@ -164,7 +164,7 @@ DoHeatmap(Tcell_subset_avg_nk, features = gene_list, draw.lines = FALSE)  +  sca
 # DotPlot(Tcell_subset %>% subset(seurat_clusters %in% c(2,3,4,5,6,14)), features = gene_list, dot.scale = 10) + theme(axis.text.x = element_text(angle=90,vjust = 0.5), axis.text = element_text(size=11), text = element_text(size=11)) + scale_color_distiller(palette = "RdBu")
 
 # Rename T cell Identities
-Tcell.cluster.ids <- c("CD4 Memory","CD8 Effector","CD8 Memory","CD4 Naïve","Treg","CD8 Naïve","CD8 Effector","CD4 Naïve","CD56 Dim NK cells","CD8 Terminally Exhausted","CD4 Memory","NK T cells","γδ T lymphocytes","CD56 Bright NK cells", "CD4 Naïve")
+Tcell.cluster.ids <- c("CD4 Memory","CD8 Memory","CD4 Naïve","Treg","CD8 Effector","CD4 Effector Memory","γδ T","CD8 Exhausted","CD56 Dim NK","CD 8 Naïve","NK T","CD56 Dim NK","CD56 Bright NK", "Adaptive NK")
 names(Tcell.cluster.ids) <- levels(Tcell_subset)
 Tcell_subset <- RenameIdents(Tcell_subset, Tcell.cluster.ids)
 Tcell_subset@meta.data$celltype = Idents(Tcell_subset)

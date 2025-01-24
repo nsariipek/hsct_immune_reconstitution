@@ -163,6 +163,21 @@ DoHeatmap(Tcell_subset_avg_nk, features = gene_list, draw.lines = FALSE)  +  sca
 # # DotPlot
 # DotPlot(Tcell_subset %>% subset(seurat_clusters %in% c(2,3,4,5,6,14)), features = gene_list, dot.scale = 10) + theme(axis.text.x = element_text(angle=90,vjust = 0.5), axis.text = element_text(size=11), text = element_text(size=11)) + scale_color_distiller(palette = "RdBu")
 
+# Also visualize other people signatures
+# Upload Kyle's signatures and add them as a module score
+Kylecells <- read.csv(file = "Signatures/KR_TCellTypeSignatures.csv", header = T)
+
+# Add Module Scores 
+for (n in names(Kylecells)) {
+  print(n)
+  #n <- "HSPC"
+Tcell_subset <- AddModuleScore(object = Tcell_subset, features = Kylecells[n], name = n)
+  colnames(Tcell_subset@meta.data) <- gsub(str_c(n, "1$"), str_c(n, "_Score"), colnames(Tcell_subset@meta.data))}
+
+# Visualize
+FeaturePlot(Tcell_subset, features = c("CD4_Naïve_Score", "CD56_dim_NK_Score", "CD8_Term_Eff_Score", "CD8_GZMK_Exh_Score", "CD8_EM_Score", "CD8_Naïve_Score", "NKT_Score", "CD4_CM_Score", "MAIT_Score", "Tregs_Score", "CD56_Bright_NK_Score"))
+ggsave("Tsubset_Kyle_FeaturePlots.pdf", width = 10, height = 8)
+
 # Rename T cell Identities
 Tcell.cluster.ids <- c("CD4 Memory","CD8 Memory","CD4 Naïve","Treg","CD8 Effector","CD4 Effector Memory","γδ T","CD8 Exhausted","CD56 Dim NK","CD 8 Naïve","NK T","CD56 Dim NK","CD56 Bright NK", "Adaptive NK")
 names(Tcell.cluster.ids) <- levels(Tcell_subset)

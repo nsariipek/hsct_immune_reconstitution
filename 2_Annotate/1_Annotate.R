@@ -7,6 +7,8 @@ library(Seurat)
 # Start with a clean slate
 rm(list=ls())
 
+setwd("~/TP53_ImmuneEscape/2_Annotate/")
+
 # Load the saved Seurat object from the last step that contains only 20% of the cells
 seu <- readRDS("~/250113_SplittedSeuratObject.rds")
 
@@ -105,39 +107,164 @@ for (group_name in names(feature_groups)) {
 
 
 # Upload Kyle's signatures and add them as a module score
-Kylecells <- read.csv(file = "~/KR_CellTypeSignatures.csv", header = T)
+Kylecells <- read.csv(file = "Signatures/KR_CellTypeSignatures.csv", header = T)
 
 # Add Module Scores 
 for (n in names(Kylecells)) {
   print(n)
   #n <- "HSPC"
-seu_diet <- AddModuleScore(object = seu_diet, features = Kylecells[n], name = n)
-  colnames(seu_diet@meta.data) <- gsub(str_c(n, "1$"), str_c(n, "_Score"), colnames(seu_diet@meta.data))}
+seu <- AddModuleScore(object = seu, features = Kylecells[n], name = n)
+  colnames(seu@meta.data) <- gsub(str_c(n, "1$"), str_c(n, "_Score"), colnames(seu@meta.data))}
 
 # Visualize
-FeaturePlot(seu_diet, features = c("NK_Score","Monocyte_Score","B_cells_Score","Early_Erythroid_Score", "Mid_Erythroid_Score", "Late_Erythroid_Score", "cDC_Score", "pDC_Score", "Plasma_Cell_Score", "Pre_B_cell_Score", "Cycling_NP_Score", "NP_Score", "ProB_Score", "GMP_Score", "HSPC_Score", "EP_Score", "IMP_Score", "MkP_Score", "MPP_Score", "EBM_Score", "CD4_Naïve_Score", "CD56_dim_NK_Score", "CD8_Term_Eff_Score", "CD8_GZMK_Exh_Score", "CD8_EM_Score", "CD8_Naïve_Score", "NKT_Score", "CD4_CM_Score", "MAIT_Score", "Tregs_Score", "CD56_Bright_NK_Score"))
+FeaturePlot(seu, features = c("NK_Score","Monocyte_Score","B_cells_Score","Early_Erythroid_Score", "Mid_Erythroid_Score", "Late_Erythroid_Score", "cDC_Score", "pDC_Score", "Plasma_Cell_Score", "Pre_B_cell_Score", "Cycling_NP_Score", "NP_Score", "ProB_Score", "GMP_Score", "HSPC_Score", "EP_Score", "IMP_Score", "MkP_Score", "MPP_Score", "EBM_Score", "CD4_Naïve_Score", "CD56_dim_NK_Score", "CD8_Term_Eff_Score", "CD8_GZMK_Exh_Score", "CD8_EM_Score", "CD8_Naïve_Score", "NKT_Score", "CD4_CM_Score", "MAIT_Score", "Tregs_Score", "CD56_Bright_NK_Score"))
+
+
+# Define your specific feature groups
+feature_groups <- list(
+  Group1 = c("Early_Erythroid_Score", "Mid_Erythroid_Score", "Late_Erythroid_Score", "Monocyte_Score","cDC_Score","pDC_Score","NP_Score", "Cycling_NP_Score"),
+
+  Group2 = c("NK_Score",
+             "NKT_Score",
+             "CD56_dim_NK_Score",
+             "CD56_Bright_NK_Score",
+             "B_cells_Score",
+             "Pre_B_cell_Score",
+             "Plasma_Cell_Score",
+             "ProB_Score"),
+
+  Group3 = c("HSPC_Score",
+             "MPP_Score",
+             "EBM_Score",
+             "EP_Score",
+             "MkP_Score","GMP_Score",
+             "IMP_Score"),
+
+  Group4 = c("CD4_Naïve_Score",
+             "CD4_CM_Score",
+             "Tregs_Score",
+             "CD8_Term_Eff_Score",
+             "CD8_GZMK_Exh_Score",
+             "CD8_EM_Score",
+             "CD8_Naïve_Score",
+             "MAIT_Score")
+)
+
+# Set the number of features per page
+features_per_page <- 4
+
+# Loop through each group and save plots
+for (group_name in names(feature_groups)) {
+  group_features <- feature_groups[[group_name]]
+  
+  # Split features into smaller chunks
+  feature_chunks <- split_features(group_features, features_per_page)
+  
+  # Open a PDF file for the group
+  pdf(file = paste0(group_name, "_Kyle_FeaturePlots.pdf"), width = 10, height = 8)
+  
+  # Generate plots for each chunk
+  for (chunk in feature_chunks) {
+    p <- FeaturePlot(seu, features = chunk, ncol = 2, raster = T)
+    print(p)
+  }
+  
+  # Close the PDF
+  dev.off()
+}
+
 
 # Upload Erica's signatures and add them as a module score
-# Published dataset see ....
-markergenes <- read.table(file = "~/markerGenes.txt", header = T)
+# Published dataset 
+markergenes <- read.table(file = "Signatures/markerGenes.txt", header = T)
 
 for (n in names(markergenes)) {
   print(n)
   #n <- "HSPC"
-  seu_diet <- AddModuleScore(object = seu_diet, features = markergenes[n], name = n)
-  colnames(seu_diet@meta.data) <- gsub(str_c(n, "1$"), str_c(n, "_Score"), colnames(seu_diet@meta.data))
+  seu <- AddModuleScore(object = seu, features = markergenes[n], name = n)
+  colnames(seu@meta.data) <- gsub(str_c(n, "1$"), str_c(n, "_module_Score"), colnames(seu@meta.data))
 }
 
 # Visualize
-FeaturePlot(seu_diet, features = c("HSPC_Score",	"EarlyEry_Score",	"LateEry_Score",	
-                              "GMP_Score",	"ProMono_Score",	"Mono_Score",	"ncMono_Score",	
-                              "cDC_Score",	"pDC_Score",	"ProB_Score",	"PreB_Score",	
-                              "B_Score",	"Plasma_Score",	"CD4Naive_Score",	"CD4Memory_Score",
-                              "CD8Naive_Score",	"CD8Memory_Score",	"CD8TermExh_Score",
-                              "GammaDeltaLike_Score",	"NKT_Score",	"NK_Score"))
+FeaturePlot(seu, features = c(
+  "HSPC_module_Score", 
+  "EarlyEry_module_Score", 
+  "LateEry_module_Score", 
+  "GMP_module_Score", 
+  "ProMono_module_Score", 
+  "Mono_module_Score", 
+  "ncMono_module_Score", 
+  "cDC_module_Score", 
+  "pDC_module_Score", 
+  "ProB_module_Score", 
+  "PreB_module_Score", 
+  "B_module_Score", 
+  "Plasma_module_Score", 
+  "CD4Naive_module_Score", 
+  "CD4Memory_module_Score", 
+  "CD8Naive_module_Score", 
+  "CD8Memory_module_Score", 
+  "CD8TermExh_module_Score", 
+  "GammaDeltaLike_module_Score", 
+  "NKT_module_Score", 
+  "NK_module_Score"
+))
 
+feature_groups <- list(Group1 = c(
+  "HSPC_module_Score",
+  "GMP_module_Score",
+  "ProMono_module_Score",
+  "EarlyEry_module_Score",
+  "LateEry_module_Score"
+),
 
+Group2 = c(
+  "Mono_module_Score",
+  "ncMono_module_Score",
+  "cDC_module_Score",
+  "pDC_module_Score"
+),
 
+Group3 = c(
+  "NK_module_Score",
+  "NKT_module_Score",
+  "B_module_Score",
+  "PreB_module_Score",
+  "ProB_module_Score",
+  "Plasma_module_Score"
+),
+
+Group4 = c(
+  "CD4Naive_module_Score",
+  "CD4Memory_module_Score",
+  "CD8Naive_module_Score",
+  "CD8Memory_module_Score",
+  "CD8TermExh_module_Score",
+  "GammaDeltaLike_module_Score"
+))
+
+# Set the number of features per page
+features_per_page <- 4
+
+# Loop through each group and save plots
+for (group_name in names(feature_groups)) {
+  group_features <- feature_groups[[group_name]]
+  
+  # Split features into smaller chunks
+  feature_chunks <- split_features(group_features, features_per_page)
+  
+  # Open a PDF file for the group
+  pdf(file = paste0(group_name, "_Erica_FeaturePlots.pdf"), width = 10, height = 8)
+  
+  # Generate plots for each chunk
+  for (chunk in feature_chunks) {
+    p <- FeaturePlot(seu, features = chunk, ncol = 2, raster = T)
+    print(p)
+  }
+  
+  # Close the PDF
+  dev.off()
+}
 
 ###### Rename clusters #####
 View(seu_diet@meta.data)

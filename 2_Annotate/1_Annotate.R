@@ -79,8 +79,7 @@ feature_groups <- list(
   Group3 = c("Monocytes_Score", "Non.Classical.Monocytes_Score", 
              "Pro.Monocytes_Score", "Undetermined_Score", "HSPCs_Score"),
   Group4 = c("Pre.B.cells_Score", "Pro.B.cells_Score", 
-             "B.cells_Score", "Plasma.Cells_Score")
-)
+             "B.cells_Score", "Plasma.Cells_Score"))
 
 # Set the number of features per page
 features_per_page <- 4
@@ -122,7 +121,14 @@ FeaturePlot(seu, features = c("NK_Score","Monocyte_Score","B_cells_Score","Early
 
 # Define your specific feature groups
 feature_groups <- list(
-  Group1 = c("Early_Erythroid_Score", "Mid_Erythroid_Score", "Late_Erythroid_Score", "Monocyte_Score","cDC_Score","pDC_Score","NP_Score", "Cycling_NP_Score"),
+  Group1 = c("Early_Erythroid_Score", 
+             "Mid_Erythroid_Score", 
+             "Late_Erythroid_Score", 
+             "Monocyte_Score",
+             "cDC_Score",
+             "pDC_Score",
+             "NP_Score", 
+             "Cycling_NP_Score"),
 
   Group2 = c("NK_Score",
              "NKT_Score",
@@ -147,8 +153,7 @@ feature_groups <- list(
              "CD8_GZMK_Exh_Score",
              "CD8_EM_Score",
              "CD8_Naïve_Score",
-             "MAIT_Score")
-)
+             "MAIT_Score"))
 
 # Set the number of features per page
 features_per_page <- 4
@@ -173,6 +178,12 @@ for (group_name in names(feature_groups)) {
   dev.off()
 }
 
+markergenes <- read.csv(file = "250113_marker_genes.csv", header = T)
+
+top_markers <- markergenes %>%
+  group_by(cluster) %>%
+  top_n(n = 10, wt = avg_log2FC) %>%
+  arrange(cluster, desc(avg_log2FC))
 
 # Upload Erica's signatures and add them as a module score
 # Published dataset 
@@ -240,8 +251,7 @@ Group4 = c(
   "CD8Naive_module_Score",
   "CD8Memory_module_Score",
   "CD8TermExh_module_Score",
-  "GammaDeltaLike_module_Score"
-))
+  "GammaDeltaLike_module_Score"))
 
 # Set the number of features per page
 features_per_page <- 4

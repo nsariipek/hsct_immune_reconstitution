@@ -184,13 +184,18 @@ names(Tcell.cluster.ids) <- levels(Tcell_subset)
 Tcell_subset <- RenameIdents(Tcell_subset, Tcell.cluster.ids)
 Tcell_subset@meta.data$celltype = Idents(Tcell_subset)
 
+# See the levels
+levels(Tcell_subset$celltype)
+levels(Tcell_subset)
+View(Tcell_subset@meta.data)
+
 # See the new annotated UMAP
-table(seu_diet_merged)
-Idents(Tcell_subset) = "seurat_clusters"
-DimPlot(Tcell_subset, reduction = "umap") + theme(aspect.ratio = 1)
+Idents(Tcell_subset) = "celltype"
+DimPlot(Tcell_subset, reduction = "umap", repel = T, group.by = "celltype", label = T) + theme(aspect.ratio = 1)
+
 
 # Merge cell type annotations
-meta = seu_diet@meta.data
+meta = seu@meta.data
 tnk_meta = Tcell_subset@meta.data
 
 meta$celltype = as.character(meta$celltype)
@@ -198,9 +203,30 @@ tnk_meta$celltype = as.character(tnk_meta$celltype)
 meta$cell = rownames(meta)
 tnk_meta$cell = rownames(tnk_meta)
 meta$celltype[meta$cell %in% tnk_meta$cell] = tnk_meta$celltype
-seu_diet@meta.data = meta
+seu@meta.data = meta
+
+# Turn celltype into a factor and add levels 
+seu@meta.data$celltype <- factor(seu@meta.data$celltype,levels = c("Progenitors", "Early Erythroids", "Mid Erythroids", "Late Erythroids", "Pro Monocytes", "Monocytes", "Non Classical Monocytes", "cDC",  "pDC", "Pro B cells", "Pre-B", "B cells", "Plasma cells", "CD4 Naïve", "CD4 Effector Memory", "CD4 Memory", "Treg", "CD8 Naïve", "CD8 Effector", "CD8 Memory", "CD8 Exhausted",  "γδ T", "NK T", "Adaptive NK", "CD56 Bright NK", "CD56 Dim NK", "Cycling T-NK cells", "UD1", "UD2", "UD3"))
+seu@active.ident <- seu$celltype 
+DimPlot(seu, reduction = "umap", repel = T, label = T) + theme(aspect.ratio = 1)
+
+# Add T-NK cells umap coordinates to the merged object 
+# Extract UMAP coordinates for TNK cells
+UMAP_TNK_1 <- Tcell_subset@reductions$umap@cell.embeddings[, 1]
+UMAP_TNK_2 <- Tcell_subset@reductions$umap@cell.embeddings[, 2]
+
+# Add UMAP coordinates back to the metadata of the original Seurat object
+seu$UMAP_TNK_1 <- NA
+seu$UMAP_TNK_2 <- NA
+
+# Populate only the TNK cells with their UMAP coordinates
+seu$UMAP_TNK_1[Cells(Tcell_subset)] <- UMAP_TNK_1
+seu$UMAP_TNK_2[Cells(Tcell_subset)] <- UMAP_TNK_2
+
+# Save space
+seu20annotated@assays$RNA@layers$scale.data <- NULL
 
 # Save the merged seu as a new object
-seu_diet_merged <- DietSeurat(seu_diet, dimreducs = names(seu_diet@reductions))
-saveRDS(seu_diet_merged, file = "~/seu_diet_merged.rds")
-seu_diet_merged <- readRDS("~/seu_diet_merged.rds")
+saveRDS(seu, file = "~/250127_seu_annotated_merged.rds")
+seu_annotated <- readRDS("~/250127_seu_annotated_merged.rds")
+

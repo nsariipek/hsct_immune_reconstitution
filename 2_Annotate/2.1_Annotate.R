@@ -2,6 +2,7 @@
 # Load the libraries
 library(tidyverse)
 library(Seurat)
+
 #devtools::install_github('immunogenomics/presto')
 
 # Start with a clean slate
@@ -103,7 +104,6 @@ for (group_name in names(feature_groups)) {
   # Close the PDF
   dev.off()
 }
-
 
 # Upload Kyle's signatures and add them as a module score
 Kylecells <- read.csv(file = "Signatures/KR_CellTypeSignatures.csv", header = T)
@@ -277,23 +277,26 @@ for (group_name in names(feature_groups)) {
 }
 
 ###### Rename clusters #####
-View(seu_diet@meta.data)
+View(seu@meta.data)
 
-Idents(seu_diet) = "seurat_clusters"
+Idents(seu) = "seurat_clusters"
 
 # Rename Clusters
-seu.cluster.ids <- c("T cells","T cells","T cells","Monocytes","Blasts","T cells","T cells","Late Erythroids","Monocytes","Mid Erythroids", "B cells","T cells","Pro Monocytes", "Mid Erythroids","Mid Erythroids","Late Erythroids","Blasts","Early Erythroids","Non Classical Monocytes", "B cells", "Monocytes", "Monocytes", "cDC","Early Erythroids","Pre B cells", "HSPCs", "Unidentified", "Plasma Cells", "Blasts", "Blasts", "Pro B cells", "Late Erythroids", "pDC", "Late Erythroids", "Doublets")
+seu.cluster.ids <- c("T cells","T cells","Monocytes","T cells","Late Erythroids","T cells","Mid Erythroids","UD1","B cells","Monocytes", "Non Classical Monocytes", "T cells","Pro Monocytes", "Late Erythroids","Early Erythroids","UD3", "Early Erythroids","Pre-B","Progenitors","cDC", "Pro B cells", "UD1", "Early Erythroids","Plasma cells","Cycling T-NK cells", "pDC","Progenitors","Progenitors","Pro B cells","Late Erythroids", "UD2","UD2","UD2")
 
-names(seu.cluster.ids) <- levels(seu_diet)
-seu_diet <- RenameIdents(seu_diet, seu.cluster.ids)
-seu_diet@meta.data$celltype = Idents(seu_diet)
+names(seu.cluster.ids) <- levels(seu)
+seu <- RenameIdents(seu, seu.cluster.ids)
+seu@meta.data$celltype = Idents(seu)
 
 # See the levels
-levels(seu_diet$celltype)
-levels(seu_diet)
-View(seu_diet@meta.data)
+levels(seu$celltype)
+levels(seu)
+View(seu@meta.data)
 
 # Visualize the annotated clusters
 mycolors <- distinctColorPalette(k = 34)
 pie(rep(1, 34), col = mycolors) 
-DimPlot(seu_diet_merged, reduction = "umap", repel = T, group.by = "celltype", label = T) + theme(aspect.ratio = 1)
+DimPlot(seu, reduction = "umap", repel = T, group.by = "celltype", label = T) + theme(aspect.ratio = 1)
+
+
+

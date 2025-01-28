@@ -1,5 +1,6 @@
-# Nurefsan Sariipek, 
-# Date January 22nd, 2024
+# Nurefsan Sariipek
+# Date: January 22nd, 2024
+# Updated at january 28th,2025
 # Analyzing post 3-6 months samples and subsetting donor/host CD4/CD8 compartments using subsampling based on cell numbers which is different than scRepertoire built in subsampling which can be found on 6.1 script
 # Updated at 240418 by NS
 
@@ -11,88 +12,101 @@ library(tidyverse)
 library(janitor)
 library(rstatix)
 library(Hmisc)
+library(glue)
+#library(googleCloudStorageR)
 library(RColorBrewer)
 
 # Empty environment
 rm(list=ls())
 
-# For Nurefsan:
-my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
-# For Peter:
-#my_wd <- "~/DropboxMGB/Projects/ImmuneEscapeTP53/"
+# # Set working directory 
+# setwd("~/TP53_ImmuneEscape/6_TCR_Diversity/")
 
-# Load the csv files only from cohort 1 and 2 from 3-6mo remission period
-P01_1Rem <- read.csv(paste0(my_wd, "TCR files/25802_MNC_filtered_contig_annotations.csv"))
-P01_1RemT <- read.csv(paste0(my_wd, "TCR files/25802_CD3_filtered_contig_annotations.csv"))
-P01_2Rem <- read.csv(paste0(my_wd, "TCR files/2645_MNC_filtered_contig_annotations.csv"))
-P02_1Rem <- read.csv(paste0(my_wd, "TCR files/2220_MNC_filtered_contig_annotations.csv"))
-P04_1Rem <- read.csv(paste0(my_wd, "TCR files/2599_MNC_filtered_contig_annotations.csv"))
-P04_1RemT <- read.csv(paste0(my_wd, "TCR files/2599_CD3_filtered_contig_annotations.csv"))
-P05_1Rem <- read.csv(paste0(my_wd, "TCR files/25809_MNC_filtered_contig_annotations.csv"))
-P06_1Rem <- read.csv(paste0(my_wd, "TCR files/2434_MNC_filtered_contig_annotations.csv"))
-P07_1Rem <- read.csv(paste0(my_wd, "TCR files/2518_MNC_filtered_contig_annotations.csv"))
-P07_1RemT <- read.csv(paste0(my_wd, "TCR files/2518_CD3_filtered_contig_annotations.csv"))
-P08_1Rem <- read.csv(paste0(my_wd, "TCR files/6174_MNC_filtered_contig_annotations.csv"))
-P08_1RemT <- read.csv(paste0(my_wd, "TCR files/6174_CD3_filtered_contig_annotations.csv"))
+# Parameters to interact with Google bucket, this part only needed for Terra
+gcs_global_bucket("fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b")
+# Check if you can list the objects. In Terra, you may need to authenticate using gcs_auth(). In VM, this did not work - hence the alternative function on line 65.
+gcs_list_objects()
 
-# Make a list 
-contig_list <- list(P01_1Rem, P01_1RemT, 
-                    P01_2Rem, P02_1Rem, 
-                    P04_1Rem, P04_1RemT,P05_1Rem, 
-                    P06_1Rem, 
-                    P07_1Rem, P07_1RemT, P08_1Rem, P08_1RemT)
+# Define samples
+Samples <- c("P1665_MIX", "P1671_MIX", "P1745_MNC", "P1762_MIX", "P1764_MIX", 
+             "P1804_MNC", "P1817_MIX", "P1964_MNC", "P2220_MNC", "P2332_MNC", "P2408_MNC", 
+             "P2434_MNC", "P2448_MNC", "P2517_MIX", "P2518_CD3", "P2518_MNC", "P2599_CD3", "P2599_MNC", 
+             "P2698_MIX", "P2745_MNC", "P2791_MNC", "P2820_MIX", "P2961_MNC", "P2977_MIX", "P2986_MNC", 
+             "P2988_MNC", "P3000_MIX", "P6174_CD3", "P6174_MNC", "P25802_CD3", "P25802_MNC", "P25809_MNC"
+)
 
-# Combine all the samples
-combined <- combineTCR(contig_list,
-                       samples = c("P01_1Rem", "P01_1RemT", "P01_2Rem", "P02_1Rem", 
-                                   "P04_1Rem", "P04_1RemT","P05_1Rem",
-                                   "P06_1Rem", 
-                                   "P07_1Rem", "P07_1RemT", "P08_1Rem", "P08_1RemT"))
-
+  # Temporary directory to save downloaded files
+  tmp_dir <- "/home/rstudio/tmp"
+  dir.create(tmp_dir)
+  
+  # Track successfully loaded samples
+  successful_samples <- c()
+  
+  # Process each sample and assign to dynamically named variables
+  for (Sample in Samples) {
+    print(Sample) # Log the sample being processed
+    
+    # Define file paths
+    sample_path <- paste0(Sample, "/vdj-t/")
+    file_name <- paste0(Sample, "_filtered_contig_annotations.csv")
+    save_path <- file.path(tmp_dir, file_name)
+    
+    # Download the file and create variables
+    tryCatch({
+      gcs_get_object(
+        object_name = paste0(sample_path, "filtered_contig_annotations.csv"),
+        saveToDisk = save_path
+      )
+      
+      # Read the downloaded file into a variable named after the sample
+      assign(Sample, read.csv(save_path), envir = globalenv())
+      successful_samples <- c(successful_samples, Sample) # Track success
+    }, error = function(e) {
+      message(glue("Error processing sample: {Sample}"))
+    })
+  }
+  
+  # Dynamically construct the contig_list for successfully loaded samples
+  contig_list <- mget(successful_samples, envir = globalenv())
+  
+  # Combine all the samples into a single object
+  combined <- combineTCR(
+    contig_list,
+    samples = successful_samples
+  )
+  
 # Add variables. For scRepertoire below v2.0, replace variable.name with name
-combined <- addVariable(combined, name = "ptnumber",
-                        variables = c("P01_1Rem", "P01_1Rem",
-                                      "P01_2Rem", "P02_1Rem", 
-                                      "P04_1Rem", "P04_1Rem", "P05_1Rem",
-                                      "P06_1Rem", 
-                                      "P07_1Rem", "P07_1Rem", "P08_1Rem", "P08_1Rem"))
-# Add variables
-combined <- addVariable(combined, name = "cohort",
-                        variables = c("cohort1","cohort1","cohort1","cohort1","cohort1","cohort1",
-                                      "cohort2","cohort2","cohort2","cohort2","cohort2","cohort2"))
+combined <- addVariable(combined, variable.name = "patient_id",
+                        variables = c("P13", "P23", "P14", "P18", "P28", "P29", "P15", "P30", "P31", "P16", "P06", "P32", "P24", "P07", "P07", "P04", "P04", "P19", "P33", "P20", "P25", "P26", "P21", "P22", "P17", "P27", "P08", "P08", "P01", "P01", "P05"))
 
 # Optional: merge data if the same sample was analyzed as both MNC and sorted T cells
 combined2 <- do.call(rbind, combined)
 combined <- split(combined2, f = combined2$ptnumber)
 
-# Load the Seurat object subsetted for T cells
-Tcells <- readRDS(paste0(my_wd, "RDS files/Tcellsfinal.rds"))
+# Load the Seurat object and subset for T cells
+# seu_merge <- readRDS("~/250128_seurat_annotated_final.rds")
+# 
+# # Keep only annotated T cell clusters (remove NK cells)
+# t_cell_types <- c("CD4 Memory", "CD8 Memory", "CD4 Naïve", "Treg", "CD8 Effector","CD4 Effector Memory", "γδ T", "CD8 Exhausted", "CD8 Naïve")
+# Tcells <- subset(x = seu_merge, subset = celltype %in% t_cell_types) 
+# 
+# # Add a new column for barcodes (rownames of the metadata)
+# Tcells@meta.data$barcode <- rownames(Tcells@meta.data)
+# 
+# # Reset rownames to avoid duplication
+# rownames(Tcells@meta.data) <- NULL
+# 
+# saveRDS(Tcells, "~/250128_Tcell_subset.rds")
 
-## UMAP dimensions are lost in the previous one check this one
-#Tcells <- readRDS(paste0(my_wd, "Trash/old RDS files/Tcellsubset.rds"))
+#Next time just load the T cells
+Tcells <- readRDS("~/250128_Tcell_subset.rds")
 
-# Keep only annotated T cell clusters (remove NK cells)
-Tcells <- subset(x = Tcells, subset = seurat_clusters %in% c(0,1,2,3,4,5,6,7,9,10,11,12,14)) 
-
-# Wrangle the metadata to make it compatible with the TCR metadata (combined)
-Tcells_meta <- Tcells@meta.data
-Tcells_meta$renamedcells <- gsub("-\\d+_\\d+","", rownames(Tcells@meta.data))
-Tcells_meta <- Tcells_meta %>% mutate(fullbc = paste0(Tcells_meta$id, "_", renamedcells, "-1"))
-Tcells@meta.data <- Tcells_meta
-
-# Find duplicated barcodes and drop from Seurat object
-dup_cells <- Tcells_meta$fullbc[duplicated(Tcells_meta$fullbc)]
-UniqueBCs <- Tcells_meta[! Tcells_meta$fullbc %in% dup_cells,]$fullbc 
-Tcells <- subset(x = Tcells, subset = fullbc %in% UniqueBCs)
-Tcells <- RenameCells(Tcells, new.names = UniqueBCs)
-
-# Subset to keep only 3-6M remission samples from 8 patients
-Tcells <- subset(x = Tcells, subset = Sample %in% c("P01_1Rem", "P01_1Rem", "P01_2Rem", "P02_1Rem", "P04_1Rem", "P04_1Rem", "P05_1Rem", "P06_1Rem", "P07_1Rem", "P07_1Rem", "P08_1Rem", "P08_1Rem"))
+# Subset to keep only 3-6M remission samples from seurat object(might be unneccessary)
+Tcells <- subset(x = Tcells, subset = timepoint %in% c("3","5","6"))
 
 # Turn to a dataframe and keep only needed variables
 meta = Tcells@meta.data
-meta = meta %>% mutate(barcode = paste0(fullbc), ptnumber = paste0(Sample))
-meta = meta %>% select(barcode, celltype, cohort, orig.ident, id, ptnumber, Sample, groups, patient_identity, timepoint)
+meta = meta %>% select(barcode, celltype, cohort, sample_status, orig.ident, sample_id, patient_id,timepoint, library_type)
 rownames(meta) <- NULL
 meta = meta %>% drop_na()
 
@@ -138,16 +152,22 @@ for (i in names(combined)) {
     drop_na(celltype)
 }
 
+
 View(combined.sc)
+# Remove samples P20, P26 and P32 from the list since they had less than <400 TCR calls
+samples_to_remove <- c("P20","P26", "P32")
+combined.sc <- combined.sc[!names(combined.sc) %in% samples_to_remove]
 
-#turn combined.sc to a seurat object
-x <- do.call(rbind, combined.sc)
-row.names(x) <- x$barcode
+# Verify the remaining samples
+print(names(combined.sc))
 
-Tcells_x <- AddMetaData(Tcells, select(x, CTstrict))
-
+# For some reason if you need the export the combined as a seurat object use the lines down below
+# #turn combined.sc to a seurat object
+# x <- do.call(rbind, combined.sc)
+# row.names(x) <- x$barcode
+# Tcells_TCR <- AddMetaData(Tcells, select(x, CTstrict))
 # Save this combinedseurat object to use in other purposes.
-#saveRDS(Tcells_x, paste0(my_wd,file = "Tcells_x.rds"))
+#saveRDS(Tcells_TCR, file = "~/Tcells_tcr.rds"))
 
 # This section is from the scRepertoire clonal diversity function. It calculates different diversity indices.
 .diversityCall <- function(data) {
@@ -220,7 +240,7 @@ Tcells_x <- AddMetaData(Tcells, select(x, CTstrict))
   return(ACE)
 }
 
-# Define the function that Ksenia wrote
+# Define the function that calculate each of these scores in a list (credits: Ksenia Safina)
 compute_diversity = function(df_list, cloneCall, n.boots) {
   # df_list <- combined.sc
   # cloneCall <- "CTstrict"
@@ -247,14 +267,17 @@ compute_diversity = function(df_list, cloneCall, n.boots) {
   return(mat)
 }
 
-# First, calculate and visualize how many cells we will exclude by taking the minimum number
+# First, calculate and visualize how many calls we will exclude by subsetting the same number of cells from each sample
 print(paste0("Note you are excluding ",
              round((1 - min(sapply(combined.sc, nrow)) * length(combined.sc) / sum(sapply(combined.sc, nrow))) * 100, 2),
              "% of the cells by subsetting to ", min(sapply(combined.sc, nrow)),
              " cells for each of the ", length(combined.sc), " samples."))
 plot(sapply(combined.sc, nrow), pch = 16, ylim = c(0, max(sapply(combined.sc, nrow))))
+
+# Visualize 
 abline(h = min(sapply(combined.sc, nrow)), col = "red")
-# Calculate the diversity with the function, keep in mind only works with lists 
+
+# Calculate the diversity with the function, keep in mind this only works with lists 
 m = compute_diversity(combined.sc, "CTstrict", 1000)
 View(m)
 # For power calculation:
@@ -262,28 +285,28 @@ mean(m$inv.simpson[1:4]); sd(m$inv.simpson[1:4])
 mean(m$inv.simpson[5:8]); sd(m$inv.simpson[5:8])
 
 
-# Add more information to calculation to make more annotated plots
+# Add more information to table to make more annotated plots
 joined_tibble <- as_tibble(meta) %>% 
-  select(id, cohort, timepoint, groups, patient_identity, ptnumber) %>% unique() %>%
-  right_join(m, by = "ptnumber")
+  select(sample_id, cohort, timepoint,sample_status , patient_id) %>% unique() %>%
+  right_join(m, by = "patient_id")
 
-# Determine y axis
+# Determine y axis for visualization purposes
 y_lim <- c(0,max(joined_tibble$inv.simpson))
 
-#create a color patern 
+# create a color patern, this was for discovery cohort
 
-mycolors <- c("maroon2","maroon2","royalblue1","darkgreen",
-              "lightgoldenrod3","darkturquoise",
-              "lightgreen","red3")
+# mycolors <- c("maroon2","maroon2","royalblue1","darkgreen",
+#               "lightgoldenrod3","darkturquoise",
+#               "lightgreen","red3")
 
 # Visualize the diversities
 # initial box plots
-p1 <- joined_tibble %>% filter(!duplicated(ptnumber)) %>%
+p1 <- joined_tibble %>% filter(!duplicated(patient_id)) %>%
   mutate(cohort = gsub("cohort1", "Non-relapsed", gsub("cohort2", "Relapsed", cohort))) %>%
   ggplot(aes(x = cohort, y = inv.simpson)) +
   geom_boxplot()+
-  geom_jitter(aes(color=ptnumber), size = 4) +
-  scale_color_manual(values = mycolors)+
+  geom_jitter(aes(color=patient_id), size = 4) +
+  #scale_color_manual(values = mycolors)+
   theme_bw() +
   coord_cartesian(ylim = y_lim) +
   ylab("Inverse Simpson Index") +

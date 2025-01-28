@@ -297,6 +297,9 @@ seu$sample_id <- case_when(grepl("2446", seu$orig.ident) ~ "P01_Pre",
                            grepl("2448",seu$orig.ident) ~ "P32_Rem",
                            grepl("2745",seu$orig.ident) ~ "P33_Rem")
 
+seu_merge$survival <- case_when(grepl("9596|2737|2379|2434|2518|4618|6174|9931|1953|25809|1677|5641|1732|1811|1195|1347|1285|6244|9355|1013|1764|1804|1964|2332|2448|2745", seu_merge$orig.ident) ~ "Relapsed",
+                                grepl("2446|25802|2645|1972|2220|2621|9185|2599|1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu_merge$orig.ident) ~ "Non-relapsed")
+
 # Convert each variable to a factor
 seu$orig.ident <- as.factor(seu@meta.data$orig.ident)
 seu$cohort <- as.factor(seu@meta.data$cohort)

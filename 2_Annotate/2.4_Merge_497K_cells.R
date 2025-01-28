@@ -39,8 +39,8 @@ predictions <- TransferData(anchorset = seu.anchors, refdata = seu20annotated$ce
 seu80 <- AddMetaData(seu80, metadata = select(predictions, predicted.id))
 
 # Compare UMAPs
-p1 <- DimPlot(seu20annotated, reduction = "umap", group.by = "seurat_clusters", shuffle = T) + theme(aspect.ratio = 1, legend.position = "none")
-p2 <- DimPlot(seu80, reduction = "ref.umap", group.by = "predicted.id", shuffle = T) + theme(aspect.ratio = 1, legend.position = "none")
+p1 <- DimPlot(seu20annotated, reduction = "umap", group.by = "seurat_clusters", shuffle = T) + theme(aspect.ratio = 1)
+p2 <- DimPlot(seu80, reduction = "ref.umap", group.by = "predicted.id", shuffle = T) + theme(aspect.ratio = 1)
 p1 + p2
 
 # Make the metadata more compatible between objects
@@ -96,7 +96,7 @@ seu_merge@meta.data %>% ggplot(aes(x = UMAP_1, y = UMAP_2, color = celltype)) +
 ggsave("2.4_UMAP_all_cells.png", width = 8, height = 5.5)
 
 # Save to persistent disk
-saveRDS(seu_merge, "~/250127_seurat_annotated_497K.rds")
+saveRDS(seu_merge, "~/250128_seurat_annotated_497K.rds")
 #seu_merge <- readRDS("~/250127_seurat_annotated_497K.rds")
 
 # Copy to bucket

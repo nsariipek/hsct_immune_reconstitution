@@ -4,9 +4,6 @@
 # Load the needed libraries
 library(tidyverse)
 library(Seurat)
-#library(readxl)
-#library(data.table)
-#library(janitor)
 
 # Start with a clean slate
 rm(list=ls())
@@ -19,11 +16,9 @@ setwd("/home/rstudio/TP53_ImmuneEscape/1_Seurat")
 # Load the data from the previous script
 seu <- readRDS(file = "~/250108_MergedSeuratObject.rds")
 
-# Split into 20% and 80% to make dimensionality reduction and clustering manageable
+# Select 20% of the cells to make dimensionality reduction and clustering manageable. In script 2.3_Merge_497K_cells.R, the remaining 80% of cells are added back.
 seu20.cells <- colnames(seu)[seq(1, length(colnames(seu)), by = 5)]
-seu80.cells <- setdiff(colnames(seu), seu20.cells)
 seu20 <- subset(seu, cells = seu20.cells)
-seu80 <- subset(seu, cells = seu80.cells)
 
 # Find variable features on the smaller object
 seu20 <- NormalizeData(seu20)

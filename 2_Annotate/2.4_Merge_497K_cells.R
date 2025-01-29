@@ -4,11 +4,10 @@
 library(tidyverse)
 library(Seurat)
 library(ggsci) # for scale_color_igv
-library(here)
+library(scattermore)
 
 # Set working directory
-root <- here()
-setwd(paste0(root, "/2_Annotate"))
+setwd("~/TP53_ImmuneEscape/2_Annotate/")
 
 # Delete environment variables
 rm(list=ls())
@@ -81,19 +80,54 @@ seu_merge@active.ident <- seu_merge$celltype
 # Join layers, which is a feature of Seurat5 I don't think we need
 seu_merge <- JoinLayers(seu_merge)
 
-# Now create a UMAP. The following does not work because the coordinates got lost during merge:
-DimPlot(seu_merge)
-# Instead, we can use ggplot:
-seu_merge@meta.data %>% ggplot(aes(x = UMAP_1, y = UMAP_2, color = celltype)) +
-  geom_point(size = 0.05) +
-  scale_color_igv() +
+# Nurefsan, you are welcome to change these. Here are additional colors from pal_igv("default")(51):
+# "#BA6338FF" "#CC9900FF" "#99CC00FF" "#E7C76FFF" "#CC9900FF" "#00CC99FF" "#4775FFFF"
+# "#00CC33FF" "#0A47FFFF" "#990033FF" "#991A00FF" "#996600FF" "#809900FF" "#749B58FF"
+# "#339900FF" "#009966FF" "#660099FF" "#990080FF" "#6BD76BFF" "#FFD147FF" "#FF1463FF"
+celltype_colors <- c(`Progenitors` = "#3B1B53FF",
+  `Early Erythroids` = "#D60047FF",
+  `Mid Erythroids` = "#924822FF",
+  `Late Erythroids` = "#AE1F63FF",
+  `Pro Monocytes` = "#99CC00FF",
+  `Monocytes` = "#E4AF69FF",
+  `Non Classical Monocytes` = "#7A65A5FF",
+  `cDC` = "#5DB1DDFF",
+  `pDC` = "#CDDEB7FF",
+  `Pro B cells` = "#14FFB1FF",
+  `Pre-B` = "#00991AFF",
+  `B cells` = "#003399FF",
+  `Plasma cells` = "#802268FF",
+  `CD4 Naïve` = "#466983FF",
+  `CD4 Effector Memory` = "#D58F5CFF",
+  `CD4 Memory` = "#C75127FF",
+  `Treg` = "#FFC20AFF",
+  `CD8 Naïve` = "#33CC00FF",
+  `CD8 Effector` = "#612A79FF",
+  `CD8 Memory` = "#0099CCFF",
+  `CD8 Exhausted` = "#CE3D32FF",
+  `γδ T` = "#D595A7FF",
+  `NK T` = "#5050FFFF",
+  `Adaptive NK` = "#1A0099FF",
+  `CD56 Bright NK` = "#00D68FFF",
+  `CD56 Dim NK` = "#008099FF",
+  `Cycling T-NK cells` = "#F0E685FF",
+  `UD1` = "#A9A9A9FF",
+  `UD2` = "#837B8DFF",
+  `UD3` = "#5A655EFF")
+
+# Use ggplot to create a UMAP (DimPlot doesn't work b/c the reductions were lost during merge):
+seu_merge@meta.data %>%
+  sample_frac(1) %>%  # Randomly shuffle rows
+  ggplot(aes(x = UMAP_1, y = UMAP_2, color = celltype)) +
+  geom_scattermore(pointsize = 8, pixels = c(4096, 4096)) +
+  scale_color_manual(values = celltype_colors) +
   theme_bw() +
   theme(aspect.ratio = 1,
         panel.grid = element_blank()) +
   guides(color = guide_legend(override.aes = list(size = 3)))
 
 # Save as png for now. Later we should figure out how to use geom_point_rast from the library ggrastr on Terra, or save the figure on another machine
-ggsave("2.4_UMAP_all_cells.png", width = 8, height = 5.5)
+ggsave("2.4_UMAP_all_cells.pdf", width = 8, height = 4.5)
 
 # Save to persistent disk
 saveRDS(seu_merge, "~/250128_seurat_annotated_497K.rds")

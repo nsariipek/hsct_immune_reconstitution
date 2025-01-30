@@ -4,13 +4,11 @@
 
 library(tidyverse)
 library(Seurat) # Using 5.1.0
-library(here)
 library(data.table)
 library(ggpubr)
 
-# Set working directory (portable across environments)
-root <- here()
-setwd(paste0(root, "/2_Annotate"))
+# Set working directory
+setwd("~/TP53_ImmuneEscape/2_Annotate/")
 
 # Clear environment variables
 rm(list=ls())

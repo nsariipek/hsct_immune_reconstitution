@@ -21,28 +21,22 @@ library(patchwork)
 # Empty environment
 rm(list=ls())
 
-# For Nurefsan:
-my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
-# For Peter:
-#my_wd <- "~/DropboxMGB/Projects/ImmuneEscapeTP53/"
-
 # Load the data
-seu_diet_merged <- readRDS(paste0(my_wd,"/RDS files/seu_diet_merged.rds"))
+seu <- readRDS("~/250128_seurat_annotated_final")
 
 # Check the metadata
-#View(seu_diet_merged@meta.data) 
+#View(seud@meta.data) 
 
 ############ Check the M/L ratio at 100 day in cohorts 1-2 ###############################
 
-tbl = seu_diet_merged@meta.data %>% rownames_to_column("barcode") %>% 
+tbl = seu@meta.data %>% rownames_to_column("barcode") %>% 
   filter(library_type=="MNC") %>% 
-  filter(cohort %in% c("cohort1", "cohort2")) %>% 
-  mutate(celltype= gsub("Blast","blast",celltype))
+  filter(cohort %in% c("cohort1", "cohort2"))
   
 tbl_filtered <- subset(x = tbl, subset = Sample %in% c("P01_1Rem", "P01_2Rem", "P02_1Rem", "P04_1Rem", "P05_1Rem", "P06_1Rem", "P07_1Rem", "P08_1Rem"))
 
 
-# Add a new column naming if it is a L or M cell, L = T, NK, B cells
+# Add a new column naming if it is a L or M cell
 
 tbl_filtered$type <- case_when(
   grepl("CD|γδ|NK|Plasma|B|Treg\\b", tbl_filtered$celltype) ~ "L",

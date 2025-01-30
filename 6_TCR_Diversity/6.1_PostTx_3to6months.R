@@ -13,7 +13,7 @@ library(janitor)
 library(rstatix)
 library(Hmisc)
 library(glue)
-#library(googleCloudStorageR)
+library(googleCloudStorageR)
 library(RColorBrewer)
 
 # Empty environment
@@ -30,10 +30,7 @@ gcs_list_objects()
 # Define samples
 Samples <- c("P1665_MIX", "P1671_MIX", "P1745_MNC", "P1762_MIX", "P1764_MIX", 
              "P1804_MNC", "P1817_MIX", "P1964_MNC", "P2220_MNC", "P2332_MNC", "P2408_MNC", 
-             "P2434_MNC", "P2448_MNC", "P2517_MIX", "P2518_CD3", "P2518_MNC", "P2599_CD3", "P2599_MNC", 
-             "P2698_MIX", "P2745_MNC", "P2791_MNC", "P2820_MIX", "P2961_MNC", "P2977_MIX", "P2986_MNC", 
-             "P2988_MNC", "P3000_MIX", "P6174_CD3", "P6174_MNC", "P25802_CD3", "P25802_MNC", "P25809_MNC"
-)
+             "P2434_MNC", "P2448_MNC", "P2517_MIX", "P2518_CD3", "P2518_MNC", "P2599_CD3", "P2599_MNC", "P2698_MIX", "P2745_MNC", "P2791_MNC", "P2820_MIX", "P2961_MNC", "P2977_MIX", "P2986_MNC", "P2988_MNC", "P3000_MIX", "P6174_CD3", "P6174_MNC", "P25802_CD3", "P25802_MNC","P25809_MNC")
 
   # Temporary directory to save downloaded files
   tmp_dir <- "/home/rstudio/tmp"
@@ -77,24 +74,21 @@ Samples <- c("P1665_MIX", "P1671_MIX", "P1745_MNC", "P1762_MIX", "P1764_MIX",
   
 # Add variables. For scRepertoire below v2.0, replace variable.name with name
 combined <- addVariable(combined, variable.name = "patient_id",
-                        variables = c("P13", "P23", "P14", "P18", "P28", "P29", "P15", "P30", "P31", "P16", "P06", "P32", "P24", "P07", "P07", "P04", "P04", "P19", "P33", "P20", "P25", "P26", "P21", "P22", "P17", "P27", "P08", "P08", "P01", "P01", "P05"))
+                        variables = c("P13", "P23", "P14", "P18", "P28", "P29", "P15", "P30","P02", "P31", "P16", "P06", "P32", "P24", "P07", "P07", "P04", "P04", "P19", "P33", "P20", "P25", "P26", "P21", "P22", "P17", "P27", "P08", "P08", "P01", "P01", "P05"))
 
 # Optional: merge data if the same sample was analyzed as both MNC and sorted T cells
 combined2 <- do.call(rbind, combined)
-combined <- split(combined2, f = combined2$ptnumber)
+combined <- split(combined2, f = combined2$patient_id)
 
-# Load the Seurat object and subset for T cells
+# #Load the Seurat object and subset for T cells
 # seu_merge <- readRDS("~/250128_seurat_annotated_final.rds")
 # 
 # # Keep only annotated T cell clusters (remove NK cells)
 # t_cell_types <- c("CD4 Memory", "CD8 Memory", "CD4 Naïve", "Treg", "CD8 Effector","CD4 Effector Memory", "γδ T", "CD8 Exhausted", "CD8 Naïve")
-# Tcells <- subset(x = seu_merge, subset = celltype %in% t_cell_types) 
+# Tcells <- subset(x = seu_merge, subset = celltype %in% t_cell_types)
 # 
 # # Add a new column for barcodes (rownames of the metadata)
 # Tcells@meta.data$barcode <- rownames(Tcells@meta.data)
-# 
-# # Reset rownames to avoid duplication
-# rownames(Tcells@meta.data) <- NULL
 # 
 # saveRDS(Tcells, "~/250128_Tcell_subset.rds")
 
@@ -103,20 +97,20 @@ Tcells <- readRDS("~/250128_Tcell_subset.rds")
 
 # Subset to keep only 3-6M remission samples from seurat object(might be unneccessary)
 Tcells <- subset(x = Tcells, subset = timepoint %in% c("3","5","6"))
-
+Tcells <- subset(x = Tcells, subset = sample_status == "remission")
 # Turn to a dataframe and keep only needed variables
 meta = Tcells@meta.data
-meta = meta %>% select(barcode, celltype, cohort, sample_status, orig.ident, sample_id, patient_id,timepoint, library_type)
+meta = meta %>% select(barcode, celltype, cohort, sample_status, orig.ident, sample_id, patient_id,timepoint,survival, library_type)
 rownames(meta) <- NULL
 meta = meta %>% drop_na()
 
 ########### Optional subsetting for exploring different cell types #############
 
-## Only subset CD8+ cells
-# meta <- subset(x = meta, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Terminally Exhausted"))
+# # Only subset CD8+ cells
+# meta <- subset(x = meta, subset = celltype %in% c("CD8 Memory", "CD8 Effector", "CD8 Exhausted","γδ T","CD8 Naïve"))
 # meta <- subset(x = meta, subset = celltype %in% c("CD8 Effector"))
-## Only subset CD4+ cells
-# meta <- subset(x = meta, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
+# # Only subset CD4+ cells
+# meta <- subset(x = meta, subset = celltype %in% c("Treg","CD4 Effector Memory", "CD4 Naïve","CD4 Memory"))
 
 ####Add Souporcell information####
 # # Load the metadata that contains souporcell information
@@ -152,22 +146,21 @@ for (i in names(combined)) {
     drop_na(celltype)
 }
 
-
 View(combined.sc)
-# Remove samples P20, P26 and P32 from the list since they had less than <400 TCR calls
-samples_to_remove <- c("P20","P26", "P32")
+# Remove samples P20, P26 and P32 from the list since they had less than <500 TCR calls
+samples_to_remove <- c("P16","P20","P26","P32")
 combined.sc <- combined.sc[!names(combined.sc) %in% samples_to_remove]
 
 # Verify the remaining samples
 print(names(combined.sc))
 
-# For some reason if you need the export the combined as a seurat object use the lines down below
-# #turn combined.sc to a seurat object
+# You need to save RDS with TCR info for calculating neoantigen signature 
+# Turn combined.sc to a seurat object
 # x <- do.call(rbind, combined.sc)
 # row.names(x) <- x$barcode
 # Tcells_TCR <- AddMetaData(Tcells, select(x, CTstrict))
-# Save this combinedseurat object to use in other purposes.
-#saveRDS(Tcells_TCR, file = "~/Tcells_tcr.rds"))
+# # Save this combinedseurat object to use in other purposes.
+# saveRDS(Tcells_TCR, file = "~/Tcells_TCR.rds")
 
 # This section is from the scRepertoire clonal diversity function. It calculates different diversity indices.
 .diversityCall <- function(data) {
@@ -262,7 +255,7 @@ compute_diversity = function(df_list, cloneCall, n.boots) {
     mat = rbind(mat, mat_b)
   }
   colnames(mat) = c("shannon", "inv.simpson", "norm.entropy", "gini.simpson", "chao1", "ACE")
-  mat$ptnumber = names(df_list)
+  mat$patient_id = names(df_list)
   
   return(mat)
 }
@@ -280,6 +273,7 @@ abline(h = min(sapply(combined.sc, nrow)), col = "red")
 # Calculate the diversity with the function, keep in mind this only works with lists 
 m = compute_diversity(combined.sc, "CTstrict", 1000)
 View(m)
+
 # For power calculation:
 mean(m$inv.simpson[1:4]); sd(m$inv.simpson[1:4])
 mean(m$inv.simpson[5:8]); sd(m$inv.simpson[5:8])
@@ -287,7 +281,7 @@ mean(m$inv.simpson[5:8]); sd(m$inv.simpson[5:8])
 
 # Add more information to table to make more annotated plots
 joined_tibble <- as_tibble(meta) %>% 
-  select(sample_id, cohort, timepoint,sample_status , patient_id) %>% unique() %>%
+  select(sample_id, cohort, timepoint,sample_status , patient_id, survival) %>% unique() %>%
   right_join(m, by = "patient_id")
 
 # Determine y axis for visualization purposes
@@ -300,10 +294,11 @@ y_lim <- c(0,max(joined_tibble$inv.simpson))
 #               "lightgreen","red3")
 
 # Visualize the diversities
+# Subset
+joined_tibble_subset <-subset(joined_tibble, cohort %in%c("1-Non-relapsed","1-Relapsed"))
 # initial box plots
 p1 <- joined_tibble %>% filter(!duplicated(patient_id)) %>%
-  mutate(cohort = gsub("cohort1", "Non-relapsed", gsub("cohort2", "Relapsed", cohort))) %>%
-  ggplot(aes(x = cohort, y = inv.simpson)) +
+  ggplot(aes(x = survival, y = inv.simpson)) +
   geom_boxplot()+
   geom_jitter(aes(color=patient_id), size = 4) +
   #scale_color_manual(values = mycolors)+
@@ -319,18 +314,16 @@ p1 <- joined_tibble %>% filter(!duplicated(patient_id)) %>%
         legend.position = "right",
         legend.title = element_text(size = 14),
         legend.text = element_text(size = 12)) +
-        stat_compare_means(aes(group = cohort), method = "wilcox.test", method.args = list(var.equal = T),
+        stat_compare_means(aes(group = survival), method = "wilcox.test", method.args = list(var.equal = T),
                            label = "p.format", label.x = 1.5, label.y=150, tip.length = 1, size = 6)
 
 p1
 # new bar graphs 240418
-p2 <- joined_tibble %>% filter(!duplicated(ptnumber)) %>%
-  mutate(cohort = gsub("cohort1", "Non-relapsed", gsub("cohort2", "Relapsed", cohort))) %>%
-  ggplot(aes(x = cohort, y = inv.simpson)) + 
-  geom_bar(stat="summary", fun=mean, aes(fill= cohort))+
+p2 <- joined_tibble %>% filter(!duplicated(patient_id)) %>%
+  ggplot(aes(x = survival, y = inv.simpson)) + 
+  geom_bar(stat="summary", fun=mean, aes(fill= survival))+
   scale_fill_manual(values=c("skyblue1", "salmon"))+
-  geom_jitter(aes(color=ptnumber), size = 4) +
-  scale_color_manual(values = mycolors)+
+  geom_jitter(aes(color=patient_id), size = 4) +
   stat_summary(fun.data=mean_se, geom="errorbar", width=.5, linewidth=1) +
   theme_pubr() +
   coord_cartesian(ylim = y_lim) +
@@ -341,12 +334,12 @@ p2 <- joined_tibble %>% filter(!duplicated(ptnumber)) %>%
         axis.text.y = element_text(size = 24),
         axis.title.y = element_text(size = 24, color = "black"),
         legend.key.size = unit(10,"mm"),
-        legend.position = "none",
         legend.title = element_text(size = 20),
+        legend.position = "right",
         legend.text = element_text(size = 20)) +
-  stat_compare_means(aes(group = cohort), method = "t.test", #method.args = list(var.equal = T),
+  stat_compare_means(aes(group = survival), method = "t.test", #method.args = list(var.equal = T),
                      label = "p.format", label.x = 1.7, label.y=100, tip.length = 1, size = 6)
-
+p2
 # Check the plot
 p1
 p2

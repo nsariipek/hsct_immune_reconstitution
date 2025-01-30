@@ -20,26 +20,41 @@ setwd("~/TP53_ImmuneEscape/3_DGE/3.1_Neoantigenscore/")
 # Load the seurat object from 6.1 script end of line 163 which has the TCR+ scRNA combined object
 combined <- readRDS("~/Tcells_TCR.rds")
 
-# Load antigen scores from Rosenberg lab papers https://www.sciencedirect.com/science/article/pii/S1535610823003963?via%3Dihub, 
+# Define MT and WT patient groups using direct string matching
+mt_patients <- paste0("P", sprintf("%02d", c(1:9, 10:12, 14, 17)))  # P01-P09 format
+wt_patients <- paste0("P", sprintf("%02d", c(13, 15, 16, 18:33)))  # P13-P33 format
+
+combined@meta.data <- combined@meta.data %>%
+  mutate(patient_id = as.factor(patient_id))%>%
+  mutate(TP53 = case_when(
+    patient_id %in% mt_patients ~ "MT",
+    patient_id %in% wt_patients ~ "WT"))
+
+# Load antigen scores from Rosenberg lab papers https://www.sciencedirect.com/science/article/pii/S1535610823003963?via%3Dihub
 # https://www.science.org/doi/10.1126/science.abl5447?url_ver=Z39.88-2003&rfr_id=ori:rid:crossref.org&rfr_dat=cr_pub%20%200pubmed
 cd4neoA <- read.csv("signatures/cd4.csv")
 cd8neoA <- read.csv("signatures/cd8.csv")
 neoA <- read.csv("signatures/neoantigen.csv")
 
+#Only select the MT samples
+combined_subset <- subset(x = combined, subset = TP53=="MT")
+#Only select the WT samples
+combined_subset <- subset(x = combined, subset =TP53=="WT")
+
 # Subset for different celltypes before adding the antigen score
-# cd8cells <- subset(x = combined, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Exhausted"))
+ cd8cells <- subset(x = combined_subset, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Exhausted"))
 #  cd8ef <- subset(x = combined, subset = celltype == "CD8 Effector")
 #  cd8mem <- subset(x = combined, subset = celltype =="CD8 Memory")
 #  cd8na <- subset(x = combined, subset = celltype=="CD8 Naïve")
 #  cd8ex <- subset(x = combined, subset = celltype=="CD8 Exhausted")
-cd4cells <- subset(x = combined, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
-treg <- subset(x = combined, subset = celltype == "Treg")
-cd4mem <- subset(x = combined, subset = celltype == "CD4 Memory")
-cd4na <- subset(x = combined, subset = celltype == "CD4 Naïve")
+# cd4cells <- subset(x = combined, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
+# treg <- subset(x = combined, subset = celltype == "Treg")
+# cd4mem <- subset(x = combined, subset = celltype == "CD4 Memory")
+# cd4na <- subset(x = combined, subset = celltype == "CD4 Naïve")
 
 # Add to the seurat object
 neoantigen <- AddModuleScore(object =   cd8cells,
-                             features = neoA,
+                             features = cd8neoA,
                              name = "neoantigen",
                              assay = "RNA",
                              search = T)
@@ -118,7 +133,7 @@ fc <- median(rem_meanScores)/median(rel_meanScores)
 # q
 
 # Sina plot, grouped by cohort
-r <- ggplot(neotb_grouped, aes(x=survival, y=meanScore)) +
+t <- ggplot(neotb_grouped, aes(x=survival, y=meanScore)) +
   geom_sina(aes(size = prop, color = sample_id, group = survival), scale = "width")+
   geom_violin(alpha=0, scale = "width", draw_quantiles = 0.5) +
   #ggtitle(label = unique(neoantigen$celltype)) + # this should be changed in the final script
@@ -128,10 +143,10 @@ r <- ggplot(neotb_grouped, aes(x=survival, y=meanScore)) +
            label = paste0("Fold change: ", round(fc, 4), "\n",
              "p = ", signif(w_test_result$p.value, digits = 4)), size=4.5)
 
-r
+r+t
 
-pdf("Neocd8cells.pdf", width = 10, height = 8)
-r
+pdf("Neocd8cells_MTvsWT.pdf", width = 20, height = 10)
+r+t
 dev.off()
 
 

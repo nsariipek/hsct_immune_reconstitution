@@ -24,6 +24,7 @@ combined <- readRDS("~/Tcells_TCR.rds")
 mt_patients <- paste0("P", sprintf("%02d", c(1:9, 10:12, 14, 17)))  # P01-P09 format
 wt_patients <- paste0("P", sprintf("%02d", c(13, 15, 16, 18:33)))  # P13-P33 format
 
+# Add the TP53 info to the data
 combined@meta.data <- combined@meta.data %>%
   mutate(patient_id = as.factor(patient_id))%>%
   mutate(TP53 = case_when(
@@ -36,29 +37,30 @@ cd4neoA <- read.csv("signatures/cd4.csv")
 cd8neoA <- read.csv("signatures/cd8.csv")
 neoA <- read.csv("signatures/neoantigen.csv")
 
-#Only select the MT samples
-combined_subset_MT <- subset(x = combined, subset = TP53=="MT")
-#Only select the WT samples
-combined_subset_WT <- subset(x = combined, subset =TP53=="WT")
+# Optional
+# #Only select the MT samples
+# combined_subset_MT <- subset(x = combined, subset = TP53=="MT")
+# #Only select the WT samples
+# combined_subset_WT <- subset(x = combined, subset =TP53=="WT")
 
+# Optional
 # Subset for different celltypes before adding the antigen score
- cd8cells <- subset(x = combined_subset_WT, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Exhausted"))
+ cd8cells <- subset(x = combined, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Exhausted"))
 #  cd8ef <- subset(x = combined, subset = celltype == "CD8 Effector")
 #  cd8mem <- subset(x = combined, subset = celltype =="CD8 Memory")
 #  cd8na <- subset(x = combined, subset = celltype=="CD8 Naïve")
 #  cd8ex <- subset(x = combined, subset = celltype=="CD8 Exhausted")
-# cd4cells <- subset(x = combined, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
-# treg <- subset(x = combined, subset = celltype == "Treg")
-# cd4mem <- subset(x = combined, subset = celltype == "CD4 Memory")
-# cd4na <- subset(x = combined, subset = celltype == "CD4 Naïve")
+#  cd4cells <- subset(x = combined, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
+#  treg <- subset(x = combined, subset = celltype == "Treg")
+#  cd4mem <- subset(x = combined, subset = celltype == "CD4 Memory")
+#  cd4na <- subset(x = combined, subset = celltype == "CD4 Naïve")
 
-# Add to the seurat object
+# Add this module score to the subsetted dataset
 neoantigen <- AddModuleScore(object =   cd8cells,
                              features = cd8neoA,
                              name = "neoantigen",
                              assay = "RNA",
                              search = T)
-
 # View 
 #View(neoantigen@meta.data)
 #you can see there are a lot of NAs
@@ -71,19 +73,19 @@ neoantigen <- AddModuleScore(object =   cd8cells,
 # neoantigen <- subset(x = neoantigen, subset = celltype=="CD8 Terminally Exhausted")
 # neoantigen <- subset(x = neoantigen, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
 
-# Sanity check, visualize the violin plots
+# Visualize the score per patient
 neoantigen <- SetIdent(neoantigen, value = "sample_id")
 p1 <- VlnPlot(neoantigen, features = "neoantigen1", split.by = "TP53", sort = "increasing")
-
 p1
+
 pdf("Neocd8cells_perpt_all.pdf", width = 20, height = 10)
 p1
 dev.off()
 
-
-# Turn into tibble
+# Turn seurat object to tibble
 neoantigen <- as_tibble(neoantigen@meta.data, rownames = "cell") 
 
+# Select only needed variables
 neotb <- neoantigen%>%
   select(sample_id, CTstrict, neoantigen1,survival,patient_id)
 
@@ -109,16 +111,6 @@ t_test_result <- t.test(rem_meanScores, rel_meanScores)
 w_test_result <- wilcox.test(rem_meanScores, rel_meanScores)
 # Fold change
 fc <- median(rem_meanScores)/median(rel_meanScores)
-
-# # Sina plot
-# q <- ggplot(neotb_grouped, aes(x=sample_id, y=meanScore)) +
-#   geom_sina(aes(size = prop, color = sample_id, group = sample_id), scale = "width")+
-#   geom_violin(alpha=0, scale = "width", draw_quantiles = 0.5) +
-#   theme_pubr() +
-#   theme(aspect.ratio = 1,
-#         axis.text.x = element_text(angle = 45, hjust = 1))
-# 
-# q
 
 # Sina plot, grouped by survival
 s <- ggplot(neotb_grouped, aes(x=survival, y=meanScore)) +

@@ -329,9 +329,8 @@ p3 <- joined_tibble_subset %>% filter(!duplicated(patient_id)) %>%
   labs(title = paste("TP53 Status:", tp53_status))+  # Dynamic title +
   stat_compare_means(aes(group = survival), method = "t.test", #method.args = list(var.equal = T),
                      label = "p.format", label.x = 1.7, label.y=100, tip.length = 1, size = 6)
-p2
+
 p3
-p2+p3
 
 # Save as a pdf
 pdf("Post-transplant_cd8_wilcox.pdf", width = 14, height = 12)

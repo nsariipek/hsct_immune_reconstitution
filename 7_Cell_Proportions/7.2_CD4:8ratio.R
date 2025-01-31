@@ -4,9 +4,13 @@
 # Load libraries
 library(tidyverse)
 library(Seurat)
+library(ggpubr)
 
 # Empty environment
 rm(list=ls())
+# Set directory
+
+setwd("/home/rstudio/TP53_ImmuneEscape/7_Cell_Proportions")
 
 # Load the data that contains T cells+ assignments
 Tcells <- readRDS("~/250128_Tcell_subset.rds")
@@ -22,26 +26,39 @@ rownames(meta) <- NULL
 meta$type <- case_when(grepl("CD8.", meta$celltype)| grepl("γδ.", meta$celltype) ~ "CD8",
                        grepl("CD4.",meta$celltype)| grepl("Treg", meta$celltype)~ "CD4")
 meta$type <- as.factor(meta$type)
+
+#Add TP53 status
+mt_patients <- paste0("P", sprintf("%02d", c(1:9, 10:12, 14, 17)))  # P01-P09 format
+wt_patients <- paste0("P", sprintf("%02d", c(13, 15, 16, 18:33)))  # P13-P33 format
+
+meta <- meta %>%
+  mutate(patient_id = as.factor(patient_id))%>%
+  mutate(TP53 = case_when(
+    patient_id %in% mt_patients ~ "MT",
+    patient_id %in% wt_patients ~ "WT"))
+
 View(meta)
 
 # Select only 100-day samples that were in remission at that timepoint
 meta_subset<- meta %>%
-             subset(sample_status == "remission" & timepoint %in% c("3", "5", "6") & cohort %in% c("2-Non-relapsed","2-Relapsed") )
+             subset(sample_status == "remission" & timepoint %in% c("3", "5", "6") 
+                    & TP53== "WT"
+                    )
 
 #For calculations make the table
 tb <- 
-  meta_subset %>% group_by(sample_id, type,cohort, survival) %>%
+  meta_subset %>% group_by(sample_id, type,cohort, survival,TP53) %>%
   dplyr::summarize(n = n())  %>%
   ungroup() %>%
   group_by(sample_id) %>% 
   pivot_wider(names_from = type, values_from = n) %>% mutate(ratio= CD4/CD8) 
 
-  View(tb)
+  #View(tb)
   
 #Visualize 
 p1 <- tb %>%
   ggplot(aes(x=survival, y=ratio)) +
-  geom_jitter(aes(color=cohort), size=4)+
+  geom_jitter(aes(color=TP53), size=4)+
   ylab("CD4/CD8 Ratio") +
   theme_pubr()+
  # scale_color_manual(values = c("Relapsed"= "tomato1", "Non-relapsed"="royalblue1"))+

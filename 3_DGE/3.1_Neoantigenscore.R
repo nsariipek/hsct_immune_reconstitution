@@ -37,12 +37,12 @@ cd8neoA <- read.csv("signatures/cd8.csv")
 neoA <- read.csv("signatures/neoantigen.csv")
 
 #Only select the MT samples
-combined_subset <- subset(x = combined, subset = TP53=="MT")
+combined_subset_MT <- subset(x = combined, subset = TP53=="MT")
 #Only select the WT samples
-combined_subset <- subset(x = combined, subset =TP53=="WT")
+combined_subset_WT <- subset(x = combined, subset =TP53=="WT")
 
 # Subset for different celltypes before adding the antigen score
- cd8cells <- subset(x = combined_subset, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Exhausted"))
+ cd8cells <- subset(x = combined_subset_WT, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Exhausted"))
 #  cd8ef <- subset(x = combined, subset = celltype == "CD8 Effector")
 #  cd8mem <- subset(x = combined, subset = celltype =="CD8 Memory")
 #  cd8na <- subset(x = combined, subset = celltype=="CD8 Naïve")
@@ -73,44 +73,32 @@ neoantigen <- AddModuleScore(object =   cd8cells,
 
 # Sanity check, visualize the violin plots
 neoantigen <- SetIdent(neoantigen, value = "sample_id")
-VlnPlot(neoantigen, features = "neoantigen1", split.by = "survival", sort = "increasing")
+p1 <- VlnPlot(neoantigen, features = "neoantigen1", split.by = "TP53", sort = "increasing")
+
+p1
+pdf("Neocd8cells_perpt_all.pdf", width = 20, height = 10)
+p1
+dev.off()
+
 
 # Turn into tibble
 neoantigen <- as_tibble(neoantigen@meta.data, rownames = "cell") 
 
 neotb <- neoantigen%>%
-  select(sample_id, CTstrict, neoantigen1,survival)
+  select(sample_id, CTstrict, neoantigen1,survival,patient_id)
 
 # For each TCR, calculate relative clonotype size (grouped by sample)
 neotb_grouped <- neotb %>%
   group_by(sample_id) %>%
   mutate(n_total = n()) %>%
   ungroup() %>%
-  group_by(sample_id, CTstrict,survival) %>%
+  group_by(sample_id, CTstrict,survival,patient_id) %>%
   dplyr::summarize(
     n = n(),
     prop = n / first(n_total),
     meanScore = mean(neoantigen1)) %>%
   ungroup()
-# More elegant version should yield the exact same result:
-# neotb_grouped <- neotb %>%
-#   group_by(Sample, CTstrict) %>%
-#   dplyr::summarize(
-#     n = n(),
-#     meanScore = mean(neoantigen1)) %>%
-#   ungroup() %>%
-#   group_by(Sample) %>%
-#   mutate(prop = n / sum(n))
 
-# med_df <- aggregate(meanScore ~ Sample, data = neotb_grouped, FUN = median)
-# 
-# 
-# p <- ggplot(neotb_grouped, aes(x=Sample, y=meanScore)) +
-#   geom_jitter(aes(size= prop), width = 0.25)+
-#   geom_crossbar(data= med_df, aes(ymin = meanScore,ymax=meanScore, col=Sample), width = 0.5)+
-#   theme_pubr() +
-#   theme(aspect.ratio = 1)
-# p
 
 # There may a difference between the cohorts when taking all clonotypes, but this test is not stringent enough
 rem_meanScores <- filter(neotb_grouped, survival == "Non-relapsed")$meanScore
@@ -132,8 +120,8 @@ fc <- median(rem_meanScores)/median(rel_meanScores)
 # 
 # q
 
-# Sina plot, grouped by cohort
-t <- ggplot(neotb_grouped, aes(x=survival, y=meanScore)) +
+# Sina plot, grouped by survival
+s <- ggplot(neotb_grouped, aes(x=survival, y=meanScore)) +
   geom_sina(aes(size = prop, color = sample_id, group = survival), scale = "width")+
   geom_violin(alpha=0, scale = "width", draw_quantiles = 0.5) +
   #ggtitle(label = unique(neoantigen$celltype)) + # this should be changed in the final script
@@ -143,11 +131,36 @@ t <- ggplot(neotb_grouped, aes(x=survival, y=meanScore)) +
            label = paste0("Fold change: ", round(fc, 4), "\n",
              "p = ", signif(w_test_result$p.value, digits = 4)), size=4.5)
 
-r+t
+s
 
 pdf("Neocd8cells_MTvsWT.pdf", width = 20, height = 10)
-r+t
+s
 dev.off()
+
+# Bar plot showing mean for each patient's score
+b <-neotb_grouped %>%
+  group_by(patient_id,survival) %>%
+  summarize(mean_of_meanScore = mean(meanScore, na.rm = TRUE))%>%
+  ggplot(aes(x = survival, y = mean_of_meanScore)) + 
+  geom_bar(stat="summary", fun=mean, aes(fill= survival))+
+  scale_fill_manual(values=c("skyblue1", "salmon"))+
+  # scale_color_manual(values = c("orange", "#008080"))+
+  geom_jitter(aes(color=patient_id), size = 4) +
+  stat_summary(fun.data=mean_se, geom="errorbar", width=.5, linewidth=1) +
+  theme_pubr() +
+  coord_cartesian(ylim = c(0,1)) +
+  theme(strip.text = element_text(size = 20 , color = "black", face="bold")) +
+  theme(aspect.ratio = 2, axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1,    size = 24, color = "black"),
+        axis.title.x = element_blank(), 
+        axis.text.y = element_text(size = 24),
+        axis.title.y = element_text(size = 24, color = "black"),
+        plot.title =  element_text(size=24,color="black", face="bold",hjust = 1 ),
+        legend.key.size = unit(10,"mm"),
+        legend.title = element_text(size = 20),
+        legend.position = "right",
+        legend.text = element_text(size = 20))
+
+b
 
 
 

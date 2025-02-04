@@ -24,7 +24,7 @@ Gene set enrichment analysis was performed by...
 ## 5_Souporcell
 Distinguish cells as donor and host cells using the Souporcell package (Heaton,2019)
 First, we extracted the barcodes from the Seurat object for each patient; for longitudinal patients, we merged the barcodes and removed the duplicates across different time points. (5.1_Extracting Barcodes for the Souporcell) 
-In the second part, using samtools, we merged the bam files for the patients who had multiple longitudinal samples. For the samples that did not have the longitudinal samples, we just used the output processed bam file.
+In the second part, using samtools, we merged the bam files for the patients who had multiple longitudinal samples. For the samples that did not have the longitudinal samples, we just used the output processed bam file.(5.2_MergeBamfiles)
 
 
 ## 6_TCR_Diversity

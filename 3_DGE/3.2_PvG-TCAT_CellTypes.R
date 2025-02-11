@@ -86,7 +86,7 @@ gzip("starcat/features.tsv")
 
 # Run 3.2_PvG-TCAT.sh to generate results
 
-# Load scores and  (see 3.3_PvG-TCAT_Programs.R for program analysis)
+# Load scores (see 3.3_PvG-TCAT_Programs.R for program analysis)
 scores_tib <- read_tsv("starcat/results.scores.txt") %>% rename("cell" = "...1")
 
 # Compare cell type annotations with Multinomial_Label from scores

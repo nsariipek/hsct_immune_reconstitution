@@ -8,9 +8,10 @@
 # Add to ~/.bashrc
 #export PATH=$HOME/.local/bin:$PATH
 
-# Determine program usage 
+# Determine program usage
 starcat --reference "TCAT.V1" \
         --counts "/home/unix/vangalen/TP53_ImmuneEscape/3_DGE/starcat/matrix.mtx.gz" \
         --output-dir "/home/unix/vangalen/TP53_ImmuneEscape/3_DGE/starcat/" \
         --name "results"
 
+# Delete cache folder that was generated

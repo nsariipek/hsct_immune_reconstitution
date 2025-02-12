@@ -111,22 +111,30 @@ program_averages_tib %>%
 #ggsave("3.3.1_PerPatient.png", width = 12, height = 8)
 
 # The significance is hard to see in the plot above. Here's an alternative that shows it more clearly.
-# ! NOTE: the p-values are not - but should be - adjusted within each cell type using p.adj(method = "bh")
 pdf("3.3.2_Test_plots.pdf", width = 10, height = 8)
 
 for ( ct in unique(program_averages_tib$celltype) ) {
       #ct <- "CD8 Effector"
-      p1 <- program_averages_tib %>% filter(celltype == ct) %>%
-            ggplot(aes(x = cohort_binary, y = mean_usage, fill = cohort_binary)) +
-            geom_jitter(width = 0.2, shape = 21, color = "black", stroke = 0.25) +
+      ct_averages_tib <- program_averages_tib %>% filter(celltype == ct)
+
+      p_values <- ct_averages_tib %>% group_by(program) %>%
+            summarize(p_value = wilcox.test(mean_usage ~ cohort_binary, data = cur_data())$p.value) %>% ungroup() %>%
+            mutate(p.adj = p.adjust(p_value, method = "BH")) %>%
+            left_join(group_by(ct_averages_tib, program) %>% summarize(y_max = max(mean_usage) * 0.9))
+      
+      p1 <- ct_averages_tib %>% #left_join(p_values)
+            ggplot(aes(x = cohort_binary, y = mean_usage, color = cohort_binary)) +
+            geom_jitter(width = 0.2) +
             stat_compare_means(method = "wilcox.test", size = 3, show.legend = F) +
             scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
-            scale_fill_manual(values = c("#33CC0080", "#CE3D3280")) +
+            scale_color_manual(values = c("#33CC0080", "#CE3D3280")) +
             facet_wrap(~ program, scales = "free_y") +
             theme_bw() +
             ggtitle(ct) +
             theme(panel.grid = element_blank(),
-                  axis.text.x = element_text(angle = 45, hjust = 1))
+                  axis.text.x = element_text(angle = 45, hjust = 1)) +
+            geom_text(data = p_values, aes(x = 1.5, y = y_max,
+                  label = paste0("p.adj = ", signif(p.adj, 3))), inherit.aes = F, size = 3) 
       
       print(p1)
 }

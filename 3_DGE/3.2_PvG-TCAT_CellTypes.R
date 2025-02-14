@@ -51,6 +51,7 @@ seu@meta.data %>%
 
 # Subset Seurat object to T cells
 seu_T <- subset(seu, celltype %in% c("CD4 Naïve", "CD4 Effector Memory", "CD4 Memory", "Treg", "CD8 Naïve", "CD8 Effector", "CD8 Memory", "CD8 Exhausted", "γδ T"))
+
 # Check visually
 seu_T@meta.data %>% sample_frac(1) %>%
           ggplot(aes(x = UMAP_TNK_1, y = UMAP_TNK_2, color = celltype)) +

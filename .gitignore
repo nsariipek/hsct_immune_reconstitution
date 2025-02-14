@@ -2,6 +2,7 @@
 .DS_Store
 gs/
 3_DGE/starcat/
+5_Souporcell/outputs/combined/
 
 # This is a temporary solution, we should make sure all necessary files are synchronized or stored elsewhere:
 souporcell*.tsv

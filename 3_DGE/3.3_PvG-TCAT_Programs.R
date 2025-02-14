@@ -203,7 +203,7 @@ col_anno <- columnAnnotation(TP53_mut = grepl(paste(TP53_mut, collapse = "|"), c
 
 # Generate heatmap with clustering
 h1 <- Heatmap(as.matrix(df),
-        col = colorRamp2(c(min(heatmap_mat, na.rm = TRUE), max(heatmap_mat, na.rm = TRUE)), c("white", "red")),
+        col = colorRamp2(c(min(as.matrix(df), na.rm = TRUE), max(as.matrix(df), na.rm = TRUE)), c("white", "red")),
         cluster_rows = FALSE,
         left_annotation = row_anno,
         bottom_annotation = col_anno,

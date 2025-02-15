@@ -39,8 +39,8 @@ seu_T@meta.data %>% sample_frac(1) %>%
           guides(color = guide_legend(override.aes = list(size = 3)))
 
 # Combine TCAT scores and program usage results with Seurat metadata
-usage_tib <- read_tsv("starcat/results.rf_usage_normalized.txt") %>% rename("cell" = "...1")
-scores_tib <- read_tsv("starcat/results.scores.txt") %>% rename("cell" = "...1")
+usage_tib <- read_tsv("AuxiliaryFiles/results.rf_usage_normalized.txt") %>% rename("cell" = "...1")
+scores_tib <- read_tsv("AuxiliaryFiles/results.scores.txt") %>% rename("cell" = "...1")
 metadata_tib <- as_tibble(seu_T@meta.data, rownames = "cell")
 metadata_tib <- left_join(metadata_tib, scores_tib)
 metadata_tib <- left_join(metadata_tib, usage_tib)

@@ -70,25 +70,25 @@ counts <- LayerData(seu_T, assay = "RNA", layer = "counts")
 counts[80:90, 1:10]
 
 # Save counts matrix
-dir.create("starcat")
-writeMM(counts,  file = "starcat/matrix.mtx")
-gzip("starcat/matrix.mtx")
+dir.create("AuxiliaryFiles")
+writeMM(counts,  file = "AuxiliaryFiles/matrix.mtx")
+gzip("AuxiliaryFiles/matrix.mtx")
 
 # Save cell barcodes
 barcodes <- colnames(counts)
-write_delim(as.data.frame(barcodes),  file = "starcat/barcodes.tsv", col_names = FALSE)
-gzip("starcat/barcodes.tsv")
+write_delim(as.data.frame(barcodes),  file = "AuxiliaryFiles/barcodes.tsv", col_names = FALSE)
+gzip("AuxiliaryFiles/barcodes.tsv")
 
 # Save feature names
 gene_names <- rownames(counts)
 features <- data.frame("gene_id" = gene_names, "gene_name" = gene_names,type = "Gene Expression")
-write_delim(as.data.frame(features),delim = "\t", file = "starcat/features.tsv", col_names = FALSE)
-gzip("starcat/features.tsv")
+write_delim(as.data.frame(features),delim = "\t", file = "AuxiliaryFiles/features.tsv", col_names = FALSE)
+gzip("AuxiliaryFiles/features.tsv")
 
 # Run 3.2_PvG-TCAT.sh to generate results
 
 # Load scores (see 3.3_PvG-TCAT_Programs.R for program analysis)
-scores_tib <- read_tsv("starcat/results.scores.txt") %>% rename("cell" = "...1")
+scores_tib <- read_tsv("AuxiliaryFiles/results.scores.txt") %>% rename("cell" = "...1")
 
 # Compare cell type annotations with Multinomial_Label from scores
 metadata_tib <- as_tibble(seu_T@meta.data, rownames = "cell")

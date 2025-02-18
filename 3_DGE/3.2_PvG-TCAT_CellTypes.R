@@ -14,14 +14,15 @@ library(R.utils)
 #gsutil cp gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/Tcells_TCR.rds .
 
 # Set working directory
-setwd("~/TP53_ImmuneEscape/3_DGE/")
+#VM: setwd("~/TP53_ImmuneEscape/3_DGE/")
+#Local: setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/3_DGE")
 
 # Delete environment variables & load favorite function
 rm(list=ls())
 cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))
 
 # Load data
-seu <- readRDS("~/250128_seurat_annotated_final.rds")
+seu <- readRDS("../AuxiliaryFiles/250128_seurat_annotated_final.rds")
 
 # Compare to other objects from late January 2025 (obsolete):
 #seu_TNK <- readRDS("~/250128_Tcell_subset.rds")
@@ -85,7 +86,7 @@ features <- data.frame("gene_id" = gene_names, "gene_name" = gene_names,type = "
 write_delim(as.data.frame(features),delim = "\t", file = "AuxiliaryFiles/features.tsv", col_names = FALSE)
 gzip("AuxiliaryFiles/features.tsv")
 
-# Run 3.2_PvG-TCAT.sh to generate results
+# Run 3.2_PvG-TCAT.sh to generate results (this was done on a Google Cloud Platform virtual machine)
 
 # Load scores (see 3.3_PvG-TCAT_Programs.R for program analysis)
 scores_tib <- read_tsv("AuxiliaryFiles/results.scores.txt") %>% rename("cell" = "...1")

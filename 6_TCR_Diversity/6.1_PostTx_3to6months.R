@@ -1,8 +1,7 @@
 # Nurefsan Sariipek
 # Date: January 22nd, 2024
-# Updated at January 28th,2025
-# Analyzing post 3-6 months samples and subsetting donor/host CD4/CD8 compartments using subsampling based on cell numbers which is different than scRepertoire built in subsampling which can be found on 6.1 script
-# Updated at 240418 by NS
+# Updated February 14, 2025
+# Analyze post 3-6 months samples and subsetting donor/host CD4/CD8 compartments using subsampling based on cell numbers which is different than scRepertoire built in subsampling which can be found on 6.1 script
 
 # Load the libraries
 library(scRepertoire)
@@ -13,7 +12,7 @@ library(janitor)
 library(rstatix)
 library(Hmisc)
 library(glue)
-library(googleCloudStorageR)
+library(googleCloudStorageR) # For Terra
 library(RColorBrewer)
 
 # Empty environment
@@ -21,6 +20,11 @@ rm(list=ls())
 
 # Set working directory 
 setwd("~/TP53_ImmuneEscape/6_TCR_Diversity/")
+
+# Setup for Peter: local. Then run line 89-117 and continue at 178
+#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_TCR_Diversity")
+#combined.sc <- readRDS("AuxiliaryFiles/combined.RDS")
+#seu_merge <- readRDS("../AuxiliaryFiles/250128_seurat_annotated_final.rds")
 
 # Parameters to interact with Google bucket, this part only needed for Terra
 gcs_global_bucket("fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b")
@@ -93,9 +97,9 @@ combined <- split(combined2, f = combined2$patient_id)
 #Next time just load the T cells
 Tcells <- readRDS("~/250128_Tcell_subset.rds")
 
-# Define MT and WT patient groups using direct string matching
-mt_patients <- paste0("P", sprintf("%02d", c(1:9, 10:12, 14, 17)))  # P01-P09 format
-wt_patients <- paste0("P", sprintf("%02d", c(13, 15, 16, 18:33)))  # P13-P33 format
+# Define TP53 MT and WT patient groups
+mt_patients <- paste0("P", sprintf("%02d", c(1:12, 14, 17)))
+wt_patients <- paste0("P", c(13, 15, 16, 18:33))  
 
 Tcells@meta.data <- Tcells@meta.data %>%
   mutate(patient_id = as.factor(patient_id))%>%
@@ -336,6 +340,58 @@ p3
 pdf("Post-transplant_cd8_wilcox.pdf", width = 14, height = 12)
 p2+p3
 dev.off()
+
+
+# Peter's plots 250214
+joined_tibble %>% group_by(patient_id, survival) %>%
+  dplyr::summarize(inv.simpson = mean(inv.simpson)) %>% # take the average for P01
+  ggplot(aes(x = survival, y = inv.simpson)) + 
+  geom_bar(stat = "summary", fun=mean, aes(fill = survival), color = "black") +
+  scale_fill_manual(values=c("skyblue1", "salmon"))+
+  geom_jitter(color = "#00000080", size = 4) +
+  stat_summary(fun.data=mean_se, geom="errorbar", width=.5, linewidth=0.5) +
+  stat_compare_means(aes(group = survival), method = "t.test", label = "p.format", size = 8,
+                     label.y = max(joined_tibble$inv.simpson)*0.95) +
+  ylab("Inverse Simpson Index") +
+  theme_pubr() +
+  theme(strip.text = element_text(size = 20 , color = "black", face="bold"),
+        aspect.ratio = 2,
+        axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 24, color = "black"),
+        axis.title.x = element_blank(), 
+        axis.text.y = element_text(size = 24),
+        axis.title.y = element_text(size = 24, color = "black"),
+        plot.title =  element_text(size = 24,color = "black", face = "bold"),
+        legend.key.size = unit(10,"mm"),
+        legend.title = element_text(size = 20),
+        legend.position = "right",
+        legend.text = element_text(size = 20))
+ggsave("6.1_AllPatients.pdf", width = 6, height = 8)
+
+joined_tibble %>% group_by(patient_id, survival) %>% filter(patient_id %in% mt_patients) %>%
+  dplyr::summarize(inv.simpson = mean(inv.simpson)) %>% # take the average for P01
+  ggplot(aes(x = survival, y = inv.simpson)) + 
+  geom_bar(stat = "summary", fun=mean, aes(fill = survival), color = "black") +
+  scale_fill_manual(values=c("skyblue1", "salmon"))+
+  geom_jitter(color = "#00000080", size = 4) +
+  stat_summary(fun.data=mean_se, geom="errorbar", width=.5, linewidth=0.5) +
+  stat_compare_means(aes(group = survival), method = "t.test", label = "p.format", size = 8,
+                      label.y = max(joined_tibble$inv.simpson)*0.9) +
+  ylab("Inverse Simpson Index") +
+  theme_pubr() +
+  theme(strip.text = element_text(size = 20 , color = "black", face="bold"),
+        aspect.ratio = 2,
+        axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 24, color = "black"),
+        axis.title.x = element_blank(), 
+        axis.text.y = element_text(size = 24),
+        axis.title.y = element_text(size = 24, color = "black"),
+        plot.title =  element_text(size = 24,color = "black", face = "bold"),
+        legend.key.size = unit(10,"mm"),
+        legend.title = element_text(size = 20),
+        legend.position = "right",
+        legend.text = element_text(size = 20))
+ggsave("6.1_TP53mut-only.pdf", width = 6, height = 8)
+
+
 
 
 #############################################

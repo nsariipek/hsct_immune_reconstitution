@@ -3,7 +3,7 @@
 gs/
 AuxiliaryFiles/
 3_DGE/AuxiliaryFiles/
-5_Souporcell/outputs/combined/
+5_Souporcell/AuxiliaryFiles/
 6_TCR_Diversity/AuxiliaryFiles/
 
 # This is a temporary solution, we should make sure all necessary files are synchronized or stored elsewhere:

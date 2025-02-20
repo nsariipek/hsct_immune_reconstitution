@@ -1,5 +1,5 @@
-# Nurefsan Sariipek, 231001
-# Distuinguishing donor and host cells using Souporcell
+# Nurefsan Sariipek, 250220
+# Adding souporcell results to seurat metadat 
 
 library(tidyverse)
 library(Seurat)
@@ -55,6 +55,8 @@ for (patient_id in patient_list) {
   # Merge metadata with Souporcell data
   df_merged <- patient_meta %>% left_join(df_souporcell, by = "barcode") %>% 
     filter(assignment %in% c("0", "1"))
+  
+  ########## Big decision of origin #########
   
   # ✅ Check if timepoint == 0 sample exists first
   pretransplant_data <- df_merged %>%
@@ -127,14 +129,15 @@ for (patient_id in patient_list) {
         assignment_source <- "Overall Cell Type Ratio"
         donor_percentage <- max(all_cells_count$percent)
       } else {
-        # 🔥 **Fix: Assign "Unknown" when no dominant donor is found**
+        max_percentage <- max(all_cells_count$percent, na.rm = TRUE)
         donor_assignment <- "unknown"
         assignment_source <- "unknown"
         donor_percentage <- NA_real_
-        message(paste("⚠️ No dominant donor found for", patient_id, "- Assigning as unknown"))
+        message(paste("⚠️ No dominant donor found for", patient_id, "- Highest genotype percentage:", max_percentage, "% - Assigning as unknown"))
       }
     }
   }
+  
   
   if (!is.null(donor_assignment)) {
     # 🔥 **Fix: Ensure 'Unknown' is correctly assigned in the dataset**
@@ -159,81 +162,11 @@ for (patient_id in patient_list) {
   }
 }
 
-
-
 # Save final dataset as CSV, saved this to auxillary file on the dropbox since it is too big to snyc at github
 if (nrow(final_dataset) > 0) {
-  write_csv(final_dataset, "final_dataset.csv")
+  write_csv(final_dataset, "~/final_dataset.csv")
   message("📁 Final dataset saved as final_dataset.csv")
 } else {
   message("⚠️ No valid patient data processed.")
 }
-
-# Visualize the results 
-final_dataset$sample_status <- factor(final_dataset$sample_status, levels = c("pre_transplant","remission","relapse"))
-
-# Filter for Erythroid cells 
-t1 <- final_dataset %>%
-  filter(sample_status=="remission") %>%
-  filter(celltype %in% c("Mid Erythroids", "Late Erythroids")) %>%
-  count(sample_id, celltype, sample_status, origin, name = "count") %>%
-  group_by(sample_id, celltype) %>%
-  mutate(proportion = count / sum(count)) %>%
-  ungroup()
-
-# Create stacked bar plot
-p1 <-  t1 %>%
-  ggplot(aes(x = sample_id, y = proportion, fill = origin)) +
-  geom_bar(stat = "identity", position = "stack") +
-  facet_wrap(~celltype, scales = "free_x") + # Separate panels for Mid & Late Erythroids
-  theme_minimal() +
-  labs(title = "Genotype Proportions in Remission Samples",
-       x = "Sample ID",
-       y = "Proportion",
-       fill = "Genotype") +
-  #scale_fill_manual(values = c("0" = "blue", "1" = "red")) + # Custom colors
-  scale_fill_manual(values = c("donor" = "#377eb8", 
-                               "recipient" = "#c44e52", 
-                               "unknown" = "#b0b0b0")) +
-  # Improve X-axis readability & bring back ticks
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8), # Rotate 45 degrees
-        axis.ticks.x = element_line(), # Bring back x-axis ticks
-        strip.text = element_text(size = 10, face = "bold"), # Make facet titles bigger
-        panel.spacing = unit(1.5, "lines"), # Increase spacing between facets
-        legend.position = "right") +  # Move legend to the right for more space
-  
-  # Show every sample ID but only the first 3 characters
-  scale_x_discrete(labels = function(x) substr(x, 1, 3),
-                   expand = c(0.05, 0.05))
-p1
-# Save as a pdf file 
-pdf("5.4_souporcell_results_.pdf", width = 12, height = 8)
-p1
-dev.off()
-
-
-t2 <- final_dataset %>%
-  filter(origin %in% c("donor", "recipient")) %>%
-  count(patient_id,origin,sample_status, name = "count") %>%
-  group_by(patient_id, sample_status) %>%  
-  mutate(proportion = count / sum(count)) %>%
-  ungroup()
-
-
-p3 <- ggplot(t2, aes(x = sample_status, y = proportion, fill = origin)) +
-  geom_bar(stat = "identity", position = "stack") +
-  facet_wrap(~ patient_id) +
-  scale_fill_manual(values = c("donor" = "#377eb8", 
-                               "recipient" = "#c44e52")) +
-  labs(x = "Patient ID", y = "Proportion", fill = "Cell Origin",
-       title = "Proportion of Cell Origins (Donor vs. Recipient) in Each Sample") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-# Save as a pdf file 
-pdf("5.4_souporcell_per_patient_.pdf", width = 12, height = 8)
-p3
-dev.off()
-
-
 

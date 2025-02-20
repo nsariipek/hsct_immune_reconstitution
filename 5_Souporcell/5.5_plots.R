@@ -16,6 +16,14 @@ setwd("~/TP53_ImmuneEscape/5_Souporcell/")
 #Load the saved souporcell result table
 final_dataset <- read_csv("~/final_dataset.csv")
 
+# Make the cell type metadata a logically ordered factor
+celltypes <- c("Progenitors", "Pro Monocytes", "Pro B cells", "Pre-B", "Early Erythroids", "Mid Erythroids", "Late Erythroids", "Monocytes", "Non Classical Monocytes", "cDC", "pDC", "B cells", "Plasma cells", "CD4 Naïve", "CD4 Memory", "CD4 Effector Memory", "Treg", "CD8 Naïve", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "γδ T", "NK T", "Cycling T-NK cells", "CD56 Bright NK", "CD56 Dim NK", "Adaptive NK", "UD1", "UD2", "UD3"
+)
+# Check & replace celltype metadata
+all(final_dataset$celltype %in% celltypes)
+all(celltypes %in% final_dataset$celltype)
+final_dataset$celltype <- factor(final_dataset$celltype, levels = celltypes)
+
 # Reorder for visulization
 final_dataset$sample_status <- factor(final_dataset$sample_status, levels = c("pre_transplant","remission","relapse"))
 
@@ -52,7 +60,7 @@ p1 <-  t1 %>%
 
 p1
 # Save as a pdf file 
-pdf("5.4_souporcell_results_erythroids.pdf", width = 12, height = 8)
+pdf("5.5_souporcell_results_erythroids.pdf", width = 12, height = 8)
 p1
 dev.off()
 
@@ -86,7 +94,7 @@ p2 <-  t2 %>%
                    expand = c(0.05, 0.05)) # Show every sample ID but only the first 3 characters
 p2
 # Save as a pdf file 
-pdf("5.4_souporcell_results_all_cells_.pdf", width = 12, height = 8)
+pdf("5.5_souporcell_results_all_cells_.pdf", width = 12, height = 8)
 p2
 dev.off()
 
@@ -118,7 +126,7 @@ p2.5 <- ggplot(t2.5, aes(x = celltype, y = sample_id, fill = donor_percentage)) 
     aspect.ratio = 1)
 p2.5
 # Save as a pdf file 
-pdf("5.4_souporcell_heatmap_.pdf", width = 14, height = 14)
+pdf("5.5_souporcell_heatmap_.pdf", width = 14, height = 14)
 p2.5
 dev.off()
 
@@ -143,7 +151,7 @@ p3 <- ggplot(t3, aes(x = sample_status, y = proportion, fill = origin)) +
 p3
 
 # Save as a pdf file 
-pdf("5.4_souporcell_per_patient_.pdf", width = 12, height = 8)
+pdf("5.5_souporcell_per_patient_.pdf", width = 12, height = 8)
 p3
 dev.off()
 

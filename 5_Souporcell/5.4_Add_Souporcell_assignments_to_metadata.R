@@ -39,7 +39,7 @@ for (patient_id in patient_list) {
     filter(patient_id == !!patient_id)
   
   # Load the corresponding Souporcell output file
-  souporcell_file <- paste0("outputs/clusters/", patient_id, "_clusters.tsv")
+  souporcell_file <- paste0("clusters/", patient_id, "_clusters.tsv")
   
   # Check if the file exists before proceeding
   if (!file.exists(souporcell_file)) {
@@ -89,7 +89,7 @@ for (patient_id in patient_list) {
   
   total_ery_cells <- sum(cell_counts$total_ery_cells, na.rm = TRUE)
   
-  if (is.null(donor_assignment) && total_ery_cells > 0) {
+  if (is.null(donor_assignment) && total_ery_cells > 200) {
     if (nrow(cell_counts) > 0) {
       cell_counts <- cell_counts %>%
         mutate(percent = total_ery_cells / sum(total_ery_cells) * 100)
@@ -102,9 +102,11 @@ for (patient_id in patient_list) {
         assignment_source <- "Mid/Late Erythroid Ratio"
         donor_percentage <- max(cell_counts$percent)
       } else {
-        message(paste("⚠️ Mid/Late Erythroid ratio below 80% for", patient_id, "- Moving to all cell type ratio"))
+        message(paste("⚠️ Mid/Late Erythroid ratio below 80% or insufficient dominance for", patient_id, "- Moving to all cell type ratio"))
       }
     }
+  } else {
+    message(paste("⚠️ Total Mid/Late Erythroid cells ≤ 200 for", patient_id, "- Skipping this method"))
   }
   
   if (is.null(donor_assignment)) {
@@ -119,22 +121,30 @@ for (patient_id in patient_list) {
         filter(percent > 80) %>%
         pull(assignment)
       
+      
       if (length(all_cells_donor_assignment) == 1) {
         donor_assignment <- all_cells_donor_assignment
         assignment_source <- "Overall Cell Type Ratio"
         donor_percentage <- max(all_cells_count$percent)
       } else {
-        donor_assignment <- "Unknown"
-        assignment_source <- "Unknown"
-        message(paste("⚠️ No dominant donor found for using ALL cell ratios", patient_id, "- Assigning as Unknown (Max percentage observed:", ifelse(nrow(all_cells_count) > 0, round(max(all_cells_count$percent, na.rm = TRUE), 2), "N/A"), "% )"))
+        # 🔥 **Fix: Assign "Unknown" when no dominant donor is found**
+        donor_assignment <- "unknown"
+        assignment_source <- "unknown"
+        donor_percentage <- NA_real_
+        message(paste("⚠️ No dominant donor found for", patient_id, "- Assigning as unknown"))
       }
     }
   }
   
   if (!is.null(donor_assignment)) {
+    # 🔥 **Fix: Ensure 'Unknown' is correctly assigned in the dataset**
     df_merged <- df_merged %>%
       mutate(assignment = as.character(assignment),
-             origin = if_else(assignment == donor_assignment, "donor", "host"),
+             origin = case_when(
+               donor_assignment == "unknown" ~ "unknown",  # Assign unknown cases
+               assignment == donor_assignment ~ "donor",
+               TRUE ~ "recipient"
+             ),
              patient_id = patient_id)
     
     # Store patient data in results list
@@ -157,6 +167,46 @@ if (nrow(final_dataset) > 0) {
   message("⚠️ No valid patient data processed.")
 }
 
+# Visualize the results 
+
+# Filter for Erythroid cells 
+t1 <- final_dataset %>%
+  filter(sample_status=="remission") %>%
+  filter(celltype %in% c("Mid Erythroids", "Late Erythroids")) %>%
+  count(sample_id, celltype, sample_status, origin, name = "count") %>%
+  group_by(sample_id, celltype) %>%
+  mutate(proportion = count / sum(count)) %>%
+  ungroup()
+
+# Create stacked bar plot
+p1 <-  t1 %>%
+  ggplot(aes(x = sample_id, y = proportion, fill = origin)) +
+  geom_bar(stat = "identity", position = "stack") +
+  facet_wrap(~celltype, scales = "free_x") + # Separate panels for Mid & Late Erythroids
+  theme_minimal() +
+  labs(title = "Genotype Proportions in Remission Samples",
+       x = "Sample ID",
+       y = "Proportion",
+       fill = "Genotype") +
+  #scale_fill_manual(values = c("0" = "blue", "1" = "red")) + # Custom colors
+  scale_fill_manual(values = c("donor" = "#377eb8", 
+                               "recipient" = "#c44e52", 
+                               "unknown" = "#b0b0b0")) +
+  # Improve X-axis readability & bring back ticks
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8), # Rotate 45 degrees
+        axis.ticks.x = element_line(), # Bring back x-axis ticks
+        strip.text = element_text(size = 10, face = "bold"), # Make facet titles bigger
+        panel.spacing = unit(1.5, "lines"), # Increase spacing between facets
+        legend.position = "right") +  # Move legend to the right for more space
+  
+  # Show every sample ID but only the first 3 characters
+  scale_x_discrete(labels = function(x) substr(x, 1, 3),
+                   expand = c(0.05, 0.05))
+p1
+# Save as a pdf file 
+pdf("5.4_souporcell_results_.pdf", width = 12, height = 8)
+p1
+dev.off()
 
 #################################
 

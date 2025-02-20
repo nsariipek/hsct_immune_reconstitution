@@ -183,7 +183,7 @@ seu$patient_id <- case_when(grepl("2446|25802|2645", seu$orig.ident) ~ "pt01",
                             grepl("2745",seu$orig.ident) ~ "pt33" )
 
 # Add the timepoint to show the samples time as months after tx
-seu$timepoint <- case_when(grepl("2446", seu$orig.ident) ~ "pre-transplant",
+seu$timepoint <- case_when(grepl("2446", seu$orig.ident) ~ "O",
                            grepl("25802", seu$orig.ident) ~ "3",
                            grepl("2645", seu$orig.ident) ~ "6",
                            grepl("1972", seu$orig.ident) ~ "0",

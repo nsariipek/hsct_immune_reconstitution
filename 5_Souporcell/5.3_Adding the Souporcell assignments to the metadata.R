@@ -11,37 +11,182 @@ library(janitor)
 rm(list=ls())
 
 # For Nurefsan:
-my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/"
+setwd("~/TP53_ImmuneEscape/5_Souporcell/")
 
 # Load the metadata
-seu_diet_merged <- readRDS(paste0(my_wd, "/RDS files/seu_diet_merged.rds"))
+seu <- readRDS("~/250128_seurat_annotated_final.rds")
 
-##Note: Nurefsan did these for each patient since she is really bad with loops, in future turn this into a loop, lines down below are representative for just one patient##
+seu@meta.data <- seu@meta.data %>%
+  mutate(timepoint = ifelse(timepoint == "pre-transplant", "0", timepoint))
+
+# List of patients
+patient_list <- unique(seu$patient_id) %>% sort()
+
+# Initialize a list to store individual patient data
+results <- list()
+
+# Initialize a final data frame to store all patients together
+final_dataset <- tibble()  # Empty tibble to store merged data
+
+# Loop through each patient
+for (patient_id in patient_list) {
+  
+  # Notifier: Show which patient is being processed
+  message(paste("🔄 Processing patient:", patient_id))
+  
+  patient_meta <- seu@meta.data %>%
+    as_tibble(rownames = "barcode") %>%
+    filter(patient_id == !!patient_id)
+  
+  # Load the corresponding Souporcell output file
+  souporcell_file <- paste0("outputs/clusters/", patient_id, "_clusters.tsv")
+  
+  # Check if the file exists before proceeding
+  if (!file.exists(souporcell_file)) {
+    message(paste("⚠️ Warning: Souporcell file not found for", patient_id))
+    next  # Skip this patient
+  }
+  
+  df_souporcell <- read_tsv(souporcell_file)
+  
+  # Wrangle the data frame 
+  patient_meta$barcode <- gsub(".*_", "", patient_meta$barcode)  # Extract barcode after last "_"
+  
+  # Merge metadata with Souporcell data
+  df_merged <- patient_meta %>% left_join(df_souporcell, by = "barcode") %>% 
+    filter(assignment %in% c("0", "1"))
+  
+  # ✅ Check if timepoint == 0 sample exists first
+  pretransplant_data <- df_merged %>%
+    filter(timepoint == 0) %>%
+    count(assignment, name = "pretransplant_cells") %>%
+    mutate(percent = pretransplant_cells / sum(pretransplant_cells) * 100)
+  
+  donor_assignment <- NULL
+  assignment_source <- "None"
+  donor_percentage <- NA_real_
+  
+  if (nrow(pretransplant_data) > 0) {
+    dominant_assignment <- pretransplant_data %>%
+      filter(percent > 80) %>%
+      pull(assignment)
+    
+    if (length(dominant_assignment) == 1) {
+      donor_assignment <- setdiff(c("0", "1"), dominant_assignment)
+      assignment_source <- "Timepoint = 0 sample"
+      donor_percentage <- max(pretransplant_data$percent)
+    } else {
+      message(paste("⚠️ Could not determine dominant genotype from timepoint = 0 sample for", patient_id))
+    }
+  } else {
+    message(paste("⚠️ No pre-transplant sample found for", patient_id))
+  }
+  
+  # Compute total Mid Ery & Late Ery cell count per assignment
+  cell_counts <- df_merged %>%
+    filter(celltype %in% c("Mid Erythroids", "Late Erythroids")) %>%
+    count(assignment, name = "total_ery_cells")
+  
+  total_ery_cells <- sum(cell_counts$total_ery_cells, na.rm = TRUE)
+  
+  if (is.null(donor_assignment) && total_ery_cells > 0) {
+    if (nrow(cell_counts) > 0) {
+      cell_counts <- cell_counts %>%
+        mutate(percent = total_ery_cells / sum(total_ery_cells) * 100)
+      
+      if (max(cell_counts$percent, na.rm = TRUE) > 80) {
+        donor_assignment <- cell_counts %>%
+          arrange(desc(percent)) %>%
+          slice(1) %>%
+          pull(assignment)
+        assignment_source <- "Mid/Late Erythroid Ratio"
+        donor_percentage <- max(cell_counts$percent)
+      } else {
+        message(paste("⚠️ Mid/Late Erythroid ratio below 80% for", patient_id, "- Moving to all cell type ratio"))
+      }
+    }
+  }
+  
+  if (is.null(donor_assignment)) {
+    all_cells_count <- df_merged %>%
+      count(assignment, name = "total_all_cells")
+    
+    if (nrow(all_cells_count) > 0) {
+      all_cells_count <- all_cells_count %>%
+        mutate(percent = total_all_cells / sum(total_all_cells) * 100)
+      
+      all_cells_donor_assignment <- all_cells_count %>%
+        filter(percent > 80) %>%
+        pull(assignment)
+      
+      if (length(all_cells_donor_assignment) == 1) {
+        donor_assignment <- all_cells_donor_assignment
+        assignment_source <- "Overall Cell Type Ratio"
+        donor_percentage <- max(all_cells_count$percent)
+      } else {
+        donor_assignment <- "Unknown"
+        assignment_source <- "Unknown"
+        message(paste("⚠️ No dominant donor found for using ALL cell ratios", patient_id, "- Assigning as Unknown (Max percentage observed:", ifelse(nrow(all_cells_count) > 0, round(max(all_cells_count$percent, na.rm = TRUE), 2), "N/A"), "% )"))
+      }
+    }
+  }
+  
+  if (!is.null(donor_assignment)) {
+    df_merged <- df_merged %>%
+      mutate(assignment = as.character(assignment),
+             origin = if_else(assignment == donor_assignment, "donor", "host"),
+             patient_id = patient_id)
+    
+    # Store patient data in results list
+    results[[patient_id]] <- df_merged
+    
+    # Append to final dataset
+    final_dataset <- bind_rows(final_dataset, df_merged)
+    
+    message(paste("✅ Assigned donor using", assignment_source, "for", patient_id, "- Donor Genotype:", donor_assignment, "(", round(donor_percentage, 2), "% )"))
+  } else {
+    message(paste("No clear donor assignment for", patient_id, "- Assigned as Unknown"))
+  }
+}
+
+# Save final dataset as CSV
+if (nrow(final_dataset) > 0) {
+  write_csv(final_dataset, "final_dataset.csv")
+  message("📁 Final dataset saved as final_dataset.csv")
+} else {
+  message("⚠️ No valid patient data processed.")
+}
+
+
+#################################
 
 # Subset the corresponding patient from the metadata        
-P11 <- subset(x = seu_diet_merged, subset = orig.ident %in% c("5641_MNC","6244_MNC","6244_CD3"))
+P02 <- subset(x = seu, subset = patient_id=="P02")
         
 # Load the souporcell output tsv file that contains the assignments from the souporcell
-Df1 <- read_tsv(paste0(my_wd, "/TP53_ImmuneEscape/5_Souporcell/outputs/clusters/souporcell_Pt11_clusters.tsv"))
+Df1 <- read_tsv("outputs/clusters/P02_clusters.tsv")
 
 # Wrangle the data frame 
-P11 = as.data.frame(P11@meta.data) %>% rownames_to_column("barcode")
-P11$barcode <- gsub("_.*", "", P11$barcode)
+P02 = as.data.frame(P02@meta.data) %>% rownames_to_column("barcode")
+P02$barcode <- gsub(".*_", "", P02$barcode)
 
 # Merge 2 data frames  by using the joint column.
-df11 <- P11 %>% left_join(Df1, by="barcode")
+df02 <- P02 %>% left_join(Df1, by="barcode")
 
 # Check each sample with their souporcell assignment and decide on the host and donor cells using the pretransplant sample as a guide. 
-df10 %>%
-  tabyl(celltype, assignment,id , show_missing_levels = FALSE) %>%
-  adorn_totals("row")
+subset(df02, subset = assignment %in% c("0","1")) %>% 
+  tabyl(celltype, assignment,sample_id, show_missing_levels = FALSE) %>%
+  adorn_totals("row")%>% 
+ adorn_percentages("row") %>%  # Add percentages within each row
+  adorn_rounding(digits = 2) %>%  # Round to 2 decimal places
+  adorn_pct_formatting()
 
 # Only keep the correct assignments
-df10 <- subset(df10, subset = assignment %in% c("0","1")) 
+df02 <- subset(df02, subset = assignment %in% c("0","1")) 
 
 # Rename the assignments, checking with pre-transplant samples which would be host cells
-df10$assignment <- gsub("1","host", df10$assignment)
-df10$assignment <- gsub("0", "donor", df10$assignment) 
+df02$assignment <- gsub("1","host", df02$assignment)
+df02$assignment <- gsub("0", "donor", df02$assignment) 
 
 ##### Combine each cohorts separately ##########
 

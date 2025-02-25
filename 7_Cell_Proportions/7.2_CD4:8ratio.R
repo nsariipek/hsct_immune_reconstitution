@@ -42,8 +42,7 @@ View(meta)
 # Select only 100-day samples that were in remission at that timepoint
 meta_subset<- meta %>%
              subset(sample_status == "remission" & timepoint %in% c("3", "5", "6") 
-                    & TP53== "WT"
-                    )
+                    & TP53== "WT")
 
 #For calculations make the table
 tb <- 

@@ -3,6 +3,7 @@
 # Load the libraries
 library(ggalluvial)
 library(tidyverse)
+library(stringr)
 library(janitor)
 library(ggforce)
 library(RColorBrewer)
@@ -21,13 +22,21 @@ setwd("~/TP53_ImmuneEscape/7_Cell_Proportions/")
 # For Nurefsan
 final_df <- read_csv("~/final_dataset.csv")
 
+final_df <- final_df %>%
+  mutate(TP53_status = ifelse(as.numeric(str_extract(patient_id, "\\d+")) %in% c(1:12, 14, 17), "MT", "WT"))
+#save the version with mut info 
+
+write_csv(final_df, "~/final_dataset.csv")
+
 # Calculate the proportions for T and NK cells
 proportions_df <- final_df %>%
   filter(celltype %in% c("CD4 Naïve","CD4 Memory","CD4 Effector Memory","Treg","CD8 Naïve","CD8 Memory",
                          "CD8 Effector","CD8 Exhausted", "γδ T","NK T","CD56 Dim NK", 
                          "CD56 Bright NK","Adaptive NK") &
-         timepoint %in% c("3","5","6") & sample_status =="remission" 
-        # & origin == "donor"
+        timepoint %in% c("3","5","6") & 
+        sample_status =="remission" & 
+          TP53_status=="MT"
+         & origin == "donor"
        ) %>% 
   group_by(sample_id, survival) %>% reframe(tabyl(celltype)) %>%
   mutate(percent = percent*100) %>% 
@@ -45,10 +54,6 @@ proportions_df <- final_df %>%
   mutate(celltype = factor(celltype,
                            levels = c("Progenitors","Early Erythroids","Mid Erythroids" ,"Late Erythroids","pDC","cDC","Pro Monocytes", "Monocytes","Non Classical Monocytes")))
               
-
-
-
-
 # Visualize 
 p1 <- proportions_df %>%
   mutate(survival = factor(survival, levels = c("Relapsed", "Non-relapsed"))) %>%
@@ -73,7 +78,7 @@ p1 <- proportions_df %>%
 # Check the plot
 p1
 # Save as a pdf
-pdf("7.3_Myeloid_proportions.pdf", width = 10, height = 8)
+pdf("7.3_T-NK_proportions_MT_donor_only.pdf", width = 10, height = 8)
 p1
 dev.off()
 

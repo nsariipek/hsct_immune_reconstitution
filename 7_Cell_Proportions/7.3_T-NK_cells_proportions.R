@@ -22,11 +22,11 @@ setwd("~/TP53_ImmuneEscape/7_Cell_Proportions/")
 # For Nurefsan
 final_df <- read_csv("~/final_dataset.csv")
 
-final_df <- final_df %>%
-  mutate(TP53_status = ifelse(as.numeric(str_extract(patient_id, "\\d+")) %in% c(1:12, 14, 17), "MT", "WT"))
-#save the version with mut info 
-
-write_csv(final_df, "~/final_dataset.csv")
+# final_df <- final_df %>%
+#   mutate(TP53_status = ifelse(as.numeric(str_extract(patient_id, "\\d+")) %in% c(1:12, 14, 17), "MT", "WT"))
+# #save the version with mut info 
+# 
+# write_csv(final_df, "~/final_dataset.csv")
 
 # Calculate the proportions for T and NK cells
 proportions_df <- final_df %>%
@@ -34,35 +34,35 @@ proportions_df <- final_df %>%
                          "CD8 Effector","CD8 Exhausted", "γδ T","NK T","CD56 Dim NK", 
                          "CD56 Bright NK","Adaptive NK") &
         timepoint %in% c("3","5","6") & 
-        sample_status =="remission" & 
-          TP53_status=="MT"
-         & origin == "donor"
+        sample_status =="remission" 
+          # & TP53_status=="MT"
+        # & origin == "donor"
        ) %>% 
-  group_by(sample_id, survival) %>% reframe(tabyl(celltype)) %>%
+  group_by(sample_id, TP53_status) %>% reframe(tabyl(celltype)) %>%
   mutate(percent = percent*100) %>% 
   mutate(celltype = factor(celltype,
                            levels = c("CD4 Naïve","CD4 Memory", "CD4 Effector Memory" ,"Treg","CD8 Naïve","CD8 Memory","CD8 Effector","CD8 Exhausted", "γδ T","NK T","CD56 Dim NK", "CD56 Bright NK", "Adaptive NK")))
 
-# Calculate the proportions for myeloid compartments
-proportions_df <- final_df %>%
-  filter(celltype %in% c("Progenitors","Early Erythroids","Mid Erythroids" ,"Late Erythroids","pDC","cDC","Pro Monocytes", "Monocytes","Non Classical Monocytes") &
-           timepoint %in% c("3","5","6") & sample_status =="remission" 
-          # origin == "donor"
-  ) %>% 
-  group_by(sample_id, survival) %>% reframe(tabyl(celltype)) %>%
-  mutate(percent = percent*100) %>% 
-  mutate(celltype = factor(celltype,
-                           levels = c("Progenitors","Early Erythroids","Mid Erythroids" ,"Late Erythroids","pDC","cDC","Pro Monocytes", "Monocytes","Non Classical Monocytes")))
+# # Calculate the proportions for myeloid compartments
+# proportions_df <- final_df %>%
+#   filter(celltype %in% c("Progenitors","Early Erythroids","Mid Erythroids" ,"Late Erythroids","pDC","cDC","Pro Monocytes", "Monocytes","Non Classical Monocytes") &
+#            timepoint %in% c("3","5","6") & sample_status =="remission" 
+#           # origin == "donor"
+#   ) %>% 
+#   group_by(sample_id, survival) %>% reframe(tabyl(celltype)) %>%
+#   mutate(percent = percent*100) %>% 
+#   mutate(celltype = factor(celltype,
+#                            levels = c("Progenitors","Early Erythroids","Mid Erythroids" ,"Late Erythroids","pDC","cDC","Pro Monocytes", "Monocytes","Non Classical Monocytes")))
               
 # Visualize 
 p1 <- proportions_df %>%
-  mutate(survival = factor(survival, levels = c("Relapsed", "Non-relapsed"))) %>%
-  ggplot(aes(x = survival, y = percent, color = survival)) +
+  mutate(TP53_status = factor(TP53_status, levels = c("MT", "WT"))) %>%
+  ggplot(aes(x = TP53_status, y = percent, color = TP53_status)) +
   geom_point(shape = 1, size = 3) +
   coord_cartesian(ylim = c(0,65)) +
   facet_wrap(~ celltype, ncol = 3) +
   theme_bw() +
-  scale_color_manual(values = c("Relapsed"= "tomato1", "Non-relapsed"="royalblue1"))+
+ # scale_color_manual(values = c("Relapsed"= "tomato1", "Non-relapsed"="royalblue1"))+
   theme(aspect.ratio = 0.75,
         axis.text.x = element_text(face="plain", size=12, color="black"), 
         #axis.title.x = element_text(face="plain", size=20, color="black"),
@@ -78,7 +78,7 @@ p1 <- proportions_df %>%
 # Check the plot
 p1
 # Save as a pdf
-pdf("7.3_T-NK_proportions_MT_donor_only.pdf", width = 10, height = 8)
+pdf("7.3_T-NK_proportions_WTvsMT.pdf", width = 10, height = 8)
 p1
 dev.off()
 
@@ -99,8 +99,8 @@ p2 <- proportions_df %>%
   geom_tile() +
   scale_fill_viridis_c(option = "plasma") +  # First color scale for percent fill
   ggnewscale::new_scale_fill() +  # Allows another color scale
-  geom_tile(aes(x = sample_id, y = -1, fill = survival), height = 0.1) +  # Small tile below for survival
-  scale_fill_manual(values = c("Relapsed"= "tomato1", "Non-relapsed"="royalblue1")) + 
+  geom_tile(aes(x = sample_id, y = -1, fill = TP53_status), height = 0.1) +  # Small tile below for survival
+  #scale_fill_manual(values = c("Relapsed"= "tomato1", "Non-relapsed"="royalblue1")) + 
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
         axis.ticks.y = element_blank(),
@@ -108,7 +108,7 @@ p2 <- proportions_df %>%
 
 p2
 # Save as a pdf
-pdf("7.3_Myeloid_heatmap.pdf", width = 16, height = 8)
+pdf("7.3_NK-Tcells_WTvsMT_heatmap.pdf", width = 16, height = 8)
 p2
 dev.off()
 

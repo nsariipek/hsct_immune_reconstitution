@@ -35,9 +35,9 @@ proportions_df <- final_df %>%
   filter(celltype %in% c("CD4 Naïve","CD4 Memory","CD4 Effector Memory","Treg","CD8 Naïve","CD8 Memory",
                          "CD8 Effector","CD8 Exhausted", "delta-gamma T") &
         timepoint %in% c("3","5","6") & 
-        sample_status =="remission"  & 
-        TP53_status=="MT"
-        # & origin == "donor"
+        sample_status =="remission"  
+          &  TP53_status=="MT"
+         & origin == "donor"
        ) %>% 
   group_by(sample_id, survival) %>% reframe(tabyl(celltype)) %>%
   mutate(percent = percent*100) %>% 
@@ -79,7 +79,7 @@ p1 <- proportions_df %>%
 # Check the plot
 p1
 # Save as a pdf
-pdf("7.3_T_proportions_onlyMT.pdf", width = 10, height = 8)
+pdf("7.3_T_proportions_only_donor_MT.pdf", width = 10, height = 8)
 p1
 dev.off()
 

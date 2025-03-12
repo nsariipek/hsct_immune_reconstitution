@@ -1,17 +1,12 @@
-# Peter van Galen, 250206
+# Peter van Galen, 250302
 # Run TCAT and evaluate the algorithm's cell type labels
 
+# Load libraries
 library(Seurat)
 library(tidyverse)
 library(scattermore)
 library(Matrix)
 library(R.utils)
-
-# Save updated Seurat object to home directory in bash:
-#cd ~
-#gsutil cp gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/250128_seurat_annotated_final.rds .
-#gsutil cp gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/250128_Tcell_subset.rds .
-#gsutil cp gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/Tcells_TCR.rds .
 
 # Set working directory
 #VM: setwd("~/TP53_ImmuneEscape/3_DGE/")
@@ -21,18 +16,8 @@ library(R.utils)
 rm(list=ls())
 cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))
 
-# Load data
+# Load data. This is available on Dropbox but not GitHub
 seu <- readRDS("../AuxiliaryFiles/250128_seurat_annotated_final.rds")
-
-# Compare to other objects from late January 2025 (obsolete):
-#seu_TNK <- readRDS("~/250128_Tcell_subset.rds")
-#seu_TCR <- readRDS("~/Tcells_TCR.rds")
-#all(colnames(seu_TNK) %in% colnames(seu))
-#all(colnames(seu_TCR) %in% colnames(seu))
-#df <- data.frame(row.names = levels(seu$celltype), All = rep(NA, 30), TNK = rep(NA, 30), TCR = rep(NA, 30))
-#df$All <- table(seu$celltype)
-#df$TNK <- table(seu_TNK$celltype)
-#df$TCR <- table(seu_TCR$celltype)
 
 # Load colors from 2.3_PvG-Colors.R
 celltype_colors_df <- read.table("../celltype_colors.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE, comment.char = "")

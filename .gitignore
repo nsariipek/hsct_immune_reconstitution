@@ -1,5 +1,6 @@
 # Custom additions
 .DS_Store
+.qodo
 gs/
 AuxiliaryFiles/
 3_DGE/AuxiliaryFiles/

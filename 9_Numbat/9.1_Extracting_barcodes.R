@@ -1,57 +1,54 @@
-# Nurefsan Sariipek, 241018 
+# Nurefsan Sariipek, modified at 250310
 # Extracting recipient barcodes for running Numbat
-# Adjust code for each patient separately, subsetting recipient cells each time
 
 # Load the libraries
 library(tidyverse)
 library(janitor)
-library(Seurat)
 library(readr)
 library(dplyr)
-library(numbat)
-library(fossil)
-library(readxl)
 
 # Empty environment
 rm(list=ls())
 
-# For Nurefsan:
-my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/TP53_ImmuneEscape/5_Souporcell/"
-# For Peter
-my_wd <- "~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/5_Souporcell/"
+setwd("~/TP53_ImmuneEscape/9_Numbat/")
 
-# Load the saved dataframe that contaions souporcell information + barcodes
-combined_df <- read_csv(paste0(my_wd,file = "/results/cohort1-2_souporcell.csv"))
+# Load the saved dataframe that contains souporcell information + barcodes
+final_df <- read_csv("~/final_dataset.csv")
 
-# Load the following for the cohort 3
-combined_df <- read_csv(paste0(my_wd,file = "/results/cohort3_souporcell.csv"))
+# Get unique patient identifiers
+patients <- unique(final_df$patient_id)  
 
-#Select the sample you want the get the barcodes and select only the recipient cells
-pt10_pre <- combined_df %>%
-           subset(subset = orig.ident =="1195_MNC") %>% 
-           subset(subset = assignment =="host")
+# Define output directory
+output_dir <- "Numbat_Barcodes/"
+if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
-pt10_rem <- combined_df %>%
-          subset(subset = orig.ident =="1285_MNC") %>% 
-          subset(subset = assignment =="host")
+# Loop through each patient and process their samples
+for (patient in patients) {
+  # Filter data for the current patient
+  patient_df <- final_df %>% filter(patient_id == patient)
+  
+  # Extract samples by their status
+  pre_transplant <- patient_df %>% filter(sample_status == "pre_transplant" & origin == "recipient")
+  remission <- patient_df %>% filter(sample_status == "remission" & origin == "recipient")
+  relapse <- patient_df %>% filter(sample_status == "relapse" & origin == "recipient")
+  
+  # Extract barcodes and remove identifier after '_'
+  barcode_pre <-pre_transplant$barcode
+  barcode_rem <- remission$barcode
+  barcode_rel <- relapse$barcode
+  
+  # Convert to tibble
+  barcode_pre <- as_tibble(barcode_pre)
+  barcode_rem <- as_tibble(barcode_rem)
+  barcode_rel <- as_tibble(barcode_rel)
+  
+  # Save barcodes as TSV files
+  write_tsv(as.data.frame(barcode_pre), file = paste0(output_dir, patient, "_pre_recipient_barcodes.tsv"), col_names = FALSE)
+  write_tsv(as.data.frame(barcode_rem), file = paste0(output_dir, patient, "_rem_recipient_barcodes.tsv"), col_names = FALSE)
+  write_tsv(as.data.frame(barcode_rel), file = paste0(output_dir, patient, "_rel_recipient_barcodes.tsv"), col_names = FALSE)
+  
+  print(paste("Saved barcode files for patient:", patient))
+}
 
-pt10_rel <- combined_df %>%
-  subset(subset = orig.ident =="1347_MNC") %>% 
-  subset(subset = assignment =="host")
-
-# pt11_rel <- combined_df %>%
-#            subset(subset = orig.ident =="1347_MNC") %>% 
-#            subset(subset = assignment =="host")
-
-# Select the barcodes
-barcode_pt10_rel_host <- pt10_rel$cell
-
-# Remove the sample identifier after _
-barcode_pt10_pre_host  = gsub("_.*", "", barcode_pt10_pre_host)
-head(barcode_pt10_pre_host)
-barcode_pt10_pre_host <- as_tibble(barcode_pt10_pre_host)
-
-# Export as tsv file since Numbat requires that
-write_tsv((as.data.frame(barcode_pt10_rel_host)), file = "~/pt10_rel_host_barcodes.tsv", col_names = FALSE)
-
-
+  
+  

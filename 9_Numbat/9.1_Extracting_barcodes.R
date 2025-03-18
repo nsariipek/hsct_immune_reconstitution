@@ -32,7 +32,7 @@ for (patient in patients) {
   remission <- patient_df %>% filter(sample_status == "remission" & origin == "recipient")
   relapse <- patient_df %>% filter(sample_status == "relapse" & origin == "recipient")
   
-  # Extract barcodes and remove identifier after '_'
+  # Extract barcodes 
   barcode_pre <-pre_transplant$barcode
   barcode_rem <- remission$barcode
   barcode_rel <- relapse$barcode

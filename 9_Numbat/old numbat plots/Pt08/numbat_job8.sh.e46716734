@@ -1,0 +1,139 @@
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+Loading required package: Matrix
+Registered S3 methods overwritten by 'treeio':
+  method              from    
+  MRCA.phylo          tidytree
+  MRCA.treedata       tidytree
+  Nnode.treedata      tidytree
+  Ntip.treedata       tidytree
+  ancestor.phylo      tidytree
+  ancestor.treedata   tidytree
+  child.phylo         tidytree
+  child.treedata      tidytree
+  full_join.phylo     tidytree
+  full_join.treedata  tidytree
+  groupClade.phylo    tidytree
+  groupClade.treedata tidytree
+  groupOTU.phylo      tidytree
+  groupOTU.treedata   tidytree
+  is.rooted.treedata  tidytree
+  nodeid.phylo        tidytree
+  nodeid.treedata     tidytree
+  nodelab.phylo       tidytree
+  nodelab.treedata    tidytree
+  offspring.phylo     tidytree
+  offspring.treedata  tidytree
+  parent.phylo        tidytree
+  parent.treedata     tidytree
+  root.treedata       tidytree
+  rootnode.phylo      tidytree
+  sibling.phylo       tidytree
+Registered S3 method overwritten by 'ggtree':
+  method      from 
+  identify.gg ggfun
+
+
+numbat version: 1.4.2
+scistreer version: 1.2.0
+hahmmr version: 1.0.0
+Running under parameters:
+t = 1e-05
+alpha = 1e-04
+gamma = 20
+min_cells = 50
+init_k = 3
+max_cost = 339
+n_cut = 0
+max_iter = 2
+max_nni = 100
+min_depth = 0
+use_loh = auto
+segs_loh = None
+call_clonal_loh = FALSE
+segs_consensus_fix = None
+multi_allelic = TRUE
+min_LLR = 0.5
+min_overlap = 0.45
+max_entropy = 0.5
+skip_nj = FALSE
+diploid_chroms = None
+ncores = 4
+ncores_nni = 4
+common_diploid = TRUE
+tau = 0.3
+check_convergence = FALSE
+plot = TRUE
+genome = hg38
+Input metrics:
+1130 cells
+Mem used: 0.385Gb
+Approximating initial clusters using smoothed expression ..
+Mem used: 0.385Gb
+number of genes left: 9799
+running hclust...
+Iteration 1
+Mem used: 1.51Gb
+Expression noise level (MSE): high (1.5). Consider using a custom expression reference profile.
+Running HMMs on 5 cell groups..
+Retesting CNVs..
+Retesting CNVs..
+Retesting CNVs..
+Retesting CNVs..
+Retesting CNVs..
+Running HMMs on 3 cell groups..
+Testing for multi-allelic CNVs ..
+0 multi-allelic CNVs found: 
+Evaluating CNV per cell ..
+Mem used: 0.663Gb
+All cells succeeded
+Expanding allelic states..
+No multi-allelic CNVs, skipping ..
+No multi-allelic CNVs, skipping ..
+No multi-allelic CNVs, skipping ..
+Building phylogeny ..
+Mem used: 0.675Gb
+Using 4 CNVs to construct phylogeny
+Using UPGMA tree as seed..
+Mem used: 0.684Gb
+Iter 2 -733.159312009819, 0.026s
+Iter 3 -733.159312009819, 0.026s
+Found 717 normal cells..
+Iteration 2
+Mem used: 0.691Gb
+Running HMMs on 4 cell groups..
+Retesting CNVs..
+Retesting CNVs..
+Retesting CNVs..
+Retesting CNVs..
+Running HMMs on 4 cell groups..
+Testing for multi-allelic CNVs ..
+0 multi-allelic CNVs found: 
+Evaluating CNV per cell ..
+Mem used: 0.704Gb
+All cells succeeded
+Expanding allelic states..
+No multi-allelic CNVs, skipping ..
+No multi-allelic CNVs, skipping ..
+No multi-allelic CNVs, skipping ..
+Building phylogeny ..
+Mem used: 0.709Gb
+Using 4 CNVs to construct phylogeny
+Using UPGMA tree as seed..
+Mem used: 0.709Gb
+Iter 2 -1119.34014607534, 0.029s
+Iter 3 -1040.19367694061, 0.028s
+Iter 4 -1014.17671777676, 0.028s
+Iter 5 -1014.17671777676, 0.028s
+Found 768 normal cells..
+Running HMMs on 3 cell groups..
+All done!

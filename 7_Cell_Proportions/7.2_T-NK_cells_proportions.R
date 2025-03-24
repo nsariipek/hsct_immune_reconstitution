@@ -1,11 +1,8 @@
 # Nurefsan Sariipek, 231103 updated at 250225
 # Check T/NK cell proportions
 # Load the libraries
-library(ggalluvial)
 library(tidyverse)
-library(stringr)
 library(janitor)
-library(ggforce)
 library(RColorBrewer)
 library(randomcoloR)
 library(ggrepel)
@@ -37,69 +34,52 @@ proportions_df <- final_df %>%
         timepoint %in% c("3","5","6") & 
         sample_status =="remission"  
           &  TP53_status=="MT"
-         & origin == "donor"
+          & origin == "donor"
        ) %>% 
   group_by(sample_id, survival) %>% reframe(tabyl(celltype)) %>%
   mutate(percent = percent*100) %>% 
   mutate(celltype = factor(celltype,
-                           levels = c("CD4 Naïve","CD4 Memory", "CD4 Effector Memory" ,"Treg","CD8 Naïve","CD8 Memory","CD8 Effector","CD8 Exhausted", "delta-gamma T")))
+                           levels = c("CD4 Naïve","CD4 Memory", "CD4 Effector Memory" ,"Treg","CD8 Naïve","CD8 Memory","CD8 Effector","CD8 Exhausted", "delta-gamma T"))) %>%
+  mutate(survival = factor(survival, levels = c("Relapsed", "Non-relapsed")))
 
-# # Calculate the proportions for myeloid compartments
-# proportions_df <- final_df %>%
-#   filter(celltype %in% c("Progenitors","Early Erythroids","Mid Erythroids" ,"Late Erythroids","pDC","cDC","Pro Monocytes", "Monocytes","Non Classical Monocytes") &
-#            timepoint %in% c("3","5","6") & sample_status =="remission" 
-#           # origin == "donor"
-#   ) %>% 
-#   group_by(sample_id, survival) %>% reframe(tabyl(celltype)) %>%
-#   mutate(percent = percent*100) %>% 
-#   mutate(celltype = factor(celltype,
-#                            levels = c("Progenitors","Early Erythroids","Mid Erythroids" ,"Late Erythroids","pDC","cDC","Pro Monocytes", "Monocytes","Non Classical Monocytes")))
-              
-# Visualize 
-p1 <- proportions_df %>%
-  mutate(survival = factor(survival, levels = c("Relapsed", "Non-relapsed"))) %>%
-  ggplot(aes(x = survival, y = percent, color = survival)) +
-  geom_point(shape = 1, size = 3) +
-  coord_cartesian(ylim = c(0,65)) +
+
+
+# Plot
+p1 <- ggplot(proportions_df, aes(x = survival, y = percent, fill = survival)) +
+  geom_boxplot(outlier.shape = NA, width = 0.6, alpha = 0.8, linewidth = 0.3, color = "black") +
+  geom_jitter(shape = 21, size = 1.8, width = 0.2, stroke = 0.2, color = "black", aes(fill = survival)) +
+  coord_cartesian(ylim = c(0, 65)) +
   facet_wrap(~ celltype, ncol = 3) +
-  theme_bw() +
- # scale_color_manual(values = c("Relapsed"= "tomato1", "Non-relapsed"="royalblue1"))+
-  theme(aspect.ratio = 0.75,
-        axis.text.x = element_text(face="plain", size=12, color="black"), 
-        #axis.title.x = element_text(face="plain", size=20, color="black"),
-        axis.text.y = element_text(face="plain", size=12, color="black"),
-        axis.title.y = element_blank(),
-        axis.title.x = element_blank(),
-        plot.title = element_text(size=20, face="plain"),
-        strip.text = element_text(size=12, face="bold"),
-        legend.title=element_text(size=16), 
-        legend.text=element_text(size=14)) +
-        theme(panel.grid.minor = element_blank())
+  scale_fill_manual(values = c("Relapsed" = "#E64B35FF", "Non-relapsed" = "#4DBBD5FF")) +
+  labs(y = "% of cells", x = NULL) +
+  stat_compare_means(
+    method = "wilcox.test",
+    label = "p.format",  # use "p.signif" for asterisks
+    size = 2.5,
+    hide.ns = TRUE       # only show if significant
+  ) +
+  theme_minimal(base_size = 8) +
+  theme(
+    axis.text.x = element_text(size = 7, color = "black"),
+    axis.text.y = element_text(size = 7, color = "black"),
+    axis.title.y = element_text(size = 8, face = "plain"),
+    strip.text = element_text(size = 8, face = "bold"),
+    panel.grid = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
+    legend.position = "none",
+    aspect.ratio = 0.9,
+    plot.margin = margin(5, 5, 5, 5)
+  )
+
 
 # Check the plot
 p1
 # Save as a pdf
-pdf("7.3_T_proportions_only_donor_MT.pdf", width = 10, height = 8)
+pdf("7.3_T_proportions_TP53_MT_donor_signif.pdf", width = 10, height = 8)
 p1
 dev.off()
 
-
-# Statistical tests
-print(proportions_df, n = 100)
-for (x in unique(proportions_df$celltype)) {
-  print(x)
-  print(t.test(filter(proportions_df, celltype == x, survival == "Non-relapsed")$percent,
-               filter(proportions_df, celltype == x, survival == "Relapsed")$percent,
-               var.equal = T)$p.value)
-}
-
-for (x in unique(proportions_df$celltype)) {
-  print(x)
-  print(t.test(filter(proportions_df, celltype == x, TP53_status == "MT")$percent,
-               filter(proportions_df, celltype == x, TP53_status == "WT")$percent,
-               var.equal = T)$p.value)
-}
-
+#############################################
 
 # Heatmap
 p2 <- proportions_df %>%

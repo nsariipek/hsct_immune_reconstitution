@@ -111,7 +111,8 @@ proportions_df <- seu_df %>%
   mutate(total_cells = n()) %>%  # total cells per sample
  # filter(celltype %in% myeloid_types) %>%
   count(patient_id, survival, total_cells, celltype, name = "cell_count") %>%
-  mutate(percent = (cell_count / total_cells) * 100) 
+  mutate(percent = (cell_count / total_cells) * 100) %>%
+mutate(survival = factor(survival, levels = c("Non-relapsed", "Relapsed")))
 # %>% 
 #   mutate(celltype = factor(celltype, levels = myeloid_types))
 

@@ -124,8 +124,7 @@ dev.off()
     celltype = factor(celltype, levels = c("CD4 Naïve","CD4 Memory","CD4 Effector Memory",
                                            "Treg","CD8 Naïve","CD8 Memory",
                                            "CD8 Effector","CD8 Exhausted","delta-gamma T")),
-    survival = factor(survival, levels = c("Non-relapsed", "Relapsed"))
-  )
+    survival = factor(survival, levels = c("Non-relapsed", "Relapsed")))
 
 
 

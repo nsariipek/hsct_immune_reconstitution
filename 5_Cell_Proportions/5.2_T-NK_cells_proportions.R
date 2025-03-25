@@ -13,7 +13,7 @@ library(ggnewscale)
 rm(list=ls())
 
 # For Nurefsan:
-setwd("~/TP53_ImmuneEscape/7_Cell_Proportions/")
+setwd("~/TP53_ImmuneEscape/5_Cell_Proportions/")
 
 # Load the saved dataframe that contains the information about souporcell information
 # For Nurefsan
@@ -34,7 +34,7 @@ proportions_df <- final_df %>%
         timepoint %in% c("3","5","6") & 
         sample_status =="remission"  
           &  TP53_status=="MT"
-          & origin == "donor"
+        #  & origin == "donor"
        ) %>% 
   group_by(sample_id, survival) %>% reframe(tabyl(celltype)) %>%
   mutate(percent = percent*100) %>% 
@@ -43,39 +43,37 @@ proportions_df <- final_df %>%
   mutate(survival = factor(survival, levels = c("Relapsed", "Non-relapsed")))
 
 
-
 # Plot
 p1 <- ggplot(proportions_df, aes(x = survival, y = percent, fill = survival)) +
-  geom_boxplot(outlier.shape = NA, width = 0.6, alpha = 0.8, linewidth = 0.3, color = "black") +
-  geom_jitter(shape = 21, size = 1.8, width = 0.2, stroke = 0.2, color = "black", aes(fill = survival)) +
-  coord_cartesian(ylim = c(0, 65)) +
-  facet_wrap(~ celltype, ncol = 3) +
+  geom_boxplot(outlier.shape = NA, width = 0.6, alpha = 0.9, linewidth = 0.5, color = "black") +  # Thicker lines
+  geom_jitter(shape = 21, size = 1.8, width = 0.15, stroke = 0.2, color = "black", aes(fill = survival)) +
+  coord_cartesian(ylim = c(0, 35)) +
+  facet_wrap(~ celltype, ncol = 5) +  # ← 4 per row
   scale_fill_manual(values = c("Relapsed" = "#E64B35FF", "Non-relapsed" = "#4DBBD5FF")) +
   labs(y = "% of cells", x = NULL) +
   stat_compare_means(
     method = "wilcox.test",
-    label = "p.format",  # use "p.signif" for asterisks
-    size = 2.5,
-    hide.ns = TRUE       # only show if significant
+    label = "p.format",
+    size = 2.3,
+    hide.ns = TRUE
   ) +
   theme_minimal(base_size = 8) +
   theme(
-    axis.text.x = element_text(size = 7, color = "black"),
-    axis.text.y = element_text(size = 7, color = "black"),
-    axis.title.y = element_text(size = 8, face = "plain"),
-    strip.text = element_text(size = 8, face = "bold"),
+    axis.text.x = element_text(size = 10, color = "black", angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 6, color = "black"),
+    axis.title.y = element_text(size = 12, face = "plain"),
+    strip.text = element_text(size = 10, face = "bold"),
     panel.grid = element_blank(),
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
     legend.position = "none",
-    aspect.ratio = 0.9,
-    plot.margin = margin(5, 5, 5, 5)
+    aspect.ratio = 2,  # ← Keeps it narrow/tall
+    plot.margin = margin(4, 4, 4, 4)
   )
-
 
 # Check the plot
 p1
 # Save as a pdf
-pdf("7.3_T_proportions_TP53_MT_donor_signif.pdf", width = 10, height = 8)
+pdf("5.2_T_proportions_TP53_MT_signif.pdf", width = 8, height = 6)
 p1
 dev.off()
 

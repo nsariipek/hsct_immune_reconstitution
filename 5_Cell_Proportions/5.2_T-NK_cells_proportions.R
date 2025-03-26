@@ -92,9 +92,9 @@ p1 <- ggplot(bar_data, aes(x = patient_id, y = percent, fill = celltype)) +
   scale_fill_manual(values = celltype_colors) +
   theme_minimal(base_size = 9) +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 10, color = "black"),
-    axis.text.y = element_text(size = 7, color = "black"),
-    axis.title = element_text(size = 12, color = "black"),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8, color = "black"),
+    axis.text.y = element_text(size = 8, color = "black"),
+    axis.title = element_text(size = 8, color = "black"),
     legend.title = element_blank(),
     panel.grid.major.x = element_blank(),
     axis.line = element_line(color = "black"),
@@ -148,10 +148,10 @@ p2 <- ggplot(proportions_df, aes(x = survival, y = percent_within_T, fill = surv
   ) +
   theme_minimal(base_size = 8) +
   theme(
-    axis.text.x = element_text(size = 10, color = "black", angle = 45, hjust = 1),
-    axis.text.y = element_text(size = 10, color = "black"),
-    axis.title.y = element_text(size = 10, face = "plain", color = "black"),
-    strip.text = element_text(size = 10, face = "plain", color = "black"),
+    axis.text.x = element_text(size = 8, color = "black", angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 8, color = "black"),
+    axis.title.y = element_text(size = 8, face = "plain", color = "black"),
+    strip.text = element_text(size = 8, face = "plain", color = "black"),
     panel.grid = element_blank(),
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
     legend.position = "none",

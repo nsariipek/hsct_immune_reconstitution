@@ -44,7 +44,7 @@ bar_data <- seu_df %>%
   group_by(patient_id, celltype) %>%
   summarise(count = n(), .groups = "drop") %>%
   group_by(patient_id) %>%
-  mutate(percent = count / sum(count) * 100) %>%
+  mutate(percent = count / sum(count) * 100) 
   
 
  bar_data$celltype <- factor(bar_data$celltype, levels = cell_order)
@@ -92,15 +92,18 @@ p1 <- ggplot(bar_data, aes(x = patient_id, y = percent, fill = celltype)) +
   scale_fill_manual(values = celltype_colors) +
   theme_minimal(base_size = 9) +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
-    axis.text.y = element_text(size = 7),
-    axis.title = element_text(size = 12),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10, color = "black"),
+    axis.text.y = element_text(size = 7, color = "black"),
+    axis.title = element_text(size = 12, color = "black"),
     legend.title = element_blank(),
-    panel.grid.major.x = element_blank()
+    panel.grid.major.x = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black")
   )
 p1
+p1
 # Save as a pdf
-pdf("5.2_Tcells_proportions_3-6mo.pdf", width = 10, height = 8)
+pdf("5.2_Tcells_proportions_3-6mo.pdf", width = 10, height = 5)
 p1
 dev.off()
 
@@ -113,7 +116,7 @@ dev.off()
                          "delta-gamma T") &
            timepoint %in% c("3","5","6") &
            sample_status == "remission"
-        # &  TP53_status == "MT"
+         &  TP53_status == "MT"
          ) %>%
   group_by(sample_id, survival) %>%
   reframe(tabyl(celltype)) %>%
@@ -139,16 +142,16 @@ p2 <- ggplot(proportions_df, aes(x = survival, y = percent_within_T, fill = surv
   stat_compare_means(
     aes(x = survival, y = percent_within_T, group = survival),  # safest
     method = "wilcox.test",
-    label = "p.format",
-    size = 2.3,
+    label = "p.signif",
+    size = 4,
     hide.ns = TRUE
   ) +
   theme_minimal(base_size = 8) +
   theme(
     axis.text.x = element_text(size = 10, color = "black", angle = 45, hjust = 1),
-    axis.text.y = element_text(size = 6, color = "black"),
-    axis.title.y = element_text(size = 12, face = "plain"),
-    strip.text = element_text(size = 10, face = "bold"),
+    axis.text.y = element_text(size = 10, color = "black"),
+    axis.title.y = element_text(size = 10, face = "plain", color = "black"),
+    strip.text = element_text(size = 10, face = "plain", color = "black"),
     panel.grid = element_blank(),
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
     legend.position = "none",

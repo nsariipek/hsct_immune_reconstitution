@@ -27,6 +27,21 @@ setwd("~/TP53_ImmuneEscape/5_Cell_Proportions/")
 # Load the seurat df
 seu_df <- read_csv("~/seu_df_250325.csv")
 
+
+celltype_levels <- c(
+  "Progenitors", "Early Erythroids", "Mid Erythroids", "Late Erythroids",
+  "Pro Monocytes", "Monocytes", "Non Classical Monocytes", "cDC", "pDC",
+  "Pro B cells", "Pre-B", "B cells", "Plasma cells",
+  "CD4 Naïve", "CD4 Effector Memory", "CD4 Memory", "Treg",
+  "CD8 Naïve", "CD8 Effector", "CD8 Memory", "CD8 Exhausted",
+  "γδ T", "NK T", "Adaptive NK", "CD56 Bright NK", "CD56 Dim NK",
+  "Cycling T-NK cells", "UD1", "UD2", "UD3"
+)
+
+# Convert celltype column to a factor with desired order
+seu_df$celltype <- factor(seu_df$celltype, levels = celltype_levels)
+
+
 # Set the sample order same as Figure 1 swimmer plot
 sample_order <- c(paste0("P", str_pad(1:4, 2, pad = "0")),     
                   paste0("P", str_pad(13:27, 2, pad = "0")),     
@@ -75,8 +90,6 @@ celltype_colors <- c(
   "UD2" = "#837B8DFF",
   "UD3" = "#5A655EFF")
 
-
-
 p1 <- ggplot(bar_data, aes(x = patient_id, y = percent, fill = celltype)) +
   geom_bar(stat = "identity", width = 0.8) +
   labs(x = "Patient ID", y = "Cell Type Proportion (%)") +
@@ -84,15 +97,18 @@ p1 <- ggplot(bar_data, aes(x = patient_id, y = percent, fill = celltype)) +
   scale_fill_manual(values = celltype_colors) +
   theme_minimal(base_size = 9) +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
-    axis.text.y = element_text(size = 7),
-    axis.title = element_text(size = 12),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10, color = "black"),
+    axis.text.y = element_text(size = 7, color = "black"),
+    axis.title = element_text(size = 12, color = "black"),
     legend.title = element_blank(),
-    panel.grid.major.x = element_blank()
+    panel.grid.major.x = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black")
   )
 p1
+
 # Save as a pdf
-pdf("5.1_Allcells_proportions_3-6mo.pdf", width = 10, height = 8)
+pdf("5.1_Allcells_proportions_3-6mo.pdf", width = 10, height = 5)
 p1
 dev.off()
 
@@ -128,23 +144,23 @@ p2 <- ggplot(proportions_df, aes(x = survival, y = percent, fill = survival)) +
     label = "p.signif",
     hide.ns = TRUE,
     label.y = 40
-  )+
+  ) +
   theme_minimal(base_size = 8) +
   theme(
-    axis.text.x = element_text(size = 12, color = "black", angle = 45, hjust = 1),
-    axis.text.y = element_text(size = 11, color = "black"),
-    axis.title.y = element_text(size = 15, face = "plain"),
-    strip.text = element_text(size = 8, face = "bold"),
+    axis.text.x = element_text(size = 10, color = "black", angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 10, color = "black"),
+    axis.title.y = element_text(size = 15, face = "plain", color = "black"),
+    strip.text = element_text(size = 10, face = "plain", color = "black"),
     panel.grid = element_blank(),
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
     legend.position = "none",
-    aspect.ratio = 2,  # ← Keeps it narrow/tall
-    plot.margin = margin(4, 4, 4, 4))
+    aspect.ratio = 2,
+    plot.margin = margin(4, 4, 4, 4)
+  )
 
 p2
-
 # Save as a pdf
-pdf("5.1_Allcell_per_celltype_proportions_3-6mo.pdf", width = 10, height = 6)
+pdf("5.1_Allcell_per_celltype_proportions_3-6mo.pdf", width = 10, height = 8)
 p2
 dev.off()
 

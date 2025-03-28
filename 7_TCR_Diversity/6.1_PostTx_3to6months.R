@@ -19,7 +19,7 @@ library(RColorBrewer)
 rm(list=ls())
 
 # Set working directory 
-setwd("~/TP53_ImmuneEscape/6_TCR_Diversity/")
+setwd("~/TP53_ImmuneEscape/7_TCR_Diversity/")
 
 # Setup for Peter: local. Then run line 89-117 and continue at 178
 #setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_TCR_Diversity")
@@ -84,17 +84,7 @@ combined <- addVariable(combined, variable.name = "patient_id",
 combined2 <- do.call(rbind, combined)
 combined <- split(combined2, f = combined2$patient_id)
 
-# #Load the Seurat object and subset for T cells
-# seu_merge <- readRDS("~/250128_seurat_annotated_final.rds")
-# # Keep only annotated T cell clusters (remove NK cells)
-# t_cell_types <- c("CD4 Memory", "CD8 Memory", "CD4 Naïve", "Treg", "CD8 Effector","CD4 Effector Memory", "γδ T", "CD8 Exhausted", "CD8 Naïve")
-# Tcells <- subset(x = seu_merge, subset = celltype %in% t_cell_types)
-# # Add a new column for barcodes (rownames of the metadata)
-# Tcells@meta.data$barcode <- rownames(Tcells@meta.data)
-# 
-# saveRDS(Tcells, "~/250128_Tcell_subset.rds")
-
-#Next time just load the T cells
+# load the T cells
 Tcells <- readRDS("~/250128_Tcell_subset.rds")
 
 # Define TP53 MT and WT patient groups
@@ -108,8 +98,7 @@ Tcells@meta.data <- Tcells@meta.data %>%
     patient_id %in% wt_patients ~ "WT"))
 
 # Subset to keep only 3-6M remission samples from seurat object(might be unneccessary)
-Tcells <- subset(x = Tcells, subset = timepoint %in% c("3","5","6"))
-Tcells <- subset(x = Tcells, subset = sample_status == "remission")
+Tcells <- subset(x = Tcells, subset = timepoint %in% c("3","5","6") & sample_status == "remission")
 # Turn to a dataframe and keep only needed variables
 meta = Tcells@meta.data
 meta = meta %>% select(barcode, celltype, cohort, sample_status, orig.ident, sample_id, patient_id,timepoint,survival, library_type,TP53)
@@ -117,35 +106,23 @@ rownames(meta) <- NULL
 meta = meta %>% drop_na()
 
 ########### Optional subsetting for exploring different cell types #############
-
 # Only subset CD8+ cells
-meta <- subset(x = meta, subset = celltype %in% c("CD8 Memory", "CD8 Effector", "CD8 Exhausted","γδ T","CD8 Naïve"))
-# meta <- subset(x = meta, subset = celltype %in% c("CD8 Effector"))
+ meta <- subset(x = meta, subset = celltype %in% c("CD8 Memory", "CD8 Effector", "CD8 Exhausted","γδ T","CD8 Naïve"))
 # # Only subset CD4+ cells
-# meta <- subset(x = meta, subset = celltype %in% c("Treg","CD4 Effector Memory", "CD4 Naïve","CD4 Memory"))
+#  meta <- subset(x = meta, subset = celltype %in% c("Treg","CD4 Effector Memory", "CD4 Naïve","CD4 Memory"))
 
-####Add Souporcell information####
-# # Load the metadata that contains souporcell information
-# combined_df <- read_csv(paste0(my_wd, "TP53_ImmuneEscape/5_Souporcell/outputs/cohort1-2_souporcell.csv"))
-# # Wrangle the metadata
-# combined_df$cell = gsub("_.*","", combined_df$cell)
-# combined_df$id = gsub("\\.","_",combined_df$id )
-# combined_df$barcode= paste0(combined_df$id, "_",combined_df$cell)
-# # For this code only just select the remission samples
-# combined_df = subset(x=combined_df, subset = status == "remission")
-# combined_df = combined_df %>% select(barcode, assignment, orig.ident)
-# # Join 2 dataframe
-# meta <- left_join(meta, combined_df, by="barcode") %>% drop_na()
-# 
-# ##Subset host cells only####
-# meta = subset(x=meta, subset = assignment == "host")
-# # Remove P07 since it has 0 host cells
-# meta = subset(x=meta, subset = patient_identity %in% c("pt01","pt02","pt04","pt05","pt06","pt08"))
-# # Remove also from combined
-# combined <- combined[c("P01_1Rem","P02_1Rem", "P04_1Rem", "P05_1Rem","P06_1Rem", "P08_1Rem")]
-
-####Subset donor cells only####
- # meta = subset(x=meta, subset = assignment == "donor")
+###Add Souporcell information####
+# Load the metadata that contains souporcell information
+souporcell_df <- read_csv("~/final_dataset.csv")
+# Wrangle the df 
+souporcell_df <- souporcell_df %>%
+  mutate(modified_barcode = paste(orig.ident, barcode, sep = "_")) %>% 
+  select(modified_barcode, origin)
+# Join 2 dataframe
+meta_merged <- souporcell_df %>%
+  inner_join(meta, by = c("modified_barcode" = "barcode")) %>% drop_na()
+#select only recipient cells
+meta <- meta_merged  %>% rename(barcode=modified_barcode) %>% filter(origin == "recipient")
 
 ################  End of selection ###################
 
@@ -154,13 +131,13 @@ combined.sc = list()
 
 for (i in names(combined)) {
   combined.sc[[i]] = combined[[i]] %>% 
-    left_join(meta, by="barcode") %>% 
-    drop_na(celltype)
+    left_join(meta, by = "barcode") %>% 
+    drop_na(celltype) 
 }
 
 View(combined.sc)
 # Remove samples P20, P26 and P32 from the list since they had less than <500 TCR calls
-samples_to_remove <- c("P16","P20","P26","P32")
+samples_to_remove <- c("P16","P20","P26","P32","P33", "P27", "P29", "P21", "P19","P22","P15", "P31")
 combined.sc <- combined.sc[!names(combined.sc) %in% samples_to_remove]
 
 # Verify the remaining samples
@@ -286,64 +263,55 @@ abline(h = min(sapply(combined.sc, nrow)), col = "red")
 m = compute_diversity(combined.sc, "CTstrict", 1000)
 View(m)
 
-# # For power calculation:
-# mean(m$inv.simpson[1:4]); sd(m$inv.simpson[1:4])
-# mean(m$inv.simpson[5:8]); sd(m$inv.simpson[5:8])
-
-
 # Add more information to table to make more annotated plots
 joined_tibble <- as_tibble(meta) %>% 
-  select(sample_id, cohort, timepoint,sample_status , patient_id, survival,TP53) %>% unique() %>%
+  select(sample_id, cohort, timepoint,sample_status , patient_id, survival,TP53,celltype) %>% unique() %>%
   right_join(m, by = "patient_id")
 
 # Determine y axis for visualization purposes
 y_lim <- c(0,max(joined_tibble$inv.simpson))
 
-# create a color patern, this was for discovery cohort
-
-# mycolors <- c("maroon2","maroon2","royalblue1","darkgreen",
-#               "lightgoldenrod3","darkturquoise",
-#               "lightgreen","red3")
-
 # Visualize the diversities
-# Subset
-joined_tibble_subset <-subset(joined_tibble, TP53 %in%c("WT"))
-tp53_status <- unique(joined_tibble_subset$TP53) %>% paste(collapse = ", ")  
-# new bar graphs 240418
-p3 <- joined_tibble_subset %>% filter(!duplicated(patient_id)) %>%
-  ggplot(aes(x = survival, y = inv.simpson)) + 
-  geom_bar(stat="summary", fun=mean, aes(fill= survival))+
-  scale_fill_manual(values=c("skyblue1", "salmon"))+
- # scale_color_manual(values = c("orange", "#008080"))+
-  geom_jitter(aes(color=patient_id), size = 4) +
-  stat_summary(fun.data=mean_se, geom="errorbar", width=.5, linewidth=1) +
-  theme_pubr() +
+
+p3 <- joined_tibble %>%
+  filter(!duplicated(patient_id)) %>%
+  #filter(TP53=="MT") %>%
+  ggplot(aes(x = survival, y = inv.simpson, fill = survival)) +
+  geom_bar(stat = "summary", fun = mean, width = 0.6, color = "black") +
+  geom_jitter(width = 0.15, size = 4, alpha = 0.7, color = "black") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", 
+               width = 0.2, linewidth = 1, color = "black") +
+  scale_fill_manual(values = c("Relapsed" = "#E64B35FF", 
+                                "Non-relapsed" = "#4DBBD5FF")) +
+  theme_pubr(base_size = 16) +
   coord_cartesian(ylim = y_lim) +
-  ylab("Inverse Simpson Index") +
-  theme(strip.text = element_text(size = 20 , color = "black", face="bold")) +
-  theme(aspect.ratio = 2, axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1,    size = 24, color = "black"),
-        axis.title.x = element_blank(), 
-        axis.text.y = element_text(size = 24),
-        axis.title.y = element_text(size = 24, color = "black"),
-        plot.title =  element_text(size=24,color="black", face="bold",hjust = 1 ),
-        legend.key.size = unit(10,"mm"),
-        legend.title = element_text(size = 20),
-        legend.position = "right",
-        legend.text = element_text(size = 20)) +
-  labs(title = paste("TP53 Status:", tp53_status))+  # Dynamic title +
-  stat_compare_means(aes(group = survival), method = "t.test", #method.args = list(var.equal = T),
-                     label = "p.format", label.x = 1.7, label.y=100, tip.length = 1, size = 6)
+  labs(y = "Inverse Simpson Index",
+    x = NULL,
+    fill = "Survival Status") +
+   stat_compare_means(
+    aes(group = survival), 
+    method = "t.test", 
+    label = "p.format", 
+    label.y = max(y_lim) * 0.95,
+    size = 5) +
+    theme(axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 14),
+    axis.title.y = element_text(size = 16),
+    legend.position = "right",
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    aspect.ratio = 1.5)
 
 p3
 
 # Save as a pdf
-pdf("Post-transplant_cd8_wilcox.pdf", width = 14, height = 12)
-p2+p3
+pdf("6.1_Post-transplant_donor_cells.pdf", width = 6, height = 8)
+p3
 dev.off()
 
 
 # Peter's plots 250214
-joined_tibble %>% group_by(patient_id, survival) %>%
+p1 <- joined_tibble %>% group_by(patient_id, survival) %>%
   dplyr::summarize(inv.simpson = mean(inv.simpson)) %>% # take the average for P01
   ggplot(aes(x = survival, y = inv.simpson)) + 
   geom_bar(stat = "summary", fun=mean, aes(fill = survival), color = "black") +
@@ -365,6 +333,7 @@ joined_tibble %>% group_by(patient_id, survival) %>%
         legend.title = element_text(size = 20),
         legend.position = "right",
         legend.text = element_text(size = 20))
+
 ggsave("6.1_AllPatients.pdf", width = 6, height = 8)
 
 joined_tibble %>% group_by(patient_id, survival) %>% filter(patient_id %in% mt_patients) %>%
@@ -391,31 +360,4 @@ joined_tibble %>% group_by(patient_id, survival) %>% filter(patient_id %in% mt_p
         legend.text = element_text(size = 20))
 ggsave("6.1_TP53mut-only.pdf", width = 6, height = 8)
 
-
-
-
-#############################################
-
-# # initial box plots
-# p1 <- joined_tibble %>% filter(!duplicated(patient_id)) %>%
-#   ggplot(aes(x = survival, y = inv.simpson)) +
-#   geom_boxplot()+
-#   geom_jitter(aes(color=patient_id), size = 4) +
-#   #scale_color_manual(values = mycolors)+
-#   theme_bw() +
-#   coord_cartesian(ylim = y_lim) +
-#   ylab("Inverse Simpson Index") +
-#   theme(strip.text = element_text(size = 14, color = "black", face="bold")) +
-#   theme(aspect.ratio = 1.5, axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1,    size = 15, color = "black"),
-#         axis.title.x = element_blank(),
-#         axis.text.y = element_text(size = 15),
-#         axis.title.y = element_text(size = 15, color = "black"),
-#         legend.key.size = unit(3,"mm"),
-#         legend.position = "right",
-#         legend.title = element_text(size = 14),
-#         legend.text = element_text(size = 12)) +
-#   stat_compare_means(aes(group = survival), method = "wilcox.test", method.args = list(var.equal = T),
-#                      label = "p.format", label.x = 1.5, label.y=150, tip.length = 1, size = 6)
-# 
-# p1
 

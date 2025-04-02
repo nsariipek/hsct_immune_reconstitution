@@ -3,15 +3,20 @@
 # Loaad the libraries
 library(tidyverse)
 library(ggplot2)
+library(Seurat)
 
 # Empty environment
 rm(list=ls())
 
 # Set working directory
 setwd("~/TP53_ImmuneEscape/9_Numbat/")
+# For Peter (local)
+#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/9_Numbat")
 
 # Load the saved Seurat objects
 seu <- readRDS("~/250128_seurat_annotated_final.rds")
+# For Peter (local)
+#seu <- readRDS("../AuxiliaryFiles/250128_seurat_annotated_final.rds")
 
 # Define function
 make_unique <- function(x) {
@@ -24,7 +29,7 @@ tsv_files <- list.files("Numbat_Calls/", pattern = "*.tsv", full.names = TRUE)
 # Use read_delim with tab delimiter
 all_pcnv <- tsv_files %>%
   map_dfr(~ read_delim(.x, delim = "\t", show_col_types = FALSE) %>%
-            select(cell, p_cnv_y,compartment_opt) %>%
+            select(cell, p_cnv_x, p_cnv_y, p_cnv, compartment_opt) %>%
             mutate(sample = tools::file_path_sans_ext(basename(.x))))
 
 # Wrangle the data
@@ -34,26 +39,34 @@ all_pcnv <- all_pcnv %>%
 # Check result
 head(all_pcnv)
 
-#Histogram plots
-ggplot(all_pcnv, aes(x = p_cnv_y, fill = patient_id)) +
+# Histogram plots.
+ggplot(all_pcnv, aes(x = p_cnv_x, fill = patient_id)) +
   geom_density(alpha = 0.5) +
-  labs(title = "Posterior Probability (p_cnv_y) per Sample",
+  labs(title = "Posterior Probability per Sample (expression)",
        x = "Posterior Probability",
        y = "Density") +
+  facet_wrap(~patient_id, scales = "free_y") +
   theme_minimal()
 
-# Density plots
-ggplot(all_pcnv, aes(x = p_cnv_y)) +
-  geom_histogram(bins = 50, fill = "steelblue", alpha = 0.8) +
-  labs(title = "Distribution of p_cnv_y (All Samples)",
+ggplot(all_pcnv, aes(x = p_cnv_y, fill = patient_id)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Posterior Probability per Sample (allele)",
        x = "Posterior Probability",
-       y = "Cell Count") +
+       y = "Density") +
+  facet_wrap(~patient_id, scales = "free_y") +
   theme_minimal()
 
+ggplot(all_pcnv, aes(x = p_cnv, fill = patient_id)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Posterior Probability per Sample (p_cnv)",
+       x = "Posterior Probability",
+       y = "Density") +
+  facet_wrap(~patient_id, scales = "free_y") +
+  theme_minimal()
 
 # Merge with Seurat data
 # Ensure barcodes are standardized
-all_pcnv$barcode <- paste0(all_pcnv$patient_id, "_", all_pcnv$cell)
+ all_pcnv$barcode <- paste0(all_pcnv$patient_id, "_", all_pcnv$cell)
 
 # Ensure barcodes are standardized in seurat metadata
 barcode_df <- as.data.frame(seu@meta.data)

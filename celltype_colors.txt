@@ -47,6 +47,6 @@ pal_igv_unused15	#339900FF
 pal_igv_unused16	#009966FF
 pal_igv_unused17	#660099FF
 pal_igv_unused18	#990080FF
-pal_igv_unused19	#6BD76BFF
+Donor cells	#6BD76BFF
 pal_igv_unused20	#FFD147FF
 pal_igv_unused21	#FF1463FF

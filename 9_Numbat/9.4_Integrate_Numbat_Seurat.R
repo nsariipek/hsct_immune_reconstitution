@@ -1,9 +1,7 @@
-# Nurefsan Sariipek, 241219
-# Combine Numbat results with gen-ex data
-
+# Nurefsan Sariipek, 241219, updated at 250331
+# Integrating Numbat Results
 # Load Libraries
 library(readr)
-library(numbat)
 library(Seurat)
 library(tidyverse)
 library(RColorBrewer)
@@ -13,200 +11,133 @@ library(ggsci)
 rm(list=ls())
 
 # Set working directory
-# For Nurefsan
-setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/TP53_ImmuneEscape/9_Numbat")
-# For Peter
-#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/9_Numbat")
+setwd("~/TP53_ImmuneEscape/9_Numbat/")
 
 # Load the saved Seurat objects
-seu_diet_merged <- readRDS("../../RDS files/seu_diet_merged.rds")
+seu <- readRDS("~/250128_seurat_annotated_final.rds")
 
-# Check which cells are labeled as blast cells 
-#blast_percentages <- seu_diet_merged@meta.data %>%
-#  group_by(Sample) %>%
-#  summarize(
-#    total_cells = n(),
-#    blast_cells = sum(celltype == "Blasts"),
-#    blast_percentage = round((blast_cells / total_cells) * 100, 4))
-# View results
-#print(blast_percentages)
 
-############################# COMBINE NUMBAT OUTPUT TO SEURAT #############################
+# Load the saved dataframe that contains souporcell information
+final_Df <- read_csv("~/final_dataset.csv")
 
-# Load the saved dataframe that contains souporcell information for selecting only host counts
-# For cohort 1&2
-soc_combined_df <- read_csv("../5_Souporcell/results/cohort1-2_souporcell.csv")
-# For cohort 3
-soc_combined_df <- read_csv("../5_Souporcell/results/cohort3_souporcell.csv")
 
-# Subset souporcell output for mononuclear cell libraries 
-# For patient 5
-soc_subset <- soc_combined_df %>% filter(orig.ident %in% c("2737_MNC","25809_MNC","9596_MNC"), assignment == "host")
+# Helper function
 
-# For patient 8
-soc_subset <- soc_combined_df %>% filter(orig.ident %in% c("4618_MNC","6174_MNC","9931_MNC","1953_MNC"), assignment == "host")
+make_unique <- function(x) {
+  make.unique(x, sep = "__")
+}
 
-# For patient 9
-soc_subset <- soc_combined_df %>% filter(orig.ident %in% c("1677_MNC","1732_MNC","1811_MNC"), assignment == "host")
+# Define Numbat clone paths
 
-#For patient 10
-soc_subset <- soc_combined_df %>% filter(orig.ident %in% c("1195_MNC","1285_MNC","1347_MNC"), assignment == "host")
+patient_info <- list(
+  P01 = "Numbat_Calls/P01_clone_post_2.tsv",
+  P05 = "Numbat_Calls/P05_clone_post_2.tsv",
+  P07 = "Numbat_Calls/P07_clone_post_2.tsv",
+  P08 = "Numbat_Calls/P08_clone_post_2.tsv",
+  P09 = "Numbat_Calls/P09_clone_post_2.tsv",
+  P10 = "Numbat_Calls/P10_clone_post_2.tsv",
+  P12 = "Numbat_Calls/P12_clone_post_2.tsv",
+  P13 = "Numbat_Calls/P13_clone_post_2.tsv",
+  P14 = "Numbat_Calls/P14_clone_post_2.tsv",
+  P17 = "Numbat_Calls/P17_clone_post_2.tsv",
+  P18 = "Numbat_Calls/P18_clone_post_2.tsv",
+  P23 = "Numbat_Calls/P23_clone_post_2.tsv",
+  P24 = "Numbat_Calls/P24_clone_post_2.tsv",
+  P25 = "Numbat_Calls/P25_clone_post_2.tsv",
+  P30 = "Numbat_Calls/P30_clone_post_2.tsv"
+)
 
-# For patient 12
-soc_subset <- soc_combined_df %>% filter(orig.ident %in% c("9355_MNC","1013_MNC"), assignment == "host")
+# Step 1 — Patch final_Df barcodes
+# --------------------------
+final_Df$barcode <- paste0(final_Df$patient_id, "_", final_Df$barcode)
+final_Df$barcode <- make_unique(final_Df$barcode)
 
-# Subset Seurat object for desired cells
-seu_subset <- subset(seu_diet_merged, cells = soc_subset$cell)
+# --------------------------
+# Step 2 — Patch Seurat colnames
+# --------------------------
+barcode_df <- as.data.frame(seu@meta.data)
+barcode_df$old_barcode <- rownames(barcode_df)
+barcode_df$patient_id <- barcode_df$patient_id %||% barcode_df$Sample %||% NA
 
-# Modify the barcodes to keep '-1' and remove everything after
-colnames(seu_subset) <- sub("-1.*", "-1", colnames(seu_subset))
+if (any(is.na(barcode_df$patient_id))) {
+  stop("❌ Cannot find 'patient_id' or 'Sample' in Seurat metadata.")
+}
 
-# Load the TSV file that has clonal information from Numbat for Patient 5
-pt5 <- read.table("/Volumes/sariipek/numbat/Pt05/hostpt5/clone_post_2.tsv", row.names = 1, header = T)
-pt8 <- read.table("/Volumes/sariipek/numbat/Pt08/hostpt8/clone_post_2.tsv", row.names = 1, header = T)
-pt9 <- read.table("/Volumes/sariipek/numbat/Pt09/hostpt9/clone_post_2.tsv", row.names = 1, header = T)
-pt10 <- read.table("/Volumes/sariipek/numbat/Pt10/hostpt10_2/clone_post_1.tsv", row.names = 1, header = T)
-pt12 <- read.table("/Volumes/sariipek/numbat/Pt12/hostpt12/clone_post_2.tsv", row.names = 1, header = T)
-# For Peter
-#pt5 <- read.table("/Volumes/broad_vangalenlab/sariipek/numbat/Pt05/hostpt5/clone_post_2.tsv", row.names = 1, header = T)
-pt_select  <- pt5[, c("clone_opt", "compartment_opt")]
-head(pt_select)
+new_barcodes <- paste0(barcode_df$patient_id, "_", sub(".*_", "", barcode_df$old_barcode))
+new_barcodes <- make_unique(new_barcodes)
 
-# Check
-all(rownames(pt_select) %in% colnames(seu_subset))
-all(colnames(seu_subset) %in% rownames(pt_select))
-# This is probably unneccessary, but order pt5 in the same way as the Seurat object before merging
-pt_order <- pt_select[colnames(seu_subset),]
+colnames(seu) <- new_barcodes
+rownames(seu@meta.data) <- new_barcodes
 
-# Add Numbat results to the Seurat object
-seu_subset <- AddMetaData(seu_subset, metadata = pt_select)
+# --------------------------
+# Step 3 — Loop through patients
+# --------------------------
+seu_list <- list()
 
-# Verify the added metadata
-View(seu_subset@meta.data)
+for (patient_id in names(patient_info)) {
+  cat("\n▶ Processing", patient_id, "...\n")
+  
+  clone_path <- patient_info[[patient_id]]
+  if (!file.exists(clone_path)) {
+    warning(paste("⚠ Numbat file not found for", patient_id))
+    next
+  }
+  
+  # Subset souporcell
+  soc_subset <- final_Df %>%
+    filter(patient_id == !!patient_id, origin == "recipient")
+  
+  matching_cells <- soc_subset$barcode
+  available_cells <- intersect(matching_cells, colnames(seu))
+  
+  if (length(available_cells) == 0) {
+    warning(paste("⚠ No matching barcodes in Seurat for", patient_id))
+    next
+  }
+  
+  seu_subset <- subset(seu, cells = available_cells)
+  
+  # Load Numbat
+  pt_clone <- read.table(clone_path, header = TRUE)
+  pt_clone$barcode <- paste0(patient_id, "_", pt_clone$cell)
+  pt_clone$barcode <- make_unique(pt_clone$barcode)
+  
+  pt_select <- pt_clone %>%
+    select(barcode, clone_opt, compartment_opt)
+  
+  # Join metadata
+  meta_to_add <- tibble(barcode = colnames(seu_subset)) %>%
+    left_join(pt_select, by = "barcode")
+  
+  if (any(is.na(meta_to_add$clone_opt))) {
+    warning(paste("⚠ Some barcodes did not match between Seurat and Numbat for", patient_id))
+    next
+  }
+  
+  seu_subset <- AddMetaData(seu_subset, metadata = meta_to_add %>% column_to_rownames("barcode"))
+  seu_subset$patient_id <- patient_id
+  
+  # Store
+  seu_list[[patient_id]] <- seu_subset
+}
 
-# UMAP visualization
-DimPlot(seu_subset, reduction = "umap", group.by = "compartment_opt") + theme(aspect.ratio = 1)
-DimPlot(seu_subset, reduction = "umap", group.by = "celltype", split.by = "compartment_opt", label = T) + scale_color_igv() + theme(aspect.ratio = 1, legend.position = "none")
+# --------------------------
+# Step 4 — Merge all
+# --------------------------
+if (length(seu_list) == 0) {
+  stop("❌ No patients were successfully processed.")
+} else if (length(seu_list) == 1) {
+  seu_combined <- seu_list[[1]]
+  cat("\n✅ Only one patient processed — no merging needed.\n")
+} else {
+  cat("\n✅ Merging all patients...\n")
+  seu_combined <- merge(x = seu_list[[1]], y = seu_list[-1], project = "CombinedPatients")
+}
 
-#Save this combined seurat object for each patient
-saveRDS(seu_subset,"/Users/dz855/Partners HealthCare Dropbox/Nurefsan Sariipek/ImmuneEscapeTP53/TP53_ImmuneEscape/9_Numbat/pt5.RDS")
+# --------------------------
+# Step 5 — Save
+# --------------------------
+saveRDS(seu_combined, "~/numbat_combined_seurat.rds")
+cat("\n🎉 All done! Saved as 'combined_patients_seurat.rds'\n")
 
-# End of combination of Numbat and Seurat object
 
-############################# VISUALIZATIONS #############################
-# Empty environment
-rm(list=ls())
-
-#Load from saved object
-seu_subset <- readRDS("/Users/dz855/Partners HealthCare Dropbox/Nurefsan Sariipek/ImmuneEscapeTP53/TP53_ImmuneEscape/9_Numbat/pt9.RDS")
-
-# Make a dataframe of malignant cells according to Numbat
-metadata_subset1 <- as_tibble(seu_subset@meta.data, rownames = "cell") 
-#%>% subset(compartment_opt == "normal")
-
-# Group and summarize the data
-summarized_data <- metadata_subset1 %>%
-  group_by(status, celltype, compartment_opt) %>%
-  summarise(cells = n(), .groups = "drop")  # Count cells per group
-
-# Re-order the status information for visualization purposes
-summarized_data$status <- factor(summarized_data$status, levels = c("pre_transplant", "remission", "relapse"))
-
-# Calculate normalized proportions and total cell numbers
-summarized_data <- summarized_data %>%
-  group_by(compartment_opt) %>%
-  mutate(total_cells = sum(cells)) %>%
-  mutate(cells_normalized = cells / total_cells)
-
-  total_cells <- summarized_data %>%
-  group_by(compartment_opt) %>%
-  summarise(total_cells = sum(cells))
-
-# Create the bar graph to visualize different celltypes across the annotated cells
-p1 <- ggplot(summarized_data, aes(x = status, y = cells, fill = celltype)) +
-  geom_bar(stat = "identity", position = "stack") +  # Stacked bar chart
-  labs(#title = "Cell Counts by Timepoint and Compartment",
-    x = "Timepoint",
-    y = "Number of Cells",
-    fill = "Celltype "
-  ) +
-  scale_fill_igv() +
-  theme_bw()+
-  theme(aspect.ratio = 0.75,
-                   axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1,face="plain", size=18, color="black"), 
-                   axis.text.y = element_text(face="plain", size=16, color="black"),
-                   axis.title.y = element_text(size = 18),
-                   axis.title.x = element_blank(),
-                   plot.title = element_text(size=20, face="plain"),
-                   strip.text = element_text(size=12, face="bold"),
-                   legend.title=element_text(size=16), 
-                   legend.text=element_text(size=16)) +
-  theme(panel.grid = element_blank())
-
-p1
-
-pdf("9.4_Pt10_tumorcells.pdf", width = 16, height = 8)
-p1
-dev.off()
-
-# Normalized tumor cell ratio visualization
-p2 <- ggplot(summarized_data, aes(x = compartment_opt, y = cells_normalized, fill = celltype)) +
-  geom_bar(stat = "identity", position = "stack") +  # Stacked bar chart
-  geom_text(data = total_cells, aes(x = compartment_opt, y = 1.05, label = total_cells),
-            inherit.aes = FALSE,  # Do not inherit aesthetics from the main ggplot
-            size = 6, color = "black", fontface = "bold") +  
-  labs(#title = "Cell Counts by Timepoint and Compartment",
-    x = "Timepoint",
-    y = "Proportion of Cells (Normalized to 1)",
-    fill = "Celltype "
-  ) +
-  scale_fill_igv() +
-  theme_bw()+
-  theme(aspect.ratio = 0.75,
-        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1,face="plain", size=18, color="black"), 
-        axis.text.y = element_text(face="plain", size=16, color="black"),
-        axis.title.y = element_text(size = 18),
-        axis.title.x = element_blank(),
-        plot.title = element_text(size=20, face="plain"),
-        strip.text = element_text(size=12, face="bold"),
-        legend.title=element_text(size=16), 
-        legend.text=element_text(size=16),
-        panel.grid = element_blank())
-p2
-
-pdf("9.4_Pt10_normalcells_normalized.pdf", width = 16, height = 8)
-p2
-dev.off()
-
-#All cells normalized
-p3 <- ggplot(summarized_data, aes(x = compartment_opt, y = cells_normalized, fill = celltype)) +
-  geom_bar(stat = "identity", position = "stack") +  # Stacked bar chart
-  # Add celltype labels on each stacked segment
-  geom_text(aes(label= ifelse(cells_normalized > 0.03, celltype, "")),
-            position = position_stack(vjust = 0.5),  # Centered within each stack
-            size = 3, 
-            color = "black", ) + 
-  # Add total cell counts at the top of each bar
-  geom_text(data = total_cells, aes(x = compartment_opt, y = 1.05, label = total_cells),
-            inherit.aes = FALSE,  # Do not inherit aesthetics from the main ggplot
-            size = 6, color = "black", fontface = "bold") +
-  labs(#title = "Cell Counts by Timepoint and Compartment",
-    x = "Timepoint",
-    y = "Proportion of Cells (Normalized to 1)",
-    fill = "Celltype") +
-  scale_fill_igv() +
-  theme_bw()+
-  theme(aspect.ratio = 0.75,
-        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1,face="plain", size=18, color="black"), 
-        axis.text.y = element_text(face="plain", size=16, color="black"),
-        axis.title.y = element_text(size = 18),
-        axis.title.x = element_blank(),
-        plot.title = element_text(size=20, face="plain"),
-        strip.text = element_text(size=12, face="bold"),
-        legend.position = "none",
-        panel.grid = element_blank())
-p3
-
-pdf("9.4_Pt9_allcells_normalized.pdf", width = 16, height = 8)
-p3
-dev.off()

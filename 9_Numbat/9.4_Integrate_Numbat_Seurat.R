@@ -16,10 +16,8 @@ setwd("~/TP53_ImmuneEscape/9_Numbat/")
 # Load the saved Seurat objects
 seu <- readRDS("~/250128_seurat_annotated_final.rds")
 
-
 # Load the saved dataframe that contains souporcell information
 final_Df <- read_csv("~/final_dataset.csv")
-
 
 # Helper function
 

@@ -95,10 +95,8 @@ UMAP_celltype <- seu_combined@meta.data %>%
     axis.text = element_blank(),
     axis.ticks = element_blank(),
     legend.title = element_blank(),
-    legend.position = "right"
-  ) +
-  ggtitle("Cell Type Composition Split by Tumor vs Normal")
-
+    legend.position = "none"
+  ) 
 pdf("UMAP_celltype.pdf", width = 7, height = 7)  
 UMAP_celltype
 dev.off()

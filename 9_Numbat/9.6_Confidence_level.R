@@ -1,4 +1,5 @@
 # Nurefsan Sariipek, 250402
+
 #Check the confidence levels of Numbat calls
 # Loaad the libraries
 library(tidyverse)
@@ -18,12 +19,7 @@ seu <- readRDS("~/250128_seurat_annotated_final.rds")
 # For Peter (local)
 #seu <- readRDS("../AuxiliaryFiles/250128_seurat_annotated_final.rds")
 
-# Define function
-make_unique <- function(x) {
-  make.unique(x, sep = "__")
-}
-
-
+# Get the numbat clone files
 tsv_files <- list.files("Numbat_Calls/", pattern = "*.tsv", full.names = TRUE)
 
 # Use read_delim with tab delimiter
@@ -39,7 +35,8 @@ all_pcnv <- all_pcnv %>%
 # Check result
 head(all_pcnv)
 
-# Histogram plots.
+# Density plots
+# p_cnv_x
 ggplot(all_pcnv, aes(x = p_cnv_x, fill = patient_id)) +
   geom_density(alpha = 0.5) +
   labs(title = "Posterior Probability per Sample (expression)",
@@ -47,7 +44,7 @@ ggplot(all_pcnv, aes(x = p_cnv_x, fill = patient_id)) +
        y = "Density") +
   facet_wrap(~patient_id, scales = "free_y") +
   theme_minimal()
-
+# p_cnv_y
 ggplot(all_pcnv, aes(x = p_cnv_y, fill = patient_id)) +
   geom_density(alpha = 0.5) +
   labs(title = "Posterior Probability per Sample (allele)",
@@ -55,7 +52,7 @@ ggplot(all_pcnv, aes(x = p_cnv_y, fill = patient_id)) +
        y = "Density") +
   facet_wrap(~patient_id, scales = "free_y") +
   theme_minimal()
-
+# p_cnv
 ggplot(all_pcnv, aes(x = p_cnv, fill = patient_id)) +
   geom_density(alpha = 0.5) +
   labs(title = "Posterior Probability per Sample (p_cnv)",
@@ -68,6 +65,10 @@ ggplot(all_pcnv, aes(x = p_cnv, fill = patient_id)) +
 # Ensure barcodes are standardized
  all_pcnv$barcode <- paste0(all_pcnv$patient_id, "_", all_pcnv$cell)
 
+ # Define function to make the barcodes unique
+ make_unique <- function(x) {
+   make.unique(x, sep = "__")
+ }
 # Ensure barcodes are standardized in seurat metadata
 barcode_df <- as.data.frame(seu@meta.data)
 barcode_df$old_barcode <- rownames(barcode_df)

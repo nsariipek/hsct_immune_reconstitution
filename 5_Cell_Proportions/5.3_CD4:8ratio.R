@@ -42,7 +42,7 @@ View(meta)
 # Select only 100-day samples that were in remission at that timepoint
 meta_subset<- meta %>%
              subset(sample_status == "remission" & timepoint %in% c("3", "5", "6") 
-                  #  & TP53== "MT"
+                   & TP53== "MT"
                     )
 
 #For calculations make the table
@@ -58,7 +58,7 @@ tb <-
 p1 <- tb %>%
   mutate(survival = factor(survival, levels = c("Non-relapsed","Relapsed"))) %>%
   ggplot(aes(x = survival, y = ratio)) +
-  geom_jitter(aes(fill = survival), shape = 21, size = 4, stroke = 0.2, width = 0.15, color = "black") +
+  geom_jitter(aes(fill = survival), shape = 21, size = 5, stroke = 0.2, width = 0.15, color = "black") +
   stat_summary(fun.data = mean_se, geom = "errorbar", 
                width = 0.3, linewidth = 0.6, color = "black") +
   stat_compare_means(
@@ -75,17 +75,17 @@ p1 <- tb %>%
   coord_cartesian(ylim = c(0, 3.5))+
   theme_minimal(base_size = 8) +
   theme(
-    aspect.ratio = 1.5,
+    aspect.ratio = 1,
     axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 12, color = "black"),
     axis.text.y = element_text(size = 12, color = "black"),
     axis.title.x = element_blank(),
-    axis.title.y = element_text(size = 10),
+    axis.title.y = element_text(size = 12),
     legend.position = "none",
     panel.grid = element_blank(),
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4))
 
 p1
-pdf("5.3_CD4-CD8ratio.pdf", width = 4, height = 5)
+pdf("5.3_CD4-CD8ratio_MT_only.pdf", width = 3, height = 3)
 p1
 dev.off()
 getwd()

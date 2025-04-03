@@ -95,6 +95,21 @@ seu_merge@meta.data %>%
         panel.grid = element_blank()) +
   guides(color = guide_legend(override.aes = list(size = 3)))
 
+
+# Addition by Nurefsan, Make the T cell version 250403
+
+Tcells <- read_rds("~/250128_Tcell_subset.rds")
+Tcells@meta.data %>%
+  sample_frac(1) %>%  # Randomly shuffle rows
+  ggplot(aes(x = UMAP_1, y = UMAP_2, color = celltype)) +
+  geom_scattermore(pointsize = 8, pixels = c(4096, 4096)) +
+  scale_color_manual(values = celltype_colors) +
+  theme_bw() +
+  theme(aspect.ratio = 1,
+        panel.grid = element_blank()) +
+  guides(color = guide_legend(override.aes = list(size = 3)))
+
+
 # Save as png for now. Later we should figure out how to use geom_point_rast from the library ggrastr on Terra, or save the figure on another machine
 ggsave("2.5_UMAP_all_cells.pdf", width = 8, height = 4.5)
 

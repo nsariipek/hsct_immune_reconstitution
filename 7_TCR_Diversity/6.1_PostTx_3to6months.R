@@ -277,7 +277,8 @@ joined_tibble <- as_tibble(meta) %>%
 y_lim <- c(0,max(joined_tibble$inv.simpson))
 
 # Visualize the diversities
-
+# Survival colors
+survival_colors <- c("Non-relapsed" = "#4775FFFF","Relapsed" = "#E64B35FF")
 p2 <- joined_tibble %>%
   filter(!duplicated(patient_id)) %>%
   filter(TP53=="MT") %>%
@@ -286,8 +287,7 @@ p2 <- joined_tibble %>%
   geom_jitter(width = 0.15, size = 4, alpha = 0.7, color = "black") +
   stat_summary(fun.data = mean_se, geom = "errorbar", 
                width = 0.2, linewidth = 1, color = "black") +
-  scale_fill_manual(values = c("Relapsed" = "#E64B35FF", 
-                                "Non-relapsed" = "#4DBBD5FF")) +
+  scale_fill_manual(values = survival_colors) +
   theme_pubr(base_size = 16) +
   coord_cartesian(ylim = y_lim) +
   labs(y = "Inverse Simpson Index",

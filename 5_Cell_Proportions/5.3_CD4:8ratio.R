@@ -42,7 +42,7 @@ View(meta)
 # Select only 100-day samples that were in remission at that timepoint
 meta_subset<- meta %>%
              subset(sample_status == "remission" & timepoint %in% c("3", "5", "6") 
-                   & TP53== "MT"
+                #   & TP53== "MT"
                     )
 
 #For calculations make the table
@@ -85,7 +85,7 @@ p1 <- tb %>%
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4))
 
 p1
-pdf("5.3_CD4-CD8ratio_MT_only.pdf", width = 3, height = 3)
+pdf("5.3_CD4-CD8ratio.pdf", width = 3, height = 3)
 p1
 dev.off()
 getwd()

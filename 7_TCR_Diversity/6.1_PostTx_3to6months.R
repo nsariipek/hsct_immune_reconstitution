@@ -314,54 +314,54 @@ p2
 dev.off()
 
 
-# Peter's plots 250214
-p1 <- joined_tibble %>% group_by(patient_id, survival) %>%
-  dplyr::summarize(inv.simpson = mean(inv.simpson)) %>% # take the average for P01
-  ggplot(aes(x = survival, y = inv.simpson)) + 
-  geom_bar(stat = "summary", fun=mean, aes(fill = survival), color = "black") +
-  scale_fill_manual(values=c("skyblue1", "salmon"))+
-  geom_jitter(color = "#00000080", size = 4) +
-  stat_summary(fun.data=mean_se, geom="errorbar", width=.5, linewidth=0.5) +
-  stat_compare_means(aes(group = survival), method = "t.test", label = "p.format", size = 8,
-                     label.y = max(joined_tibble$inv.simpson)*0.95) +
-  ylab("Inverse Simpson Index") +
-  theme_pubr() +
-  theme(strip.text = element_text(size = 20 , color = "black", face="bold"),
-        aspect.ratio = 2,
-        axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 24, color = "black"),
-        axis.title.x = element_blank(), 
-        axis.text.y = element_text(size = 24),
-        axis.title.y = element_text(size = 24, color = "black"),
-        plot.title =  element_text(size = 24,color = "black", face = "bold"),
-        legend.key.size = unit(10,"mm"),
-        legend.title = element_text(size = 20),
-        legend.position = "right",
-        legend.text = element_text(size = 20))
-
-ggsave("6.1_AllPatients.pdf", width = 6, height = 8)
-
-joined_tibble %>% group_by(patient_id, survival) %>% filter(patient_id %in% mt_patients) %>%
-  dplyr::summarize(inv.simpson = mean(inv.simpson)) %>% # take the average for P01
-  ggplot(aes(x = survival, y = inv.simpson)) + 
-  geom_bar(stat = "summary", fun=mean, aes(fill = survival), color = "black") +
-  scale_fill_manual(values=c("skyblue1", "salmon"))+
-  geom_jitter(color = "#00000080", size = 4) +
-  stat_summary(fun.data=mean_se, geom="errorbar", width=.5, linewidth=0.5) +
-  stat_compare_means(aes(group = survival), method = "t.test", label = "p.format", size = 8,
-                      label.y = max(joined_tibble$inv.simpson)*0.9) +
-  ylab("Inverse Simpson Index") +
-  theme_pubr() +
-  theme(strip.text = element_text(size = 20 , color = "black", face="bold"),
-        aspect.ratio = 2,
-        axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 24, color = "black"),
-        axis.title.x = element_blank(), 
-        axis.text.y = element_text(size = 24),
-        axis.title.y = element_text(size = 24, color = "black"),
-        plot.title =  element_text(size = 24,color = "black", face = "bold"),
-        legend.key.size = unit(10,"mm"),
-        legend.title = element_text(size = 20),
-        legend.position = "right",
-        legend.text = element_text(size = 20))
-ggsave("6.1_TP53mut-only.pdf", width = 6, height = 8)
+# # Peter's plots 250214
+# p1 <- joined_tibble %>% group_by(patient_id, survival) %>%
+#   dplyr::summarize(inv.simpson = mean(inv.simpson)) %>% # take the average for P01
+#   ggplot(aes(x = survival, y = inv.simpson)) + 
+#   geom_bar(stat = "summary", fun=mean, aes(fill = survival), color = "black") +
+#   scale_fill_manual(values=c("skyblue1", "salmon"))+
+#   geom_jitter(color = "#00000080", size = 4) +
+#   stat_summary(fun.data=mean_se, geom="errorbar", width=.5, linewidth=0.5) +
+#   stat_compare_means(aes(group = survival), method = "t.test", label = "p.format", size = 8,
+#                      label.y = max(joined_tibble$inv.simpson)*0.95) +
+#   ylab("Inverse Simpson Index") +
+#   theme_pubr() +
+#   theme(strip.text = element_text(size = 20 , color = "black", face="bold"),
+#         aspect.ratio = 2,
+#         axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 24, color = "black"),
+#         axis.title.x = element_blank(), 
+#         axis.text.y = element_text(size = 24),
+#         axis.title.y = element_text(size = 24, color = "black"),
+#         plot.title =  element_text(size = 24,color = "black", face = "bold"),
+#         legend.key.size = unit(10,"mm"),
+#         legend.title = element_text(size = 20),
+#         legend.position = "right",
+#         legend.text = element_text(size = 20))
+# 
+# ggsave("6.1_AllPatients.pdf", width = 6, height = 8)
+# 
+# joined_tibble %>% group_by(patient_id, survival) %>% filter(patient_id %in% mt_patients) %>%
+#   dplyr::summarize(inv.simpson = mean(inv.simpson)) %>% # take the average for P01
+#   ggplot(aes(x = survival, y = inv.simpson)) + 
+#   geom_bar(stat = "summary", fun=mean, aes(fill = survival), color = "black") +
+#   scale_fill_manual(values=c("skyblue1", "salmon"))+
+#   geom_jitter(color = "#00000080", size = 4) +
+#   stat_summary(fun.data=mean_se, geom="errorbar", width=.5, linewidth=0.5) +
+#   stat_compare_means(aes(group = survival), method = "t.test", label = "p.format", size = 8,
+#                       label.y = max(joined_tibble$inv.simpson)*0.9) +
+#   ylab("Inverse Simpson Index") +
+#   theme_pubr() +
+#   theme(strip.text = element_text(size = 20 , color = "black", face="bold"),
+#         aspect.ratio = 2,
+#         axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 24, color = "black"),
+#         axis.title.x = element_blank(), 
+#         axis.text.y = element_text(size = 24),
+#         axis.title.y = element_text(size = 24, color = "black"),
+#         plot.title =  element_text(size = 24,color = "black", face = "bold"),
+#         legend.key.size = unit(10,"mm"),
+#         legend.title = element_text(size = 20),
+#         legend.position = "right",
+#         legend.text = element_text(size = 20))
+# ggsave("6.1_TP53mut-only.pdf", width = 6, height = 8)
 
 

@@ -46,7 +46,7 @@ final_dataset$sample_id_short <- substr(as.character(final_dataset$sample_id), 1
 
 # Define the souporcell colors
 souporcell_colors <-  c("donor" = "#4B3140",recipient ="#E4C9B0", "unknown" = "#b0b0b0")
-# survival colors
+# Survival colors
 survival_colors <- c("Non-relapsed" = "#4775FFFF","Relapsed" = "#E64B35FF")
 
 # Organize the dataset 

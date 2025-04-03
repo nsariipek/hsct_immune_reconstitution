@@ -37,12 +37,12 @@ meta <- meta %>%
     patient_id %in% mt_patients ~ "MT",
     patient_id %in% wt_patients ~ "WT"))
 
-View(meta)
+
 
 # Select only 100-day samples that were in remission at that timepoint
 meta_subset<- meta %>%
              subset(sample_status == "remission" & timepoint %in% c("3", "5", "6") 
-                #   & TP53== "MT"
+                   & TP53== "MT"
                     )
 
 #For calculations make the table
@@ -54,7 +54,10 @@ tb <-
   pivot_wider(names_from = type, values_from = n) %>% mutate(ratio= CD4/CD8) 
 
   #View(tb)
-  
+
+# Survival colors
+survival_colors <- c("Non-relapsed" = "#4775FFFF","Relapsed" = "#E64B35FF")
+
 p1 <- tb %>%
   mutate(survival = factor(survival, levels = c("Non-relapsed","Relapsed"))) %>%
   ggplot(aes(x = survival, y = ratio)) +
@@ -69,7 +72,7 @@ p1 <- tb %>%
     label.y = 3,
     size = 4,
     tip.length = 0.02) +
-  scale_fill_manual(values = c("Relapsed" = "#E64B35FF", "Non-relapsed" = "#4DBBD5FF")) +
+  scale_fill_manual(values = survival_colors) +
   ylab("CD4/CD8 Ratio") +
   expand_limits(y = 0) +
   coord_cartesian(ylim = c(0, 3.5))+
@@ -85,7 +88,8 @@ p1 <- tb %>%
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4))
 
 p1
-pdf("5.3_CD4-CD8ratio.pdf", width = 3, height = 3)
+# Save the plot
+pdf("5.3_CD4-CD8ratio_MT_only.pdf", width = 3, height = 3)
 p1
 dev.off()
-getwd()
+

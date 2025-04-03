@@ -11,22 +11,8 @@ rm(list=ls())
 # Set directory
 setwd("~/TP53_ImmuneEscape/5_Cell_Proportions/")
 
-# # Load the saved seurat object and turn into a df
-# seu <- readRDS("~/250128_seurat_annotated_final.rds")
-# 
-# # turn into a metadata
-# seu_df <- seu@meta.data 
-# 
-# #change the wrong sample identification
-# seu_df <- seu_df %>%
-#   mutate(sample_status = if_else(patient_id == "P32" & sample_status == "remission", 
-#                                  "relapse", sample_status))
-# #save the metadata for future use 
-# write.csv(seu_df, "~/seu_df_250325.csv", row.names = FALSE)
-
-# Load the seurat df
+# Load the seurat meta data insted of the whole seurat object
 seu_df <- read_csv("~/seu_df_250325.csv")
-
 
 celltype_levels <- c(
   "Progenitors", "Early Erythroids", "Mid Erythroids", "Late Erythroids",
@@ -35,14 +21,13 @@ celltype_levels <- c(
   "CD4 Naïve", "CD4 Effector Memory", "CD4 Memory", "Treg",
   "CD8 Naïve", "CD8 Effector", "CD8 Memory", "CD8 Exhausted",
   "γδ T", "NK T", "Adaptive NK", "CD56 Bright NK", "CD56 Dim NK",
-  "Cycling T-NK cells", "UD1", "UD2", "UD3"
-)
+  "Cycling T-NK cells", "UD1", "UD2", "UD3")
 
 # Convert celltype column to a factor with desired order
 seu_df$celltype <- factor(seu_df$celltype, levels = celltype_levels)
 
 
-# Set the sample order same as Figure 1 swimmer plot
+# Set the sample order same as Figure 1 swimmer plot 
 sample_order <- c(paste0("P", str_pad(1:4, 2, pad = "0")),     
                   paste0("P", str_pad(13:27, 2, pad = "0")),     
                   paste0("P", str_pad(5:12, 2, pad = "0")),   
@@ -56,39 +41,12 @@ bar_data <- seu_df %>%
   group_by(patient_id) %>%
   mutate(percent = count / sum(count) * 100)
 
-# Set the color scale
+# Load colors from 2.3_PvG-Colors.R
+celltype_colors_df <- read.table("../celltype_colors.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE, comment.char = "")
+celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltype)
 
-celltype_colors <- c(
-  "Progenitors" = "#3B1B53FF",
-  "Early Erythroids" = "#D60047FF",
-  "Mid Erythroids" = "#924822FF",
-  "Late Erythroids" = "#AE1F63FF",
-  "Pro Monocytes" = "#99CC00FF",
-  "Monocytes" = "#E4AF69FF",
-  "Non Classical Monocytes" = "#7A65A5FF",
-  "cDC" = "#5DB1DDFF",
-  "pDC" = "#CDDEB7FF",
-  "Pro B cells" = "#14FFB1FF",
-  "Pre-B" = "#00991AFF",
-  "B cells" = "#003399FF",
-  "Plasma cells" = "#802268FF",
-  "CD4 Naïve" = "#466983FF",
-  "CD4 Effector Memory" = "#D58F5CFF",
-  "CD4 Memory" = "#C75127FF",
-  "Treg" = "#FFC20AFF",
-  "CD8 Naïve" = "#33CC00FF",
-  "CD8 Effector" = "#612A79FF",
-  "CD8 Memory" = "#0099CCFF",
-  "CD8 Exhausted" = "#CE3D32FF",
-  "γδ T" = "#D595A7FF",
-  "NK T" = "#5050FFFF",
-  "Adaptive NK" = "#1A0099FF",
-  "CD56 Bright NK" = "#00D68FFF",
-  "CD56 Dim NK" = "#008099FF",
-  "Cycling T-NK cells" = "#F0E685FF",
-  "UD1" = "#A9A9A9FF",
-  "UD2" = "#837B8DFF",
-  "UD3" = "#5A655EFF")
+# Survival colors
+survival_colors <- c("Non-relapsed" = "#4775FFFF","Relapsed" = "#E64B35FF")
 
 p1 <- ggplot(bar_data, aes(x = patient_id, y = percent, fill = celltype)) +
   geom_bar(stat = "identity", width = 0.8) +
@@ -103,8 +61,7 @@ p1 <- ggplot(bar_data, aes(x = patient_id, y = percent, fill = celltype)) +
     legend.title = element_blank(),
     panel.grid.major.x = element_blank(),
     axis.line = element_line(color = "black"),
-    axis.ticks = element_line(color = "black")
-  )
+    axis.ticks = element_line(color = "black"))
 p1
 
 # Save as a pdf
@@ -115,36 +72,30 @@ dev.off()
 ################################################################################################################
 
 # Calculate total cells and myeloid cells per patient ==percentage of all myeloid cells out of all cell types in each sample (MNC libraries only)
-# 
-# myeloid_types <- c("Progenitors","Early Erythroids","Mid Erythroids",
-#                    "Late Erythroids","pDC","cDC","Pro Monocytes", 
-#                    "Monocytes","Non Classical Monocytes")
 
 proportions_df <- seu_df %>%
   filter(timepoint %in% c("3", "5", "6"),
          sample_status == "remission", library_type=="MNC") %>%
+  filter(!celltype %in% c("UD1", "UD2","UD3")) %>%
   group_by(patient_id, survival) %>%
   mutate(total_cells = n()) %>%  # total cells per sample
- # filter(celltype %in% myeloid_types) %>%
   count(patient_id, survival, total_cells, celltype, name = "cell_count") %>%
   mutate(percent = (cell_count / total_cells) * 100) %>%
 mutate(survival = factor(survival, levels = c("Non-relapsed", "Relapsed")))
-# %>% 
-#   mutate(celltype = factor(celltype, levels = myeloid_types))
+
 
 p2 <- ggplot(proportions_df, aes(x = survival, y = percent, fill = survival)) +
   geom_boxplot(width = 0.7, outlier.shape = NA, alpha = 0.9) +
   geom_jitter(shape = 21, size = 2, stroke = 0.2, color = "black", width = 0.15) +
-  facet_wrap(~ celltype, ncol = 10) +
-  scale_fill_manual(values = c("Relapsed" = "#E64B35FF", "Non-relapsed" = "#4DBBD5FF")) +
+  facet_wrap(~ celltype, ncol = 9) +
+  scale_fill_manual(values = survival_colors) +
   labs(y = "% of all cells", x = NULL) +
   ggpubr::stat_compare_means(
     aes(x = survival, y = percent, group = survival),
-    method = "wilcox.test",
+    method = "t.test",
     label = "p.signif",
     hide.ns = TRUE,
-    label.y = 40
-  ) +
+    label.y = 40) +
   theme_minimal(base_size = 8) +
   theme(
     axis.text.x = element_text(size = 8, color = "black", angle = 45, hjust = 1),
@@ -155,8 +106,7 @@ p2 <- ggplot(proportions_df, aes(x = survival, y = percent, fill = survival)) +
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
     legend.position = "none",
     aspect.ratio = 2,
-    plot.margin = margin(4, 4, 4, 4)
-  )
+    plot.margin = margin(4, 4, 4, 4))
 
 p2
 # Save as a pdf
@@ -165,7 +115,6 @@ p2
 dev.off()
 
 # Addition if you want to calculate the p-values separately 
-
 library(broom)
 
 pvals_df <- proportions_df %>%

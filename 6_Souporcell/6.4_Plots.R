@@ -13,9 +13,13 @@ rm(list=ls())
 
 # For Nurefsan:
 setwd("~/TP53_ImmuneEscape/6_Souporcell/")
+# For Peter:
+#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_Souporcell/")
 
 #Load the saved souporcell result table
 final_dataset <- read_csv("~/final_dataset.csv")
+# For Peter:
+#final_dataset <- read_csv("AuxiliaryFiles/final_dataset.csv")
 
 # Reorder for visulization
 final_dataset$sample_status <- factor(final_dataset$sample_status, levels = c("pre_transplant","remission","relapse"))
@@ -30,7 +34,7 @@ celltypes <- c("Progenitors", "Early Erythroids", "Mid Erythroids", "Late Erythr
 final_dataset$celltype <- factor(final_dataset$celltype, levels = celltypes)
 
 # Set survival order globally
-final_dataset$survival <- factor(final_dataset$survival, levels = c("Non-relapsed","Relapsed"))
+final_dataset$survival <- factor(final_dataset$survival, levels = c("Non-relapsed", "Relapsed"))
 
 # Set global sample_id ordering by survival
 ordered_samples <- final_dataset %>%

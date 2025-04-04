@@ -10,9 +10,9 @@ library(Seurat)
 rm(list=ls())
 
 # Set working directory
-setwd("~/TP53_ImmuneEscape/9_Numbat/")
+setwd("~/TP53_ImmuneEscape/8_Numbat/")
 # For Peter (local)
-#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/9_Numbat")
+#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/8_Numbat")
 
 # Load the saved Seurat objects
 seu <- readRDS("~/250128_seurat_annotated_final.rds")

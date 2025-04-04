@@ -15,9 +15,9 @@ library(ggh4x)
 rm(list=ls())
 
 # Set working directory
-setwd("~/TP53_ImmuneEscape/9_Numbat/")
+setwd("~/TP53_ImmuneEscape/8_Numbat/")
 
-# Load the seurat object that has Numbat results from 9.4
+# Load the seurat object that has Numbat results from 8.4
 seu_combined <- readRDS("~/250401_numbat_combined_seurat.rds")
 
 # Define colors to use in plots

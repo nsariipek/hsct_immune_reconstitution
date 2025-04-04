@@ -12,7 +12,7 @@ library(ggtext)
 rm(list=ls())
 
 # For Nurefsan:
-setwd("~/TP53_ImmuneEscape/5_Souporcell/")
+setwd("~/TP53_ImmuneEscape/6_Souporcell/")
 
 #Load the saved souporcell result table
 final_dataset <- read_csv("~/final_dataset.csv")
@@ -84,7 +84,7 @@ p1 <-  t1 %>%
 
 p1
 # Save as a pdf file 
-pdf("5.4_souporcell_results_erythroids.pdf", width = 12, height = 8)
+pdf("6.4_souporcell_results_erythroids.pdf", width = 12, height = 8)
 p1
 dev.off()
 
@@ -149,7 +149,7 @@ p2 <- t2 %>%
 
 p2
 # Save as a pdf file 
-pdf("5.4_souporcell_results_all_cells_.pdf", width = 12, height = 6)
+pdf("6.4_souporcell_results_all_cells_.pdf", width = 12, height = 6)
 p2
 dev.off()
 
@@ -172,18 +172,17 @@ p3 <- ggplot(t3, aes(x = sample_status, y = proportion, fill = origin)) +
 p3
 
 # Save as a pdf file 
-pdf("5.4_souporcell_per_patient_.pdf", width = 12, height = 8)
+pdf("6.4_souporcell_per_patient_.pdf", width = 12, height = 8)
 p3
 dev.off()
 
 #### Heatmap ####
 # Prepare data
 t4 <- final_dataset %>%
-  filter(
-    origin %in% c("donor", "recipient"),
+  filter(origin %in% c("donor", "recipient"),
     sample_status == "remission",
-    !celltype %in% c("UD1", "UD2", "UD3")
-  ) %>%
+    timepoint %in% c("3","5","6"),
+    !celltype %in% c("UD1", "UD2", "UD3")) %>%
   count(sample_id, celltype, origin, survival, name = "count") %>%
   group_by(sample_id, celltype, survival) %>%
   mutate(
@@ -225,7 +224,7 @@ heatmap <- ggplot(t4, aes(x = celltype, y = sample_id, fill = donor_percentage))
   labs(
     x = "Cell Type",
     y = "Sample ID",
-    title = "Donor Chimerism by Souporcell in Remission Samples"
+    title = "Donor Chimerism by Souporcell in 3-6 mo Remission Samples"
   ) +
   theme_minimal() +
   theme(
@@ -240,7 +239,7 @@ heatmap <- ggplot(t4, aes(x = celltype, y = sample_id, fill = donor_percentage))
 heatmap
 
 
-pdf("5.4_souporcell_heatmap.pdf", width = 8, height = 8)
+pdf("6.4_souporcell_heatmap.pdf", width = 8, height = 8)
 heatmap
 dev.off()
 

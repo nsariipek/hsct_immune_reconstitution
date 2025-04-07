@@ -62,7 +62,7 @@ t1 <- final_dataset %>%
   mutate(proportion = count / sum(count)) %>%
   ungroup()
 
-# Create stacked bar plot
+# Create stacked bar plot-- Erythroid cells
 p1 <-  t1 %>%
   ggplot(aes(x = sample_id, y = proportion, fill = origin)) +
   geom_bar(stat = "identity", position = "stack") +
@@ -100,44 +100,29 @@ t2 <- final_dataset %>%
   mutate(proportion = count / sum(count)) %>%
   ungroup()
 
-# Create stacked bar plot
-p2 <-  t2 %>%
-  filter(!celltype %in% c("UD1", "UD2","UD3")) %>%
-  ggplot(aes(x = sample_id, y = proportion, fill = origin)) +
-  geom_bar(stat = "identity", position = "stack") +
-  facet_wrap(~celltype, scales = "free_x") + # Separate panels for each celltype
-  theme_minimal() +
-  labs(title = "Genotype Proportions in Remission Samples",
-       x = "Sample ID",
-       y = "Proportion",
-       fill = "Genotype") +
-  scale_fill_manual(values = souporcell_colors) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8), 
-        axis.ticks.x = element_line(), 
-        strip.text = element_text(size = 10), # Make facet titles bigger
-        panel.spacing = unit(1.5, "lines"), # Increase spacing between facets
-        legend.position = "right") +  # Move legend to the right for more space
-  scale_x_discrete(labels = function(x) substr(x, 1, 3),
-                   expand = c(0.05, 0.05)) # Show every sample ID but only the first 3 characters
-
-
+##
+library(ggplot2)
+library(dplyr)
 
 p2 <- t2 %>%
   filter(!celltype %in% c("UD1", "UD2", "UD3")) %>%
   ggplot(aes(x = sample_id, y = proportion, fill = origin)) +
   geom_bar(stat = "identity", position = "stack", width = 0.8) +
   facet_wrap(~celltype, scales = "free_x", nrow = 3) +
-  theme_minimal(base_size = 6) +
+  scale_fill_manual(values = souporcell_colors) +
+  scale_x_discrete(labels = function(x) substr(x, 1, 3), expand = c(0.05, 0.05)) +
   labs(
-    title = "Genotype Proportions in Remission Samples",
+    title = "Genotype proportions in 3-6 months remission samples",
     x = "Sample ID",
     y = "Proportion",
     fill = "Genotype"
   ) +
-  scale_fill_manual(values = souporcell_colors) +
-  scale_x_discrete(labels = function(x) substr(x, 1, 3), expand = c(0.05, 0.05)) +
+  theme_minimal(base_size = 6) +
   theme(
-    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 2, color = "black"),
+    panel.grid = element_blank(),                     # Remove grids
+    axis.line = element_line(color = "black", size = 0.5),  # Keep normal axis lines
+    axis.ticks = element_line(color = "black", size = 0.5), # Only ticks thinner
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 6, color = "black"),
     axis.text.y = element_text(size = 6, color = "black"),
     axis.title.x = element_text(size = 6, color = "black"),
     axis.title.y = element_text(size = 6, color = "black"),
@@ -199,49 +184,37 @@ t4 <- final_dataset %>%
 
 # Set survival order
 t4$survival <- factor(t4$survival, levels = c("Relapsed", "Non-relapsed"))
-# Create ordered sample list and colored labels
-label_df <- t4 %>%
-  distinct(sample_id, survival) %>%
-  arrange(survival, sample_id) %>%
-  mutate(
-    color = survival_colors[as.character(survival)],
-    short_id = substr(sample_id, 1, 3),
-    sample_label = paste0("<span style='color:", color, "'>", short_id, "</span>")
-  )
 
-# Apply ordering to sample_id
-ordered_samples <- label_df$sample_id
-t4$sample_id <- factor(t4$sample_id, levels = ordered_samples)
-
-# Create label vector for colored axis labels
-label_vector <- setNames(label_df$sample_label, label_df$sample_id)
 # Plot
 heatmap <- ggplot(t4, aes(x = celltype, y = sample_id, fill = donor_percentage)) +
   geom_tile() +
   scale_fill_gradientn(
-    colors = c("#E4C9B0", "#C9AB8F", "#AA8D6E", "#866A78", "#5F4B5B", "#4B3140")
-,
+    colors = c("#E4C9B0", "#C9AB8F", "#AA8D6E", "#866A78", "#5F4B5B", "#4B3140"),
     limits = c(0, 100),
     name = "Percentage"
   ) +
-  scale_y_discrete(labels = label_vector) +
+  scale_y_discrete(limits = rev) +  # Reverse the y-axis
   labs(
     x = "Cell Type",
     y = "Sample ID",
     title = "Donor Chimerism by Souporcell in 3-6 mo Remission Samples"
   ) +
-  theme_minimal() +
+  theme_minimal(base_size = 10) +
   theme(
-    axis.text.x = element_text(size = 8, angle = 45, hjust = 1, color = "black"),
-    axis.text.y = element_markdown(size = 8),
-    axis.title.x = element_text(size = 8),
-    axis.title.y = element_text(size = 11),
-    legend.title = element_text(size = 11)
-  )
+    axis.text.x = element_text(size = 8, angle = 45, hjust = 1, vjust = 1, color = "black"),
+    axis.text.y = element_text(size = 8, color = "black"),
+    axis.title.x = element_text(size = 10, color = "black"),
+    axis.title.y = element_text(size = 11, color = "black"),
+    plot.title = element_text(size = 12, color = "black", hjust = 0.5),  
+    legend.title = element_text(size = 11, color = "black"),
+    panel.grid = element_blank(),                
+    axis.ticks = element_line(color = "black", size = 0.5) 
+    ) +
+  coord_fixed(ratio = 1)  # Make tiles square
+
 
 # Show plot
 heatmap
-
 
 pdf("6.4_souporcell_heatmap.pdf", width = 8, height = 8)
 heatmap

@@ -100,9 +100,6 @@ t2 <- final_dataset %>%
   mutate(proportion = count / sum(count)) %>%
   ungroup()
 
-##
-library(ggplot2)
-library(dplyr)
 
 p2 <- t2 %>%
   filter(!celltype %in% c("UD1", "UD2", "UD3")) %>%
@@ -138,7 +135,7 @@ p2 <- t2 %>%
 
 p2
 # Save as a pdf file 
-pdf("6.4_souporcell_results_all_cells_.pdf", width = 12, height = 6)
+pdf("6.4_souporcell_results_all_cells_.pdf", width = 16, height = 8)
 p2
 dev.off()
 

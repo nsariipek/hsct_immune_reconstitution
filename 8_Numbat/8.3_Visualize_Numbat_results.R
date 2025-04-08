@@ -11,6 +11,12 @@ library(ggtree)
 library(tidygraph)
 library(patchwork)
 
+# Empty environment
+rm(list=ls())
+
+# For Nurefsan:
+setwd("~/TP53_ImmuneEscape/5_Cell_Proportions/")
+
 # Favorite function
 cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))
 

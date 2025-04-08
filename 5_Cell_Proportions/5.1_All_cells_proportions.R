@@ -11,8 +11,17 @@ rm(list=ls())
 # Set directory
 setwd("~/TP53_ImmuneEscape/5_Cell_Proportions/")
 
-# Load the seurat meta data insted of the whole seurat object
+# Load the seurat meta data that I saved previously instead of the whole seurat object
 seu_df <- read_csv("~/seu_df_250325.csv")
+
+# Add the TP53 MT information
+seu_df <- seu_df %>%
+  mutate(TP53_status = case_when(
+    patient_id %in% c("P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P14", "P17") ~ "MT",
+    patient_id %in% c("P13", "P15", "P16", "P18", "P19", "P20", "P21", "P22", "P23", "P24", "P25", "P26", "P27",
+                      "P28", "P29", "P30", "P31", "P32", "P33") ~ "WT",
+    TRUE ~ NA_character_  # fallback in case of unmatched ID
+  ))
 
 celltype_levels <- c(
   "Progenitors", "Early Erythroids", "Mid Erythroids", "Late Erythroids",
@@ -93,14 +102,13 @@ p2 <- ggplot(proportions_df, aes(x = survival, y = percent, fill = survival)) +
   ggpubr::stat_compare_means(
     aes(x = survival, y = percent, group = survival),
     method = "t.test",
-    label = "p.signif",
+    label = "p.format",
     hide.ns = TRUE,
-    label.y = 40) +
-  theme_minimal(base_size = 8) +
-  theme(
-    axis.text.x = element_text(size = 8, color = "black", angle = 45, hjust = 1),
+    label.y = 30) +
+  theme_minimal(base_size = 6) +
+  theme(axis.text.x = element_text(size = 8, color = "black", angle = 45, hjust = 1),
     axis.text.y = element_text(size = 8, color = "black"),
-    axis.title.y = element_text(size = 8, face = "plain", color = "black"),
+    axis.title.y = element_text(size =11, face = "plain", color = "black"),
     strip.text = element_text(size = 8, face = "plain", color = "black"),
     panel.grid = element_blank(),
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
@@ -110,7 +118,7 @@ p2 <- ggplot(proportions_df, aes(x = survival, y = percent, fill = survival)) +
 
 p2
 # Save as a pdf
-pdf("5.1_Allcell_per_celltype_proportions_3-6mo.pdf", width = 10, height = 8)
+pdf("5.1_Allcells_per_celltype_proportions_3-6mo_pvalue.pdf", width = 10, height = 8)
 p2
 dev.off()
 

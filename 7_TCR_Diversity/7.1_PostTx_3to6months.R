@@ -107,28 +107,28 @@ rownames(meta) <- NULL
 meta = meta %>% drop_na()
 
 ########### Optional subsetting for exploring different cell types #############
-# Only MT samples
-meta <- subset(x=meta, subset = TP53=="MT")
-
-# Only subset CD8+ cells
- meta <- subset(x = meta, subset = celltype %in% c("CD8 Memory", "CD8 Effector", "CD8 Exhausted","γδ T","CD8 Naïve"))
- 
-# Only subset CD4+ cells
-meta <- subset(x = meta, subset = celltype %in% c("Treg","CD4 Effector Memory", "CD4 Naïve","CD4 Memory"))
+# # Only MT samples
+# meta <- subset(x=meta, subset = TP53=="MT")
+# 
+# # Only subset CD8+ cells
+#  meta <- subset(x = meta, subset = celltype %in% c("CD8 Memory", "CD8 Effector", "CD8 Exhausted","γδ T","CD8 Naïve"))
+#  
+# # Only subset CD4+ cells
+# meta <- subset(x = meta, subset = celltype %in% c("Treg","CD4 Effector Memory", "CD4 Naïve","CD4 Memory"))
 
 ### Add Souporcell information ####
 
-# Load the metadata that contains souporcell information
-souporcell_df <- read_csv("~/final_dataset.csv")
-
-# Wrangle the df 
-souporcell_df <- souporcell_df %>%
-  mutate(modified_barcode = paste(orig.ident, barcode, sep = "_")) %>% 
-  select(modified_barcode, origin)
-
-# Join 2 dataframe
-meta_merged <- souporcell_df %>%
-  inner_join(meta, by = c("modified_barcode" = "barcode")) %>% drop_na()
+# # Load the metadata that contains souporcell information
+# souporcell_df <- read_csv("~/final_dataset.csv")
+# 
+# # Wrangle the df 
+# souporcell_df <- souporcell_df %>%
+#   mutate(modified_barcode = paste(orig.ident, barcode, sep = "_")) %>% 
+#   select(modified_barcode, origin)
+# 
+# # Join 2 dataframe
+# meta_merged <- souporcell_df %>%
+#   inner_join(meta, by = c("modified_barcode" = "barcode")) %>% drop_na()
 
 # # Select only recipient cells
 # meta <- meta_merged %>% rename(barcode=modified_barcode) %>% filter(origin == "donor")
@@ -149,10 +149,10 @@ View(combined.sc)
 # P06,P16,P20,P24,P26,P32
 # Remove samples P20, P26 and P32 from the list since they had less than <500 TCR calls
 
-samples_to_remove <- c("P06","P16","P19","P20","P24","P26","P32")
-mt_samples <- c("P01","P02","P03","P04","P05","P06","P07","P08","P10","P11","P12","P14","P17")
+samples_to_remove <- c("P16","P20","P26","P32","P33")
+#mt_samples <- c("P01","P02","P03","P04","P05","P06","P07","P08","P10","P11","P12","P14","P17")
 combined.sc <- combined.sc[!names(combined.sc) %in% samples_to_remove]
-combined.sc <- combined.sc[names(combined.sc) %in% mt_samples]
+#combined.sc <- combined.sc[names(combined.sc) %in% mt_samples]
 
 # Verify the remaining samples
 print(names(combined.sc))
@@ -290,7 +290,7 @@ y_lim <- c(0,max(joined_tibble$inv.simpson))
 survival_colors <- c("Non-relapsed" = "#4775FFFF","Relapsed" = "#E64B35FF")
 p2 <- joined_tibble %>%
   filter(!duplicated(patient_id)) %>%
-  #filter(TP53=="MT") %>%
+  filter(TP53=="WT") %>%
   ggplot(aes(x = survival, y = inv.simpson, fill = survival)) +
   geom_bar(stat = "summary", fun = mean, width = 0.6, color = "black") +
   geom_jitter(width = 0.15, size = 4, alpha = 0.7, color = "black") +
@@ -318,7 +318,7 @@ p2 <- joined_tibble %>%
 p2
 
 # Save as a pdf
-pdf("7.1_Post-transplant_CD4_cells.pdf", width = 6, height = 8)
+pdf("7.1_Post-transplant_WT_only_samples.pdf", width = 6, height = 8)
 p2
 dev.off()
 

@@ -15,9 +15,10 @@ rm(list=ls())
 # For Nurefsan:
 setwd("~/TP53_ImmuneEscape/5_Cell_Proportions/")
 
-# Load the seurat df
+# Load the seurat meta data that I saved previously instead of the whole seurat object
 seu_df <- read_csv("~/seu_df_250325.csv")
-# Add the tP53 MT information
+
+# Add the TP53 MT information
 seu_df <- seu_df %>%
   mutate(TP53_status = case_when(
     patient_id %in% c("P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P14", "P17") ~ "MT",
@@ -87,7 +88,7 @@ dev.off()
                          "delta-gamma T") &
            timepoint %in% c("3","5","6") &
            sample_status == "remission"
-         &  TP53_status == "MT"
+         &  TP53_status == "WT"
          ) %>%
   group_by(sample_id, survival) %>%
   reframe(tabyl(celltype)) %>%
@@ -113,7 +114,7 @@ p2 <- ggplot(proportions_df, aes(x = survival, y = percent_within_T, fill = surv
   stat_compare_means(
     aes(x = survival, y = percent_within_T, group = survival),  # safest
     method = "wilcox.test",
-    label = "p.signif",
+    label = "p.format",
     size = 4,
     hide.ns = TRUE
   ) +
@@ -133,7 +134,7 @@ p2 <- ggplot(proportions_df, aes(x = survival, y = percent_within_T, fill = surv
 # Check the plot
 p2
 # Save as a pdf
-pdf("5.2_T_proportions_TP53_MT_value.pdf", width = 8, height = 6)
+pdf("5.2_T_proportions_TP53_WT_pvalue.pdf", width = 8, height = 6)
 p2
 dev.off()
 

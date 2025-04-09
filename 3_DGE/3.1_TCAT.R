@@ -1,4 +1,4 @@
-# Peter van Galen, 250302
+# Peter van Galen, 250408
 # Run TCAT and evaluate the algorithm's cell type labels
 
 # Load libraries
@@ -16,29 +16,14 @@ library(R.utils)
 rm(list=ls())
 cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))
 
-# Load data. This is available on Dropbox but not GitHub
-seu <- readRDS("../AuxiliaryFiles/250128_seurat_annotated_final.rds")
+# Load T cell data. This is available on Dropbox but not GitHub
+seu_T <- readRDS("../AuxiliaryFiles/250128_Tcell_subset.rds")
 
 # Load colors from 2.3_PvG-Colors.R
 celltype_colors_df <- read.table("../celltype_colors.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE, comment.char = "")
 celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltype)
 
-# Check data
-seu@meta.data %>% head
-seu@meta.data %>%
-  sample_frac(1) %>%  # Randomly shuffle rows
-      ggplot(aes(x = UMAP_1, y = UMAP_2, color = celltype)) +
-      geom_scattermore(pointsize = 8, pixels = c(4096, 4096)) +
-      scale_color_manual(values = celltype_colors) +
-      theme_bw() +
-      theme(aspect.ratio = 1,
-            panel.grid = element_blank()) +
-      guides(color = guide_legend(override.aes = list(size = 3)))
-
-# Subset Seurat object to T cells
-seu_T <- subset(seu, celltype %in% c("CD4 Naïve", "CD4 Effector Memory", "CD4 Memory", "Treg", "CD8 Naïve", "CD8 Effector", "CD8 Memory", "CD8 Exhausted", "γδ T"))
-
-# Check visually
+# Check data visually
 seu_T@meta.data %>% sample_frac(1) %>%
           ggplot(aes(x = UMAP_TNK_1, y = UMAP_TNK_2, color = celltype)) +
           geom_scattermore(pointsize = 16, pixels = c(4096, 4096)) +
@@ -47,7 +32,6 @@ seu_T@meta.data %>% sample_frac(1) %>%
           theme(aspect.ratio = 1,
                 panel.grid = element_blank()) +
           guides(color = guide_legend(override.aes = list(size = 3)))
-ggsave("3.2.1_OurTcellAnnotationUMAP.png", width = 6, height = 3.5)
 
 # Next, save Seurat count matrix to run TCAT (see https://github.com/immunogenomics/starCAT/blob/main/Examples/starCAT_vignette_R.ipynb)
 
@@ -57,24 +41,32 @@ counts[80:90, 1:10]
 
 # Save counts matrix
 dir.create("AuxiliaryFiles")
-writeMM(counts,  file = "AuxiliaryFiles/matrix.mtx")
-gzip("AuxiliaryFiles/matrix.mtx")
+writeMM(counts, file = "AuxiliaryFiles/matrix.mtx")
+gzip("AuxiliaryFiles/matrix.mtx", overwrite = T, remove = T)
 
 # Save cell barcodes
 barcodes <- colnames(counts)
 write_delim(as.data.frame(barcodes),  file = "AuxiliaryFiles/barcodes.tsv", col_names = FALSE)
-gzip("AuxiliaryFiles/barcodes.tsv")
+gzip("AuxiliaryFiles/barcodes.tsv", overwrite = T, remove = T)
 
 # Save feature names
 gene_names <- rownames(counts)
 features <- data.frame("gene_id" = gene_names, "gene_name" = gene_names,type = "Gene Expression")
 write_delim(as.data.frame(features),delim = "\t", file = "AuxiliaryFiles/features.tsv", col_names = FALSE)
-gzip("AuxiliaryFiles/features.tsv")
+gzip("AuxiliaryFiles/features.tsv", overwrite = T, remove = T)
 
-# Run 3.2_PvG-TCAT.sh to generate results (this was done on a Google Cloud Platform virtual machine)
+# Run 3.2_PvG-TCAT.sh to generate results (this was done on a Google Cloud Platform virtual machine, bash). This will create a folder 3.1_starCAT with the results
+#cd /home/unix/vangalen/TP53_ImmuneEscape/3_DGE
+#mkdir 3.1_starCAT
+#./3.1_starCAT.sh
+#rm -r cache
 
-# Load scores (see 3.3_PvG-TCAT_Programs.R for program analysis)
-scores_tib <- read_tsv("AuxiliaryFiles/results.scores.txt") %>% rename("cell" = "...1")
+# Zip the results to enable syncing over GitHub
+gzip("3.1_starCAT/starCAT.rf_usage_normalized.txt", overwrite = T, remove = T)
+gzip("3.1_starCAT/starCAT.scores.txt", overwrite = T, remove = T)
+
+# The rest of the script compares TCAT cell annotations to our own and is not used for the paper. Start with loading scores.
+scores_tib <- read_tsv("3.1_starCAT/starCAT.scores.txt.gz") %>% rename("cell" = "...1")
 
 # Compare cell type annotations with Multinomial_Label from scores
 metadata_tib <- as_tibble(seu_T@meta.data, rownames = "cell")
@@ -96,7 +88,6 @@ metadata_tib %>% sample_frac(1) %>%
           theme(aspect.ratio = 1,
                 panel.grid = element_blank()) +
           guides(color = guide_legend(override.aes = list(size = 3)))
-ggsave("3.2.2_TCAT-TcellAnnotationUMAP.png", width = 6, height = 3.5)
 
 # Compare cell type numbers
 p1 <- metadata_tib %>% count(celltype) %>%
@@ -126,7 +117,6 @@ metadata_tib %>% select(celltype, Multinomial_Label) %>%
       theme_minimal() +
       labs(x = "Multinomial Label", y = "Cell Type", fill = "Count") +
       theme(axis.text.x = element_text(angle = 45, hjust = 1), aspect.ratio = 9/10)
-ggsave("3.2.3_Confusion_matrix.png", height = 5, width = 6)
 
 # Compare annotations side by side (stacked cells)
 metadata_tib %>%
@@ -139,4 +129,3 @@ metadata_tib %>%
       scale_fill_manual(values = c(celltype_colors, TCAT_Label_colors)) +
       theme_minimal() +
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
-ggsave("3.2.4_Side-by-side_barplot.png", height = 8, width = 5)

@@ -1,4 +1,4 @@
-# Peter van Galen, 250206
+# Peter van Galen, 250408
 # Assess TCAT programs in T cells
 
 library(Seurat)
@@ -18,8 +18,7 @@ rm(list=ls())
 cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))
 
 # Load data
-#seu <- readRDS("../AuxiliaryFiles/250128_seurat_annotated_final.rds")
-seu_T <- readRDS("../7_TCR_Diversity/AuxiliaryFiles/250128_Tcell_subset.rds")
+seu_T <- readRDS("../AuxiliaryFiles/250128_Tcell_subset.rds")
 
 # Load colors from 2.3_PvG-Colors.R
 celltype_colors_df <- read.table("../celltype_colors.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE, comment.char = "")
@@ -36,8 +35,8 @@ seu_T@meta.data %>% sample_frac(1) %>%
           guides(color = guide_legend(override.aes = list(size = 3)))
 
 # Combine TCAT scores and program usage results with Seurat metadata
-usage_tib <- read_tsv("AuxiliaryFiles/results.rf_usage_normalized.txt") %>% rename("cell" = "...1")
-scores_tib <- read_tsv("AuxiliaryFiles/results.scores.txt") %>% rename("cell" = "...1")
+usage_tib <- read_tsv("3.1_starCAT/starCAT.scores.txt.gz") %>% rename("cell" = "...1")
+scores_tib <- read_tsv("3.1_starCAT/starCAT.rf_usage_normalized.txt.gz") %>% rename("cell" = "...1")
 metadata_tib <- as_tibble(seu_T@meta.data, rownames = "cell")
 metadata_tib <- left_join(metadata_tib, scores_tib)
 metadata_tib <- left_join(metadata_tib, usage_tib)

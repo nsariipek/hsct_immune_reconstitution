@@ -6,13 +6,12 @@
 # Installation (only run once)
 #sudo apt install python3-pip
 #pip install starcatpy
-# Add to ~/.bashrc
+# Add the following to ~/.bashrc
 #export PATH=$HOME/.local/bin:$PATH
 
 # Determine program usage
 starcat --reference "TCAT.V1" \
-        --counts "/home/unix/vangalen/TP53_ImmuneEscape/3_DGE/starcat/matrix.mtx.gz" \
-        --output-dir "/home/unix/vangalen/TP53_ImmuneEscape/3_DGE/starcat/" \
-        --name "results"
+        --counts "/home/unix/vangalen/TP53_ImmuneEscape/3_DGE/AuxiliaryFiles/matrix.mtx.gz" \
+        --output-dir "/home/unix/vangalen/TP53_ImmuneEscape/3_DGE/3.1_starCAT/"
 
 # Delete cache folder that was generated

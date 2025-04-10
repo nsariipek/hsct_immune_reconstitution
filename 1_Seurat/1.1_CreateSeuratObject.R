@@ -114,7 +114,7 @@ FeatureScatter(seu_subset_for_visualization, "nCount_RNA", "nFeature_RNA", group
   theme(aspect.ratio = 1) +
   geom_vline(xintercept = 250, col="black") +
   geom_hline(yintercept = 500, col="black")
-ggsave("~/TP53_ImmuneEscape/1_Seurat/1.2_FeatureScatter.pdf", width = 10, height = 6)
+ggsave("~/TP53_ImmuneEscape/1_Seurat/1.1_FeatureScatter.pdf", width = 10, height = 6)
 
 gc()
 

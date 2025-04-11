@@ -26,9 +26,9 @@ cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], c
 
 # Load numbat object from our own data (need to mount Broad storage first)
 #For Nurefsan
-nb = Numbat$new(out_dir = "/Volumes/sariipek/numbat/old/P08")
+nb = Numbat$new(out_dir = "/Volumes/sariipek/numbat/old/P05")
+# not sure if we have this pagoda objects somewhere
 pagoda = readRDS(url('http://pklab.org/teng/data/con_TNBC1.rds'))
-
 
 # Generate CNV plot
 mypal = c('1' = 'gray', '2' = "#377EB8", '3' = "#4DAF4A", '4' = "#984EA3")
@@ -38,9 +38,9 @@ plot1 <- nb$plot_phylo_heatmap(
   p_min = 0.9,
   pal_clone = mypal
 )
-#Save the panel as pdf
 plot1
-pdf("P08_panel2.pdf", width=15, height=5)
+#Save the panel as pdf
+pdf("P05_panel2.pdf", width=15, height=5)
 plot1
 dev.off()
 
@@ -62,7 +62,7 @@ plot2 <- nb$bulk_clones %>%
   )
 plot2
 #Save as pdf
-pdf("P08_bulk_clones.pdf", width=15, height=10)
+pdf("P05_bulk_clones.pdf", width=15, height=10)
 plot2
 dev.off()
 

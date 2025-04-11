@@ -14,7 +14,7 @@ setwd("/home/rstudio/TP53_ImmuneEscape/1_Seurat")
 #setwd("/home/unix/vangalen/TP53_ImmuneEscape/1_Seurat")
 
 # Load the data from the previous script
-seu <- readRDS(file = "~/250108_MergedSeuratObject.rds")
+seu <- readRDS(file = "~/250409_MergedSeuratObject.rds")
 
 # Select 20% of the cells to make dimensionality reduction and clustering manageable. In script 2.3_Merge_497K_cells.R, the remaining 80% of cells are added back.
 seu20.cells <- colnames(seu)[seq(1, length(colnames(seu)), by = 5)]
@@ -28,7 +28,7 @@ LabelPoints(plot = p1, points = head(VariableFeatures(seu20), 20), xnudge = 0, y
   theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5)) +
   ggtitle("Variable genes")
 
-# Regular dimensionality reduction. Nurefsan: you can try different `dims` in RunUMAP to see what you like.
+# Regular dimensionality reduction. At least 130 GB memory is required.
 seu20 <- ScaleData(seu20, features = rownames(seu20))
 seu20 <- RunPCA(seu20, features = VariableFeatures(object = seu20))
 ElbowPlot(seu20)
@@ -47,8 +47,8 @@ DimPlot(seu20, reduction = "umap", group.by = "sample_status", shuffle = T) + th
 DimPlot(seu20, reduction = "umap", group.by = "seurat_clusters", shuffle = T) + theme(aspect.ratio = 1)
 FeaturePlot(seu20, features = "CD34") + theme(aspect.ratio = 1)
 
-# Save seu20 to work on annotations
-saveRDS(seu20, "~/250113_SplittedSeuratObject.rds")
+# Save seu20 to work on annotations. This is ~24 GB
+saveRDS(seu20, "~/250410_SubsettedSeuratObject.rds")
 
 
 

@@ -90,6 +90,7 @@ seu_ls <- lapply(Samples, process_sample)
 
 # Create the Seurat object combining each sample, add.cell.ids prevents duplicate cell identifiers
 seu <- merge(seu_ls[[1]], seu_ls[2:length(seu_ls)], add.cell.ids = Samples)
+# The following takes a while and requires ~100 GB memory
 seu <- JoinLayers(seu)
 
 # Add QC Metrics
@@ -113,7 +114,7 @@ FeatureScatter(seu_subset_for_visualization, "nCount_RNA", "nFeature_RNA", group
   theme(aspect.ratio = 1) +
   geom_vline(xintercept = 250, col="black") +
   geom_hline(yintercept = 500, col="black")
-ggsave("~/TP53_ImmuneEscape/1_Seurat/1.2_FeatureScatter.pdf", width = 10, height = 6)
+ggsave("~/TP53_ImmuneEscape/1_Seurat/1.1_FeatureScatter.pdf", width = 10, height = 6)
 
 gc()
 
@@ -142,10 +143,10 @@ seu$cohort <- case_when(grepl("9596|2737|2379|2434|2518|4618|6174|9931|1953|2580
                         grepl("1764|1804|1964|2332|2448|2745", seu$orig.ident) ~ "2-Relapsed",
                         grepl("1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu$orig.ident) ~ "2-Non-relapsed")
 
-# Add time point  
+# Add sample status. On 250409, after closer examination of the clinical records, we moved 2448 from remission to relapse.
 seu$sample_status <- case_when(grepl("9596|2379|4618|9355|2446|1972|1677|1195|5641", seu$orig.ident) ~ "pre_transplant",
-                               grepl("25809|2434|2518|6174|9931|1013|25802|2645|2220|2621|9185|2599|1732|1285|6244|1764|1804|1964|2332|2448|2745|1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu$orig.ident) ~ "remission",
-                               grepl("2737|1953|1811|1347", seu$orig.ident) ~ "relapse")
+                               grepl("25809|2434|2518|6174|9931|1013|25802|2645|2220|2621|9185|2599|1732|1285|6244|1764|1804|1964|2332|2745|1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu$orig.ident) ~ "remission",
+                               grepl("2448|2737|1953|1811|1347", seu$orig.ident) ~ "relapse")
 
 # Add patient number
 seu$patient_id <- case_when(grepl("2446|25802|2645", seu$orig.ident) ~ "pt01",
@@ -182,7 +183,7 @@ seu$patient_id <- case_when(grepl("2446|25802|2645", seu$orig.ident) ~ "pt01",
                             grepl("2448",seu$orig.ident) ~ "pt32",
                             grepl("2745",seu$orig.ident) ~ "pt33" )
 
-# Add the timepoint to show the samples time as months after tx
+# Add the timepoint to show the sample time as months after tx
 seu$timepoint <- case_when(grepl("2446", seu$orig.ident) ~ "O",
                            grepl("25802", seu$orig.ident) ~ "3",
                            grepl("2645", seu$orig.ident) ~ "6",
@@ -297,8 +298,9 @@ seu$sample_id <- case_when(grepl("2446", seu$orig.ident) ~ "P01_Pre",
                            grepl("2448",seu$orig.ident) ~ "P32_Rem",
                            grepl("2745",seu$orig.ident) ~ "P33_Rem")
 
-seu_merge$survival <- case_when(grepl("9596|2737|2379|2434|2518|4618|6174|9931|1953|25809|1677|5641|1732|1811|1195|1347|1285|6244|9355|1013|1764|1804|1964|2332|2448|2745", seu_merge$orig.ident) ~ "Relapsed",
-                                grepl("2446|25802|2645|1972|2220|2621|9185|2599|1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu_merge$orig.ident) ~ "Non-relapsed")
+# Add whether the patient relapsed or not
+seu$survival <- case_when(grepl("9596|2737|2379|2434|2518|4618|6174|9931|1953|25809|1677|5641|1732|1811|1195|1347|1285|6244|9355|1013|1764|1804|1964|2332|2448|2745", seu$orig.ident) ~ "Relapsed",
+                          grepl("2446|25802|2645|1972|2220|2621|9185|2599|1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu$orig.ident) ~ "Non-relapsed")
 
 # Convert each variable to a factor
 seu$orig.ident <- as.factor(seu@meta.data$orig.ident)
@@ -310,4 +312,4 @@ seu$library_type <- as.factor(seu@meta.data$library_type)
 seu$sample_id <- as.factor(seu@meta.data$sample_id)
 
 # Save (this takes awhile, you can monitor progress (growing file size) in the Terminal - it's about 2.2 Gb in the end)
-saveRDS(seu, file = "~/250108_MergedSeuratObject.rds")
+saveRDS(seu, file = "~/250409_MergedSeuratObject.rds")

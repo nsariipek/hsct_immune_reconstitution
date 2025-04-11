@@ -16,7 +16,7 @@ rm(list=ls())
 setwd("~/TP53_ImmuneEscape/5_Cell_Proportions/")
 
 # Load the seurat meta data that I saved previously instead of the whole seurat object
-seu_df <- read_csv("~/seu_df_250325.csv")
+seu_df <- read_csv("~/seu_df_250411.csv")
 
 # Add the TP53 MT information
 seu_df <- seu_df %>%
@@ -55,7 +55,7 @@ bar_data <- seu_df %>%
  celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltype)
  
  # Survival colors
- survival_colors <- c("Non-relapsed" = "#4775FFFF","Relapsed" = "#E64B35FF")
+ survival_colors <- c("Non-relapsed" = "#546fb5FF","Relapsed" = "#e54c35ff")
 
 p1 <- ggplot(bar_data, aes(x = patient_id, y = percent, fill = celltype)) +
   geom_bar(stat = "identity", width = 0.8) +

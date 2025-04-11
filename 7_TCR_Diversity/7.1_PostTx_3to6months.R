@@ -1,7 +1,7 @@
 # Nurefsan Sariipek
 # Date: January 22nd, 2024
 # Updated February 14, 2025
-# Analyze post 3-6 months samples and subsetting donor/host CD4/CD8 compartments using subsampling based on cell numbers which is different than scRepertoire built in subsampling which can be found on 6.1 script
+# Analyze post 3-6 months remission samples and subset donor/host CD4/CD8 compartments using subsampling based on cell numbers which is different than scRepertoire built in subsampling which can be found on 6.1 script
 
 # Load the libraries
 library(scRepertoire)
@@ -31,10 +31,12 @@ gcs_global_bucket("fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b")
 # Check if you can list the objects. In Terra, you may need to authenticate using gcs_auth(). In VM, this did not work - hence the alternative function on line 65.
 gcs_list_objects()
 
+#Do not include Patient 32 since  it is a relapse sample
+
 # Define samples
 Samples <- c("P1665_MIX", "P1671_MIX", "P1745_MNC", "P1762_MIX", "P1764_MIX", 
              "P1804_MNC", "P1817_MIX", "P1964_MNC", "P2220_MNC", "P2332_MNC", "P2408_MNC", 
-             "P2434_MNC", "P2448_MNC", "P2517_MIX", "P2518_CD3", "P2518_MNC", "P2599_CD3", "P2599_MNC", "P2698_MIX", "P2745_MNC", "P2791_MNC", "P2820_MIX", "P2961_MNC", "P2977_MIX", "P2986_MNC", "P2988_MNC", "P3000_MIX", "P6174_CD3", "P6174_MNC", "P25802_CD3", "P25802_MNC","P25809_MNC")
+             "P2434_MNC", "P2517_MIX", "P2518_CD3", "P2518_MNC", "P2599_CD3", "P2599_MNC", "P2698_MIX", "P2745_MNC", "P2791_MNC", "P2820_MIX", "P2961_MNC", "P2977_MIX", "P2986_MNC", "P2988_MNC", "P3000_MIX", "P6174_CD3", "P6174_MNC", "P25802_CD3", "P25802_MNC","P25809_MNC")
 
   # Temporary directory to save downloaded files
   tmp_dir <- "/home/rstudio/tmp"
@@ -78,7 +80,7 @@ Samples <- c("P1665_MIX", "P1671_MIX", "P1745_MNC", "P1762_MIX", "P1764_MIX",
   
 # Add variables. For scRepertoire below v2.0, replace variable.name with name
 combined <- addVariable(combined, variable.name = "patient_id",
-                        variables = c("P13", "P23", "P14", "P18", "P28", "P29", "P15", "P30","P02", "P31", "P16", "P06", "P32", "P24", "P07", "P07", "P04", "P04", "P19", "P33", "P20", "P25", "P26", "P21", "P22", "P17", "P27", "P08", "P08", "P01", "P01", "P05"))
+                        variables = c("P13", "P23", "P14", "P18", "P28", "P29", "P15", "P30","P02", "P31", "P16", "P06", "P24", "P07", "P07", "P04", "P04", "P19", "P33", "P20", "P25", "P26", "P21", "P22", "P17", "P27", "P08", "P08", "P01", "P01", "P05"))
 
 # Optional: merge data if the same sample was analyzed as both MNC and sorted T cells
 combined2 <- do.call(rbind, combined)
@@ -86,6 +88,12 @@ combined <- split(combined2, f = combined2$patient_id)
 
 # load the T cells
 Tcells <- readRDS("~/250128_Tcell_subset.rds")
+
+# Update P32 information
+Tcells@meta.data <- Tcells@meta.data %>%
+  mutate(
+    sample_status = if_else(patient_id == "P32", "relapse", sample_status),
+    sample_id = if_else(patient_id == "P32" & sample_id == "P32_Rem", "P32_Rel", sample_id))
 
 # Define TP53 MT and WT patient groups
 mt_patients <- paste0("P", sprintf("%02d", c(1:12, 14, 17)))
@@ -146,10 +154,10 @@ for (i in names(combined)) {
 
 View(combined.sc)
 
-# P06,P16,P20,P24,P26,P32
-# Remove samples P20, P26 and P32 from the list since they had less than <500 TCR calls
+# Remove samples P20, P26  from the list since they had less than <500 TCR calls
 
-samples_to_remove <- c("P16","P20","P26","P32","P33")
+
+samples_to_remove <- c("P16","P20","P26","P33")
 #mt_samples <- c("P01","P02","P03","P04","P05","P06","P07","P08","P10","P11","P12","P14","P17")
 combined.sc <- combined.sc[!names(combined.sc) %in% samples_to_remove]
 #combined.sc <- combined.sc[names(combined.sc) %in% mt_samples]
@@ -287,7 +295,7 @@ y_lim <- c(0,max(joined_tibble$inv.simpson))
 
 # Visualize the diversities
 # Survival colors
-survival_colors <- c("Non-relapsed" = "#4775FFFF","Relapsed" = "#E64B35FF")
+survival_colors <- c("Non-relapsed" = "#546fb5FF","Relapsed" = "#e54c35ff")
 p2 <- joined_tibble %>%
   filter(!duplicated(patient_id)) %>%
   filter(TP53=="WT") %>%

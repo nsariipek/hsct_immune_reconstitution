@@ -135,7 +135,7 @@ b <-neotb_grouped %>%
   summarize(mean_of_meanScore = mean(meanScore, na.rm = TRUE))%>%
   ggplot(aes(x = survival, y = mean_of_meanScore)) + 
   geom_bar(stat="summary", fun=mean, aes(fill= survival))+
-  scale_fill_manual(values=c("skyblue1", "salmon"))+
+  scale_fill_manual(values=survival_colors)+
   # scale_color_manual(values = c("orange", "#008080"))+
   geom_jitter(aes(color=patient_id), size = 4) +
   stat_summary(fun.data=mean_se, geom="errorbar", width=.5, linewidth=1) +

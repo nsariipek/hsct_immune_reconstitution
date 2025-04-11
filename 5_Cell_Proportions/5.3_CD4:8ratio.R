@@ -15,6 +15,12 @@ setwd("/home/rstudio/TP53_ImmuneEscape/5_Cell_Proportions")
 # Load the data that contains T cells+ assignments
 Tcells <- readRDS("~/250128_Tcell_subset.rds")
 
+# Update P32 information
+Tcells@meta.data <- Tcells@meta.data %>%
+  mutate(
+    sample_status = if_else(patient_id == "P32", "relapse", sample_status),
+    sample_id = if_else(patient_id == "P32" & sample_id == "P32_Rem", "P32_Rel", sample_id))
+
 # Select only needed variables
 meta= Tcells@meta.data  %>%
       dplyr::select(celltype, cohort, sample_status, orig.ident, sample_id, patient_id,timepoint,survival, library_type) 

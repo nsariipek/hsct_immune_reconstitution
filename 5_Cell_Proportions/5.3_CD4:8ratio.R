@@ -48,7 +48,7 @@ meta <- meta %>%
 # Select only 100-day samples that were in remission at that timepoint
 meta_subset<- meta %>%
              subset(sample_status == "remission" & timepoint %in% c("3", "5", "6") 
-                   & TP53== "MT"
+                 #  & TP53== "MT"
                     )
 
 #For calculations make the table
@@ -62,7 +62,7 @@ tb <-
   #View(tb)
 
 # Survival colors
-survival_colors <- c("Non-relapsed" = "#4775FFFF","Relapsed" = "#E64B35FF")
+survival_colors <- c("Non-relapsed" = "#546fb5FF","Relapsed" = "#e54c35ff")
 
 p1 <- tb %>%
   mutate(survival = factor(survival, levels = c("Non-relapsed","Relapsed"))) %>%
@@ -74,7 +74,7 @@ p1 <- tb %>%
     aes(group = survival),
     method = "t.test",
     method.args = list(var.equal = TRUE),
-    label = "p.signif",
+    label = "p.format",
     label.y = 3,
     size = 4,
     tip.length = 0.02) +
@@ -84,18 +84,20 @@ p1 <- tb %>%
   coord_cartesian(ylim = c(0, 3.5))+
   theme_minimal(base_size = 8) +
   theme(
-    aspect.ratio = 1,
+    aspect.ratio = 2,
     axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 12, color = "black"),
     axis.text.y = element_text(size = 12, color = "black"),
     axis.title.x = element_blank(),
     axis.title.y = element_text(size = 12),
     legend.position = "none",
     panel.grid = element_blank(),
+    axis.ticks = element_line(color = "black"),  
+    axis.ticks.length = unit(0.25, "cm"),
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4))
 
 p1
 # Save the plot
-pdf("5.3_CD4-CD8ratio_MT_only.pdf", width = 3, height = 3)
+pdf("5.3_CD4-CD8ratio.pdf", width = 3, height = 6)
 p1
 dev.off()
 

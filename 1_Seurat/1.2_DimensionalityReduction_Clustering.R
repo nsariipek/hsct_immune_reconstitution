@@ -47,8 +47,7 @@ DimPlot(seu20, reduction = "umap", group.by = "sample_status", shuffle = T) + th
 DimPlot(seu20, reduction = "umap", group.by = "seurat_clusters", shuffle = T) + theme(aspect.ratio = 1)
 FeaturePlot(seu20, features = "CD34") + theme(aspect.ratio = 1)
 
-# Save seu20 to work on annotations. This is ~24 GB
+# Save seu20 to work on annotations. This is ~24 GB (>95% due to the scale data slot)
 saveRDS(seu20, "~/250410_SubsettedSeuratObject.rds")
-
 
 

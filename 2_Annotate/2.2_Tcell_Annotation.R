@@ -18,10 +18,10 @@ seu <- readRDS("~/250410_SubsettedSeuratObject.rds")
 
 # Add cell type annotations as Seurat identity and metadata column as indicated at the end of 2.1_Annotate.R
 Idents(seu) <- "seurat_clusters"
-seu.cluster.ids <- c("T cells", "T cells", "Monocytes", "T cells", "Late Erythroids", "T cells", "Mid Erythroids", "UD1", "B cells", "Monocytes", "Non Classical Monocytes", "T cells", "Pro Monocytes", "Late Erythroids", "Early Erythroids", "UD3", "Early Erythroids", "Pre-B","Progenitors", "cDC", "Pro B cells", "UD1", "Early Erythroids", "Plasma cells", "Cycling T-NK cells", "pDC", "Progenitors", "Progenitors", "Pro B cells", "Late Erythroids", "UD2", "UD2", "UD2")
+seu.cluster.ids <- c("T cells", "T cells", "Monocytes", "T cells", "Late Erythroids", "T cells", "Mid Erythroids", "UD1", "B cells", "Monocytes", "Non Classical Monocytes", "T cells", "Pro Monocytes", "Late Erythroids", "Early Erythroids", "UD3", "Early Erythroids", "Pre-B", "Progenitors", "cDC", "Pro B cells", "UD1", "Early Erythroids", "Plasma cells", "Cycling T-NK cells", "pDC", "Progenitors", "Progenitors", "Pro B cells", "Late Erythroids", "UD2", "UD2", "UD2")
 names(seu.cluster.ids) <- levels(seu)
 seu <- RenameIdents(seu, seu.cluster.ids)
-seu@meta.data$celltype = Idents(seu)
+seu$celltype <- Idents(seu)
 
 # Subset only T cells from all metadata
 seu_T <- subset(x = seu, subset = seurat_clusters %in% c(0,1,3,5,11))
@@ -47,27 +47,13 @@ dev.off()
 
 # Run Find Markers, convert to a tibble and save it as a csv
 Tcell_markers <- FindAllMarkers(seu_T, min.pct = .3, logfc.threshold = .3)
-Tcell_markers_tibble <- as_tibble(Tcell_markers)
-write.csv(Tcell_markers_tibble, file = "2.2_Tcell_markers.csv")
-
-# Assuming the file has columns like 'Subset' and 'Score' to determine top markers,
-# modify the column names based on your data.
-# For example:
-# Subset: The column that identifies different T cell subsets.
-# Score: The column based on which you select the top 10 (e.g., p-value, log2FoldChange, etc.).
-
-# Get the top 10 markers per cluster based on fold change
-top_markers <- Tcell_markers_tibble %>%
-  group_by(cluster) %>%
-  top_n(n = 10, wt = avg_log2FC) %>%
-  arrange(cluster, desc(avg_log2FC))
-
-# Save the top markers to a new CSV
-output_file <- "2.2_Top10_Tcell_markers.csv"
-write.csv(top_markers, output_file, row.names = FALSE)
-
-
-######### Annotation ##########
+top50_markers_tib <- as_tibble(Tcell_markers) %>% filter(avg_log2FC > 0) %>%
+  group_by(cluster) %>% arrange(-avg_log2FC) %>% slice_head(n = 50) %>%
+  select(cluster, gene) %>%
+  pivot_wider(names_from = "cluster", values_from = "gene",
+              names_prefix = "cluster_", values_fn = list) %>%
+  unnest(cols = everything())
+write_csv(top50_markers_tib, file = "2.2_Tcell_markers.csv")
 
 # T cell Features to distinguish populations
 FeaturePlot(seu_T, features = c("CD8A", "CD8B", "CD4", "NCAM1","IL10","TGFB","GATA3","TCF7","SELL","CCR7","SELL","TMIGD2","LEF1","CD28","CD27"))
@@ -93,7 +79,7 @@ FeaturePlot(seu_T, features = c("FCGR3A", "KLRG1", "PRF1", "GZMB"))
 FeaturePlot(seu_T, features =c("LAG3", "XCL1", "CRTAM","IFNG", "CCL4", "PDCD1", "DUSP4", "CD8A", "ZEB2", "NR4A2", "SLA", "NKG7", "TIGIT", "CTSW", "TNFRSF9", "TOX", "LYST", "TNFSF4", "CCL3", "GZMB", "RAB27A", "PRF1", "CD70", "PLSCR1","CXCL13"))
 
 # CD4 naive like
-FeaturePlot(seu_T, features = c("CCR7", "SELL", "CD40LG","IL7R", "TCF7", "LEF1", "GPR183", "KLRB1", "LTB", "MAL", "PASK", "AQP3", "TRAT1"))      
+FeaturePlot(seu_T, features = c("CCR7", "SELL", "CD40LG","IL7R", "TCF7", "LEF1", "GPR183", "KLRB1", "LTB", "MAL", "PASK", "AQP3", "TRAT1"))
 
 # Cytotoxic
 FeaturePlot(seu_T, features = c("NKG7", "CCL4", "CST7", "GZMA", "GZMB", "IFNG", "CCL3"))
@@ -155,33 +141,28 @@ kyle_markerGenes <- read.csv(file = "Signatures/KR_TCellTypeSignatures.csv", hea
 # Add module scores 
 for (n in names(kyle_markerGenes)) {
   print(n)
-  #n <- "HSPC"
   seu_T <- AddModuleScore(object = seu_T, features = kyle_markerGenes[n], name = n)
   colnames(seu_T@meta.data) <- gsub(str_c(n, "1$"), str_c(n, "_Score"), colnames(seu_T@meta.data))
   }
 
 # Visualize
-FeaturePlot(seu_T, features = c("CD4_Naïve_Score", "CD56_dim_NK_Score", "CD8_Term_Eff_Score", "CD8_GZMK_Exh_Score", "CD8_EM_Score", "CD8_Naïve_Score", "NKT_Score", "CD4_CM_Score", "MAIT_Score", "Tregs_Score", "CD56_Bright_NK_Score"))
-ggsave("Tsubset_Kyle_FeaturePlots.pdf", width = 10, height = 8) # this was later moved into FeaturePlots/
+FeaturePlot(seu_T, features = c("CD4_Naïve_Score", "CD56_dim_NK_Score", "CD8_Term_Eff_Score", "CD8_GZMK_Exh_Score", "CD8_EM_Score", "CD8_Naïve_Score", "NKT_Score", "CD4_CM_Score", "MAIT_Score", "Tregs_Score", "CD56_Bright_NK_Score"), raster = T)
+ggsave("FeaturePlots/Tsubset_Kyle_FeaturePlots.pdf", width = 10, height = 8)
 
 # Based on the plots generated above, add T cell cluster names
 Tcell.cluster.ids <- c("CD4 Memory", "CD8 Memory", "CD4 Naïve", "Treg", "CD8 Effector", "CD4 Effector Memory", "γδ T", "CD8 Exhausted", "CD56 Dim NK", "CD8 Naïve", "NK T", "CD56 Dim NK", "CD56 Bright NK", "Adaptive NK")
 names(Tcell.cluster.ids) <- levels(seu_T)
 seu_T <- RenameIdents(seu_T, Tcell.cluster.ids)
 seu_T$celltype <- Idents(seu_T)
-
 # See the levels
 levels(seu_T$celltype)
-levels(seu_T)
-head(seu_T@meta.data)
 
 # See the new annotated UMAP
 DimPlot(seu_T, reduction = "umap", repel = T, group.by = "celltype", label = T) + theme(aspect.ratio = 1)
 
-# Merge cell type annotations
+# Add merged cell type annotations to Seurat object
 meta <- seu@meta.data
 tnk_meta <- seu_T@meta.data
-
 meta$celltype <- as.character(meta$celltype)
 tnk_meta$celltype <- as.character(tnk_meta$celltype)
 meta$cell <- rownames(meta)
@@ -215,34 +196,23 @@ saveRDS(seu, file = "~/250411_SubsettedAnnotatedSeuratObject.rds")
 
 
 
-# COMPARE/TMP
+# Compare new Seurat object with a previous iteration
 seu_old <- readRDS("~/250127_seu_annotated_merged_no-scale.rds")
-seu
 
 # Basic features - OK
 seu_old
 seu
 
-# New one has additional "survival" column
+# New one has additional "cohort_detail" column
 seu_old@meta.data %>% head
 seu@meta.data %>% head
 setdiff(colnames(seu_old@meta.data), colnames(seu@meta.data))
 setdiff(colnames(seu@meta.data), colnames(seu_old@meta.data))
 
-# Same cells
+# Cells and cell type are the same
 identical(colnames(seu_old), colnames(seu))
-
-# Not same celltype?
 identical(seu_old$celltype, seu$celltype)
-tmp_tib <- tibble(old_cell = colnames(seu_old),
-                  new_cell = colnames(seu),
-                  old_celltype = seu_old$celltype,
-                  new_celltype = seu$celltype)
-tmp_tib %>% filter(old_cell != new_cell)
-tmp_tib %>% filter(old_celltype != new_celltype)
 
-
-all( levels(seu_old$celltype) == levels(seu$celltype) )
 
 
 

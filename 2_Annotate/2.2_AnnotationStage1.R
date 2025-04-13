@@ -1,11 +1,10 @@
 # Nurefsan Sariipek and Peter van Galen, updated 250410
-# This script quantifies signatures from previous papers (saved in Signatures) and visualizes them on UMAPs (saved in FeaturePlots)
-# At the end, Seurat cluster IDs are proposed and plotted. These are not saved but rather re-used in 2.2_Tcell_Annotation.R
+# This script quantifies signatures from previous papers (saved in Signatures) and visualizes them on UMAPs (saved in FeaturePlots). In the end, Seurat cluster annotations for the cells (subset 20%) and saved as a csv file
 
 library(tidyverse)
 library(Seurat)
 library(randomcoloR)
-
+library(R.utils)
 #devtools::install_github('immunogenomics/presto')
 
 # Start with a clean slate
@@ -13,38 +12,42 @@ rm(list=ls())
 
 setwd("~/TP53_ImmuneEscape/2_Annotate/")
 
-# Load the saved Seurat object from the last step that contains only 20% of the cells
-seu <- readRDS("~/250410_SubsettedSeuratObject.rds")
+# Load the Seurat object from 2.1_Subset20percent_and_cluster.R that contains 20% of the cells
+seu20 <- readRDS("~/250410_SubsettedSeuratObject.rds")
+
+
+# VISUALIZE MARKER GENES AND SIGNATURES ----------------------------------------
 
 # Visualize the current clusters and save as PDF
-p1 <- DimPlot(seu, reduction = "umap", group.by = "seurat_clusters", shuffle = T, label = T) + theme(aspect.ratio = 1, legend.position = "none")
+p1 <- DimPlot(seu20, reduction = "umap", group.by = "seurat_clusters", shuffle = T, label = T, raster = T) +
+  theme(aspect.ratio = 1, legend.position = "none")
 
-pdf("2.1.1_UMAP_clusters.pdf", width = 10, height = 8)
+pdf("2.2.1_UMAP_clusters.pdf", width = 10, height = 8)
 print(p1)
 dev.off()
 
 # Find and save the most differentially expressed genes
-seu_markers <- FindAllMarkers(seu, min.pct = .3, logfc.threshold = .3)
+seu_markers <- FindAllMarkers(seu20, min.pct = .3, logfc.threshold = .3)
 top50_markers_tib <- as_tibble(seu_markers) %>% filter(avg_log2FC > 0) %>%
   group_by(cluster) %>% arrange(-avg_log2FC) %>% slice_head(n = 50) %>%
   select(cluster, gene) %>%
   pivot_wider(names_from = "cluster", values_from = "gene",
               names_prefix = "cluster_", values_fn = list) %>%
   unnest(cols = everything())
-write_csv(top50_markers_tib, file = "2.1_marker_genes.csv")
+write_csv(top50_markers_tib, file = "2.2_Stage1_MarkerGenes.csv")
 
 # Plot features to get an idea of cluster identities
-FeaturePlot(seu, features = c("CD34","MPO", "CD14", "MS4A1", "CD3G","CD8B"))
+FeaturePlot(seu20, features = c("CD34","MPO", "CD14", "MS4A1", "CD3G","CD8B"))
 # T cell features
-FeaturePlot(seu, features = c("CD8A", "TCF7", "TOX", "HAVCR2", "CXCR3",
+FeaturePlot(seu20, features = c("CD8A", "TCF7", "TOX", "HAVCR2", "CXCR3",
                               "SLAMF6", "CD3E", "CD4", "SELL", "CD44", "PDCD1",
                               "FOXP3", "GZMB", "GZMK", "LAG3", "CD101",
                               "CXCR5", "KLRG1", "IFNG", "TNF")) 
 # HSPC markers
-FeaturePlot(seu, features = c("VIM", "FLT3", "CD34", "ITGAL", "THY1",
+FeaturePlot(seu20, features = c("VIM", "FLT3", "CD34", "ITGAL", "THY1",
                               "PTPRC", "KIT", "SLAMF1", "MME", "SLAMF2", "MPO")) 
 # B cell markers
-FeaturePlot(seu, features = c("CD19", "MS4A1", "PDCD1LG2", "NT5E", "FCER2", "SDC1",
+FeaturePlot(seu20, features = c("CD19", "MS4A1", "PDCD1LG2", "NT5E", "FCER2", "SDC1",
                               "PAX5", "TCF3", "CD80", "SPIB", "BCL6")) 
 
 # We used previously annotated single cell analysis from our lab for manual annotation, including unpublished data from a discovery cohort:
@@ -53,8 +56,8 @@ discoverygenes <- read.table(file = "~/TP53_ImmuneEscape/2_Annotate/Signatures/D
 # Add module scores
 for (n in names(discoverygenes)) {
   print(n)
-  seu <- AddModuleScore(object = seu, features = discoverygenes[n], name = n)
-  colnames(seu@meta.data) <- gsub(str_c(n, "1$"), str_c(n, "_DC_Score"), colnames(seu@meta.data))
+  seu20 <- AddModuleScore(object = seu20, features = discoverygenes[n], name = n)
+  colnames(seu20@meta.data) <- gsub(str_c(n, "1$"), str_c(n, "_DC_Score"), colnames(seu20@meta.data))
 }
 
 # Function to split features into chunks
@@ -90,7 +93,7 @@ for (group_name in names(feature_groups)) {
   
   # Generate plots for each chunk
   for (chunk in feature_chunks) {
-    p <- FeaturePlot(seu, features = chunk, ncol = 2, raster = T)
+    p <- FeaturePlot(seu20, features = chunk, ncol = 2, raster = T)
     print(p)
   }
   
@@ -104,8 +107,8 @@ kyle_signatures <- read.csv(file = "Signatures/KR_CellTypeSignatures.csv", heade
 # Add module scores
 for (n in names(kyle_signatures)) {
   print(n)
-  seu <- AddModuleScore(object = seu, features = kyle_signatures[n], name = n)
-  colnames(seu@meta.data) <- gsub(str_c(n, "1$"), str_c(n, "_KR_Score"), colnames(seu@meta.data))
+  seu20 <- AddModuleScore(object = seu20, features = kyle_signatures[n], name = n)
+  colnames(seu20@meta.data) <- gsub(str_c(n, "1$"), str_c(n, "_KR_Score"), colnames(seu20@meta.data))
   }
 
 # Define feature groups
@@ -131,7 +134,7 @@ for (group_name in names(feature_groups)) {
   
   # Generate plots for each chunk
   for (chunk in feature_chunks) {
-    p <- FeaturePlot(seu, features = chunk, ncol = 2, raster = T)
+    p <- FeaturePlot(seu20, features = chunk, ncol = 2, raster = T)
     print(p)
   }
   
@@ -145,8 +148,8 @@ markergenes <- read.table(file = "Signatures/Griffin_markerGenes.txt", header = 
 # Add module scores
 for (n in names(markergenes)) {
   print(n)
-  seu <- AddModuleScore(object = seu, features = markergenes[n], name = n)
-  colnames(seu@meta.data) <- gsub(str_c(n, "1$"), str_c(n, "_PvG_Score"), colnames(seu@meta.data))
+  seu20 <- AddModuleScore(object = seu20, features = markergenes[n], name = n)
+  colnames(seu20@meta.data) <- gsub(str_c(n, "1$"), str_c(n, "_PvG_Score"), colnames(seu20@meta.data))
 }
 
 feature_groups <- list(Group1 = c("HSPC_PvG_Score", "GMP_PvG_Score", "ProMono_PvG_Score",
@@ -172,7 +175,7 @@ for (group_name in names(feature_groups)) {
   
   # Generate plots for each chunk
   for (chunk in feature_chunks) {
-    p <- FeaturePlot(seu, features = chunk, ncol = 2, raster = T)
+    p <- FeaturePlot(seu20, features = chunk, ncol = 2, raster = T)
     print(p)
   }
   
@@ -180,24 +183,60 @@ for (group_name in names(feature_groups)) {
   dev.off()
 }
 
-# Based on all the information above, add cell annotations
-Idents(seu) <- "seurat_clusters"
-seu.cluster.ids <- c("T cells", "T cells", "Monocytes", "T cells", "Late Erythroids", "T cells", "Mid Erythroids", "UD1", "B cells", "Monocytes", "Non Classical Monocytes", "T cells", "Pro Monocytes", "Late Erythroids", "Early Erythroids", "UD3", "Early Erythroids", "Pre-B", "Progenitors", "cDC", "Pro B cells", "UD1", "Early Erythroids", "Plasma cells", "Cycling T-NK cells", "pDC", "Progenitors", "Progenitors", "Pro B cells", "Late Erythroids", "UD2", "UD2", "UD2")
-names(seu.cluster.ids) <- levels(seu)
-seu <- RenameIdents(seu, seu.cluster.ids)
-seu$celltype <- Idents(seu)
 
-# See the levels
-levels(seu$celltype)
-levels(seu)
-head(seu@meta.data)
+# ANNOTATE ---------------------------------------------------------------------
+
+# Based on all the information above, add cell annotations
+Idents(seu20) <- "seurat_clusters"
+seu20.cluster.ids <- c("T cells", "T cells", "Monocytes", "T cells", "Late Erythroids", "T cells", "Mid Erythroids", "UD1", "B cells", "Monocytes", "Non Classical Monocytes", "T cells", "Pro Monocytes", "Late Erythroids", "Early Erythroids", "UD3", "Early Erythroids", "Pre-B", "Progenitors", "cDC", "Pro B cells", "UD1", "Early Erythroids", "Plasma cells", "Cycling T-NK cells", "pDC", "Progenitors", "Progenitors", "Pro B cells", "Late Erythroids", "UD2", "UD2", "UD2")
+names(seu20.cluster.ids) <- levels(seu20)
+seu20 <- RenameIdents(seu20, seu20.cluster.ids)
+seu20$celltype <- Idents(seu20)
 
 # Visualize the annotated clusters
-mycolors <- distinctColorPalette(k = 34)
-pie(rep(1, 34), col = mycolors) 
-p2 <- DimPlot(seu, reduction = "umap", repel = T, group.by = "celltype", shuffle = T, label = T) + theme(aspect.ratio = 1)
+DimPlot(seu20, reduction = "umap", repel = T, group.by = "celltype", shuffle = T, label = T, raster = T) +
+  theme(aspect.ratio = 1)
 
-pdf("2.1.2_Proposed_annotation.pdf", width = 10, height = 8)
-print(p2)
+
+# PROJECT FULL UMAP AND PREDICT CELL TYPES -------------------------------------
+
+# Load the data from 1.1_CreateSeuratObject.R
+seu <- readRDS(file = "~/250409_MergedSeuratObject.rds")
+
+# Remove the 20% annotated cells from the full object
+seu80 <- subset(seu, cells = setdiff(colnames(seu), colnames(seu20)))
+
+# Check that the cells numbers make sense
+identical(ncol(seu), ncol(seu20)+ncol(seu80))
+
+# UMAP projection of the remaining 80% of cells (similar to https://satijalab.org/seurat/articles/integration_mapping.html#unimodal-umap-projection)
+seu80 <- NormalizeData(seu80)
+seu.anchors <- FindTransferAnchors(reference = seu20, query = seu80, dims = 1:18, reference.reduction = "pca")
+seu80 <- IntegrateEmbeddings(anchorset = seu.anchors, reference = seu20, query = seu80, new.reduction.name = "ref.pca")
+seu80 <- ProjectUMAP(query = seu80, query.reduction = "ref.pca", reference = seu20, reference.reduction = "pca", reduction.model = "umap")
+
+# Transfer celltype annotations
+predictions_df <- TransferData(anchorset = seu.anchors, refdata = seu20$celltype, dims = 1:18)
+colnames(predictions_df) <- gsub("predicted.id", "celltype", colnames(predictions_df))
+seu80 <- AddMetaData(seu80, metadata = select(predictions_df, celltype))
+
+# Compare UMAPs
+p2 <- DimPlot(seu20, reduction = "umap", group.by = "celltype", raster = T) + theme(aspect.ratio = 1)
+p3 <- DimPlot(seu80, reduction = "ref.umap", group.by = "celltype", raster = T) + theme(aspect.ratio = 1)
+
+pdf("2.2.2_AnnotationStage1.pdf", width = 15, height = 8)
+p2 + p3
 dev.off()
 
+# Save a tibble with all cell type annotations and predictions
+all_celltypes_df <- rbind(seu20@meta.data[,"celltype",drop=F], seu80@meta.data[,"celltype",drop=F])
+all_celltypes_tib <- as_tibble(all_celltypes_df, rownames = "cell")
+write_csv(all_celltypes_tib, file = "2.2_Stage1_celltype_annotations.csv")
+gzip("2.2_Stage1_celltype_annotations.csv", overwrite = T, remove = T)
+
+# Save a tibble with all UMAP coordinates and projections
+all_coordinates_df <- rbind(seu20@reductions$umap@cell.embeddings,
+                            seu80@reductions$ref.umap@cell.embeddings)
+all_coordinates_tib <- as_tibble(all_coordinates_df, rownames = "cell")
+write_csv(all_celltypes_tib, file = "2.2_Stage1_umap_coordinates.csv")
+gzip("2.2_Stage1_umap_coordinates.csv", overwrite = T, remove = T)

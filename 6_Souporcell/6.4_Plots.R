@@ -51,7 +51,7 @@ final_dataset$sample_id_short <- substr(as.character(final_dataset$sample_id), 1
 # Define the souporcell colors
 souporcell_colors <-  c("donor" = "#4B3140",recipient ="#E4C9B0", "unknown" = "#b0b0b0")
 # Survival colors
-survival_colors <- c("Non-relapsed" = "#4775FFFF","Relapsed" = "#E64B35FF")
+survival_colors <- c("Non-relapsed" = "#546fb5FF","Relapsed" = "#e54c35ff")
 
 # Organize the dataset 
 t1 <- final_dataset %>%
@@ -220,31 +220,33 @@ dev.off()
 
 # Compare the donor chimerism ratio between cohorts in 100-180 days samples per each celltype
 donor_chimerism_comparision <- t4 %>%
+  filter(celltype %in% c("Progenitors" ,"CD8 Exhausted")) %>%
   ggplot(aes(x = survival, y = donor_percentage, color = survival)) +
-  geom_jitter(width = 0.2, size = 2, alpha = 0.8) +  
+  geom_jitter(width = 0.2, size = 3, alpha = 0.8) +  
   stat_summary(fun = mean, geom = "crossbar", width = 0.5, color = "black", fatten = 2) + 
   facet_wrap(~ celltype, scales = "free_y") +
   stat_compare_means(aes(group = survival), method = "wilcox.test", label.y = 50, label.x = 1.25, size= 3, label="p.format") +  # Mann-Whitney U
   theme_bw() +
-  labs(title = "Donor Chimerism by Survival Status",
-       x = "Survival Status",
-       y = "Donor Percentage") +
+  labs(
+       x = "Cohort",
+       y = "Donor Chimerism") +
   scale_color_manual(values = survival_colors) +
   scale_y_continuous(limits = c(0, 100)) + 
   theme_minimal(base_size = 10) +
   theme(
-    axis.text.x = element_text(size = 8, angle = 45, hjust = 1, vjust = 1, color = "black"),
+    axis.line = element_line(color = "black", size = 0.5),
+    axis.text.x = element_text(size = 10, angle = 45, hjust = 1, vjust = 1, color = "black"),
     axis.text.y = element_text(size = 8, color = "black"),
     axis.title.x = element_text(size = 10, color = "black"),
     axis.title.y = element_text(size = 11, color = "black"),
-    plot.title = element_text(size = 12, color = "black", hjust = 0.5),  
-    legend.title = element_text(size = 11, color = "black"),
+    strip.text = element_text(size = 10, color = "black"),
+   legend.title = element_text(size = 11, color = "black"),
     panel.grid = element_blank(),                
     axis.ticks = element_line(color = "black", size = 0.5) 
   ) 
 
 
-pdf("6.4_donor_chimerism_comparision_MT_obly.pdf", width = 8, height = 8)
+pdf("6.4_donor_chimerism_comparision_prog_exh_MT_only.pdf", width = 8, height = 6)
 donor_chimerism_comparision
 dev.off()
 

@@ -180,6 +180,8 @@ t4 <- final_dataset %>%
   select(sample_id, celltype, survival, donor_percentage) %>%
   distinct()
 
+write_csv(t4,"donorchimerism.csv")
+
 # Set survival order
 t4$survival <- factor(t4$survival, levels = c("Relapsed", "Non-relapsed"))
 

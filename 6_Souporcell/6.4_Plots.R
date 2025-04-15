@@ -102,7 +102,8 @@ t2 <- final_dataset %>%
 
 
 p2 <- t2 %>%
-  filter(!celltype %in% c("UD1", "UD2", "UD3")) %>%
+  filter(!celltype %in% c("UD1", "UD2", "UD3"),
+         origin %in% c("donor", "recipient")) %>%
   ggplot(aes(x = sample_id, y = proportion, fill = origin)) +
   geom_bar(stat = "identity", position = "stack", width = 0.8) +
   facet_wrap(~celltype, scales = "free_x", nrow = 3) +

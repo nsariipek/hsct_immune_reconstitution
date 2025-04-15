@@ -14,8 +14,8 @@ library(ggforce) # for geom_sina
 # Empty environment
 rm(list=ls())
 
-#set wd
-setwd("~/TP53_ImmuneEscape/3_DGE/3.1_Neoantigenscore/")
+#set working directory
+setwd("~/TP53_ImmuneEscape/3_DGE/3.3_Neoantigenscore/")
 
 # Load the seurat object from 6.1 script end of line 163 which has the TCR+ scRNA combined object
 combined <- readRDS("~/Tcells_TCR.rds")
@@ -90,7 +90,7 @@ neotb <- neoantigen%>%
   select(sample_id, CTstrict, neoantigen1,survival,patient_id)
 
 # For each TCR, calculate relative clonotype size (grouped by sample)
-neotb_grouped <- neotb %>%
+neotb_grouped <- neotb %>% 
   group_by(sample_id) %>%
   mutate(n_total = n()) %>%
   ungroup() %>%
@@ -125,10 +125,10 @@ s <- ggplot(neotb_grouped, aes(x=survival, y=meanScore)) +
 
 s
 
-pdf("Neocd8cells_MTvsWT.pdf", width = 20, height = 10)
+pdf("Neocd8cells.pdf", width = 20, height = 10)
 s
 dev.off()
-
+survival_colors <- c("Non-relapsed" = "#546fb5FF","Relapsed" = "#e54c35ff")
 # Bar plot showing mean for each patient's score
 b <-neotb_grouped %>%
   group_by(patient_id,survival) %>%

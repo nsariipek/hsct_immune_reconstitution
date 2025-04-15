@@ -87,5 +87,5 @@ celltype_colors <- c(`Progenitors` = "#3B1B53FF",
 all(celltype_colors %in% color_data$color)
 all(color_data$color %in% celltype_colors)
 
-# Save. Some changes may have been made to this file later using Microsoft Excel.
+# Save. Some later changes were made to this file in Excel/text processor
 write.table(data.frame(celltype = names(celltype_colors), color = celltype_colors, stringsAsFactors = FALSE), "../celltype_colors.txt", sep = "\t", row.names = FALSE, quote = FALSE)

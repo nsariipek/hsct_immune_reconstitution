@@ -13,211 +13,145 @@ setwd("~/TP53_ImmuneEscape/2_Annotate/")
 rm(list=ls())
 
 # Load the data from previous scripts
-seu_merge <- readRDS(file = "~/250409_MergedSeuratObject.rds")
-seu20_anno <- readRDS(file = "~/250411_SubsettedAnnotatedSeuratObject.rds")
+seu <- readRDS(file = "~/250409_MergedSeuratObject.rds")
+seu20 <- readRDS("~/250410_SubsettedSeuratObject.rds")
 
 # Remove the annotated cells from the full object
-seu20_anno.cells <- colnames(seu20_anno)
-seu80 <- subset(seu_merge, cells = setdiff(colnames(seu_merge), seu20_anno.cells))
+seu80 <- subset(seu, cells = setdiff(colnames(seu), colnames(seu20)))
 # Check that the cells numbers make sense
-identical(ncol(seu80), ncol(seu_merge)-ncol(seu20_anno))
+identical(ncol(seu80), ncol(seu)-ncol(seu20))
+
+# Add cell type annotations: start with all cells
+anno1_tib <- read_csv("2.2_Step1_celltype_annotations.csv.gz")
+anno1_df <- data.frame(celltype = anno1_tib$celltype, row.names = anno1_tib$cell)
+# TNK cells
+anno2_tib <- read_csv("2.3_Step2_TNK_annotations.csv.gz")
+anno2_df <- data.frame(celltype = anno2_tib$celltype, row.names = anno2_tib$cell)
+# Replace "T cells" with granular annotations
+anno1_df[rownames(anno1_df) %in% rownames(anno2_df),"celltype"] <- anno2_df$celltype
+# Add to Seurat object
+seu20 <- AddMetaData(seu20, anno1_df)
+
 
 # PROJECT FULL UMAP AND PREDICT CELL TYPES -------------------------------------
+
 # UMAP projection of the remaining 80% of cells (similar to https://satijalab.org/seurat/articles/integration_mapping.html#unimodal-umap-projection)
 seu80 <- NormalizeData(seu80)
-seu.anchors <- FindTransferAnchors(reference = seu20_anno, query = seu80, dims = 1:18, reference.reduction = "pca")
-seu80 <- IntegrateEmbeddings(anchorset = seu.anchors, reference = seu20_anno, query = seu80, new.reduction.name = "ref.pca")
-seu80 <- ProjectUMAP(query = seu80, query.reduction = "ref.pca", reference = seu20_anno, reference.reduction = "pca", reduction.model = "umap", reduction.name = "ref.umap", reduction.key = "refUMAP_")
+seu.anchors <- FindTransferAnchors(reference = seu20, query = seu80, dims = 1:18, reference.reduction = "pca")
+seu80 <- IntegrateEmbeddings(anchorset = seu.anchors, reference = seu20, query = seu80, new.reduction.name = "ref.pca")
+seu80 <- ProjectUMAP(query = seu80, query.reduction = "ref.pca", reference = seu20, reference.reduction = "pca", reduction.model = "umap")
 
-# Transfer celltype annotations
-predictions_df <- TransferData(anchorset = seu.anchors, refdata = seu20_anno$celltype, dims = 1:18)
+# Cell type prediction for the remaining 80% of cells
+predictions_df <- TransferData(anchorset = seu.anchors, refdata = seu20$celltype, dims = 1:18)
+
+# Compare original and projected/predicted data
 colnames(predictions_df) <- gsub("predicted.id", "celltype", colnames(predictions_df))
-predictions_df$cell <- rownames(predictions_df)
-write_csv(predictions_df[,c("cell", "celltype")], file = "2.3_CellTypePredictions.csv")
-seu80 <- AddMetaData(seu80, metadata = select(predictions_df, celltype))
 
 # Compare UMAPs
-p1 <- DimPlot(seu20_anno, reduction = "umap", group.by = "celltype", shuffle = T) + theme(aspect.ratio = 1)
-p2 <- DimPlot(seu80, reduction = "ref.umap", group.by = "celltype", shuffle = T) + theme(aspect.ratio = 1)
+seu80 <- AddMetaData(seu80, metadata = select(predictions_df, celltype))
+p1 <- DimPlot(seu20, reduction = "umap", group.by = "celltype", shuffle = T, label = T, raster = T) +
+  theme(aspect.ratio = 1, legend.position = "none")
+p2 <- DimPlot(seu80, reduction = "ref.umap", group.by = "celltype", shuffle = T, label = T, raster = T) +
+  theme(aspect.ratio = 1, legend.position = "none")
+
+pdf("2.4.1_Projections_and_predictions.pdf", width = 15, height = 10)
 p1 + p2
-
-# Merge all cells without dimensionality reductions (but with cell type annotations)
-seu_merge_anno <- merge(seu20_anno, seu80, merge.dr = F)
-
-# Set cell types as a logically ordered factor
-celltypes <- c("Progenitors", "Early Erythroids", "Mid Erythroids", "Late Erythroids", "Pro Monocytes",
-               "Monocytes", "Non Classical Monocytes", "cDC",  "pDC", "Pro B cells", "Pre-B", "B cells",
-               "Plasma cells", "CD4 Naïve", "CD4 Memory", "CD4 Effector Memory", "Treg", "CD8 Naïve",
-               "CD8 Effector", "CD8 Memory", "CD8 Exhausted",  "γδ T", "NK T", "Adaptive NK", "CD56 Bright NK",
-               "CD56 Dim NK", "Cycling T-NK cells", "UD1", "UD2", "UD3")
-# Check that the overlap is perfect
-all(seu_merge_anno$celltype %in% celltypes)
-all(celltypes %in% seu_merge_anno$celltype)
-seu_merge_anno$celltype <- factor(seu_merge_anno$celltype, levels = celltypes)
-seu_merge_anno@active.ident <- seu_merge_anno$celltype
-
-# Layers are a Seurat v5 feature we don't need
-seu_merge_anno <- JoinLayers(seu_merge_anno)
-
-# Check that the total number of cells makes sense
-ncol(seu_merge); ncol(seu_merge_anno)
-
-# Used below
-tnk_celltypes <- c("CD4 Memory", "CD8 Memory", "CD4 Naïve", "Treg", "CD8 Effector", "CD4 Effector Memory", "γδ T", "CD8 Exhausted", "CD56 Dim NK", "CD8 Naïve", "NK T", "CD56 Dim NK", "CD56 Bright NK", "Adaptive NK")
-tnk_cells <- colnames( subset(seu_merge_anno, celltype %in% tnk_celltypes) )
+dev.off()
 
 
-# Project TNK UMAP -------------------------------------------------------------
-# First I need to reload & subset the original merged Seurat object
-seu_for_TNK <- readRDS(file = "~/250409_MergedSeuratObject.rds")
-seu80_TNK <- subset(seu_for_TNK, cells = intersect(setdiff(colnames(seu_for_TNK), colnames(seu20_anno.cells)), tnk_cells))
-seu80_TNK <- NormalizeData(seu80_TNK)
-# I also need the TNK object saved in 2.2_Tcell_Annotation.R
-seu20_T <- readRDS("250411_AnnotatedSeurat_TNK.rds")
-# Then predict UMAP
-seu20_T <- ScaleData(seu20_T) # not sure why, but the next line gives an error without this
-
-seu20_T@reductions$umap <- NULL
-seu20_T <- RunUMAP(seu20_T, dims = 1:20, return.model = T)
-seu20_T@assays$RNA@layers$scale.data <- NULL # No idea why this would work --- I'm desparate
-
-seuT.anchors <- FindTransferAnchors(reference = seu20_T, query = seu80_TNK, dims = 1:20, reference.reduction = "pca")
-seu80_TNK <- IntegrateEmbeddings(anchorset = seuT.anchors, reference = seu20_T, query = seu80_TNK, new.reduction.name = "ref.pca")
-seu80_TNK <- ProjectUMAP(query = seu80_TNK, query.reduction = "ref.pca", reference = seu20_T, reference.reduction = "pca", reduction.model = "umap", reduction.name = "ref.umapTNK", reduction.key = "refUMAPTNK_")
-DimPlot(seu80_TNK, reduction = "ref.umapTNK", group.by = "patient_id") + theme(aspect.ratio = 1)
-
-
-# The following also does not work because seu20_anno does not have a model saved with it's TNK UMAP
-seu80_TNK2 <- subset(seu80, celltype %in% tnk_celltypes)
-seu80_TNK2 <- ProjectUMAP(query = seu80_TNK2, query.reduction = "ref.pca", reference = seu20_anno, reference.reduction = "pca", reduction.model = "umapTNK", reduction.name = "ref.umapTNK", reduction.key = "refUMAPTNK_")
-
-
-#seu80_tnk <- subset(seu80, celltype %in% tnk_celltypes)
-#seu <- readRDS("~/250410_SubsettedSeuratObject.rds")
-#seu20_anno_tnk <- subset(seu20_anno, celltype %in% tnk_celltypes)
-
-#seu20_anno_tnk2 <- seu20_anno_tnk
-#seu20_anno_tnk2 <- subset(seu20_anno, cells = seu20_tnk_cells)
-#seu20_anno_tnk2 <- FindVariableFeatures(seu20_anno_tnk2)
-#seu20_anno_tnk2@reductions$umapTNK <- NULL
-#seu20_anno_tnk2 <- FindNeighbors(seu20_anno_tnk2, dims = 1:20)
-#seu20_anno_tnk2 <- RunUMAP(seu20_anno_tnk2, dims = 1:20, reduction.name = "umapTNK")
-
-#seu20_anno_tnk@reductions
-#DimPlot(seu20_anno_tnk, reduction = "umapTNK")
-#DimPlot(seu20_anno_tnk2, reduction = "umapTNK")
-
-#seu.anchors <- FindTransferAnchors(reference = seu20_anno_tnk, query = seu80_tnk, dims = 1:20, reference.reduction = "pca")
-#seu80_tnk <- IntegrateEmbeddings(anchorset = seu.anchors, reference = seu20_anno_tnk, query = seu80_tnk, new.reduction.name = "pca")
-
-#seu80_tnk <- ProjectUMAP(query = seu80_tnk, query.reduction = "pca", reference = seu20_anno_tnk, reference.reduction = "pca", reduction.model = "umapTNK", reduction.name = "umapTNK", reduction.key = "umapTNK_")
-
-#seu20_tnk_cells <- rownames(na.omit(seu20_anno@reductions$umapTNK))
-#celltypes.tmp <- unique(subset(seu20_anno, cells = cells.tmp)$celltype)
-
-# Add UMAP coordinates to metadata
-#seu20_anno$UMAP_1 <- seu20_anno@reductions$umap@cell.embeddings[,1]
-#seu20_anno$UMAP_2 <- seu20_anno@reductions$umap@cell.embeddings[,2]
-#seu80$UMAP_1 <- seu80@reductions$ref.umap@cell.embeddings[,1]
-#seu80$UMAP_2 <- seu80@reductions$ref.umap@cell.embeddings[,2]
-
-  
-# Now the only difference is the TNK UMAP coordinates. We don't have those for seu80, and perhaps we won't need them
-setdiff(colnames(seu20_anno@meta.data), colnames(seu80@meta.data))
-setdiff(colnames(seu80@meta.data), colnames(seu20_anno@meta.data))
-seu20_anno@reductions
-seu80@reductions
-
-
-
-
-
-
-
+# MERGE AND SAVE ---------------------------------------------------------------
 
 # Add complete UMAP coordinates
-umap_reduction_df <- data.frame(UMAP_1 = NA, UMAP_2 = NA, rownames = colnames(seu_merge_anno))
-umap_reduction_df[colnames(seu20_anno),"UMAP_1"] <- seu20_anno@reductions$umap@cell.embeddings[,1]
-umap_reduction_df[colnames(seu20_anno),"UMAP_2"] <- seu20_anno@reductions$umap@cell.embeddings[,2]
+umap_reduction_df <- data.frame(UMAP_1 = rep(NA, ncol(seu)), UMAP_2 = rep(NA, ncol(seu)), row.names = colnames(seu))
+umap_reduction_df[colnames(seu20),"UMAP_1"] <- seu20@reductions$umap@cell.embeddings[,1]
+umap_reduction_df[colnames(seu20),"UMAP_2"] <- seu20@reductions$umap@cell.embeddings[,2]
 umap_reduction_df[colnames(seu80),"UMAP_1"] <- seu80@reductions$ref.umap@cell.embeddings[,1]
 umap_reduction_df[colnames(seu80),"UMAP_2"] <- seu80@reductions$ref.umap@cell.embeddings[,2]  
-seu_merge_anno[["umap"]] <- CreateDimReducObject(embeddings = umap_reduction_df, key = "umap_")
+seu[["umap"]] <- CreateDimReducObject(embeddings = as.matrix(umap_reduction_df), key = "umap_")
+DimPlot(seu, reduction = "umap", group.by = "patient_id") + theme(aspect.ratio = 1)
 
-# Add TNK UMAP coordinates
-tnk_reduction_df <- data.frame(umapTNK_1 = NA, umapTNK_2 = NA, rownames = colnames(seu_merge_anno))
-tnk_reduction_df[colnames(seu20_T),"umapTNK_1"] <- seu20_T@reductions$umap@cell.embeddings[,1]
-tnk_reduction_df[colnames(seu20_T),"umapTNK_2"] <- seu20_T@reductions$umap@cell.embeddings[,2]
-tnk_reduction_df[colnames(seu80_TNK),"umapTNK_1"] <- seu80_TNK@reductions$umap@cell.embeddings[,1]
-tnk_reduction_df[colnames(seu80_TNK),"umapTNK_2"] <- seu80_TNK@reductions$umap@cell.embeddings[,2]
-seu_merge_anno[["umapTNK"]] <- CreateDimReducObject(embeddings = tnk_reduction_df, key = "umapTNK_")
+# Add TNK UMAP coordinates. The projection for additional T cells does not work
+coord_tib <- read_csv("2.3_Step2_umapTNK_coordinates.csv.gz")
+coord_mat <- as.matrix(data.frame(coord_tib[,"umap_1"], coord_tib[,"umap_2"], row.names = coord_tib$cell))
+seu[["umapTNK"]] <- CreateDimReducObject(embeddings = coord_mat, key = "umapTNK_")
+DimPlot(seu, reduction = "umapTNK", group.by = "patient_id") + theme(aspect.ratio = 1)
 
-# Check
-seu_merge_anno@reductions # should contain umap and umapTNK
-apply(seu_merge_anno@reductions$umap, 2, function(x) sum(is.na(x))) # should be 0, 0
+# Add cell type annotations
+celltypes_df <- rbind(seu20@meta.data[,"celltype",drop = F],
+                      seu80@meta.data[,"celltype",drop = F])
+seu <- AddMetaData(seu, celltypes_df)
 
-nrow(na.omit(seu_merge_anno@reductions$umapTNK)) # should be the same as:
-seu_merge_anno@meta.data %>% filter(celltypes %in% tnk_celltypes) %>% nrow
+# Set cell types as a logically ordered factor
+celltypes <- c("Progenitors", "Early Erythroid", "Mid Erythroid", "Late Erythroid", "Pro Monocytes",
+               "Monocytes", "Non-Classical Monocytes", "cDC",  "pDC", "Pro-B", "Pre-B", "B cells",
+               "Plasma cells", "CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg",
+               "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "Gamma-Delta T", "NK-T",
+               "Adaptive NK", "CD56 Bright NK", "CD56 Dim NK", "Cycling T-NK",
+               "UD1", "UD2", "UD3")
+# Check that the overlap is perfect
+all(seu$celltype %in% celltypes)
+all(celltypes %in% seu$celltype)
+seu$celltype <- factor(seu$celltype, levels = celltypes)
+seu@active.ident <- seu$celltype
 
+# Add normalized data slot
+seu <- NormalizeData(seu)
 
+# Some checks
+seu@reductions # should contain umap and umapTNK
+apply(seu@reductions$umap@cell.embeddings, 2, function(x) sum(is.na(x))) # should be 0, 0
+nrow(na.omit(seu@reductions$umapTNK@cell.embeddings)) # should be 49745
+tnk_celltypes <- c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg",
+                   "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "Gamma-Delta T", "NK-T",
+                   "Adaptive NK", "CD56 Bright NK", "CD56 Dim NK")
+seu@meta.data %>% filter(celltype %in% tnk_celltypes) %>% nrow # should be 248936
 
-
-
-
-
-# Load colors from 2.3_PvG-Colors.R
-celltype_colors_df <- read.table("../celltype_colors.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE, comment.char = "")
+# Load colors from 2_Annotate/Colors.R
+celltype_colors_df <- read.table("../celltype_colors.txt", sep = "\t", header = T, stringsAsFactors = F, comment.char = "")
 celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltype)
 
-# Use ggplot to create a UMAP (DimPlot doesn't work b/c the reductions were lost during merge):
-seu_merge_anno@meta.data %>%
-  sample_frac(1) %>%  # Randomly shuffle rows
-  ggplot(aes(x = UMAP_1, y = UMAP_2, color = celltype)) +
-  geom_scattermore(pointsize = 8, pixels = c(4096, 4096)) +
-  scale_color_manual(values = celltype_colors) +
+# Show UMAP for all cells
+DimPlot(seu, reduction = "umap", shuffle = T, raster = T, cols = celltype_colors) +
   theme_bw() +
-  theme(aspect.ratio = 1,
-        panel.grid = element_blank()) +
-  guides(color = guide_legend(override.aes = list(size = 3)))
+  theme(aspect.ratio = 1, panel.grid = element_blank())
 
-# Save pdf
-ggsave("2.5_UMAP_all_cells.pdf", width = 8, height = 4.5)
+ggsave("2.4.1_All_cells_annotated.pdf", width = 8, height = 4.5)
+
+# Show UMAP for TNK cells. Only 20% of the cells have UMAP coordinates.
+DimPlot(seu, reduction = "umapTNK", shuffle = T, raster = T, pt.size = 2, cols = celltype_colors) +
+  theme_bw() +
+  theme(aspect.ratio = 1, panel.grid = element_blank())
+
+ggsave("2.4.2_TNK_cells_annotated.pdf", width = 6, height = 4)
 
 # Save to persistent disk
-saveRDS(seu_merge_anno, "~/250412_SeuratAnno.rds")
-#seu_merge <- readRDS("~/250127_seurat_annotated_497K.rds")
+saveRDS(seu, "~/250415_Seurat_all_cells_annotated.rds")
 
-# Copy to bucket
-#system("gsutil cp ~/250127_seurat_annotated_497K.rds gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/")
+# Copy to bucket (Terminal)
+#system("gsutil cp ~/250415_Seurat_all_cells_annotated.rds gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/")
 
-# Compare
+
+
+# Compare with previous clustering
 seu_old <- readRDS("~/250127_seurat_annotated_497K.rds")
 
 # Basic features
-seu_merge
+seu
 seu_old
 
 # New one has additional "cohort_detail" column
 seu_old@meta.data %>% head
 seu@meta.data %>% head
-setdiff(colnames(seu_old@meta.data), colnames(seu_merge@meta.data))
-setdiff(colnames(seu_merge@meta.data), colnames(seu_old@meta.data))
+setdiff(colnames(seu_old@meta.data), colnames(seu@meta.data))
+setdiff(colnames(seu@meta.data), colnames(seu_old@meta.data))
 
-# Cells and cell type are the same
-identical(colnames(seu_old), colnames(seu_merge))
-identical(seu_old$celltype, seu_merge$celltype)
+# Check cells and cell types
+identical(colnames(seu_old), colnames(seu))
+identical(sort(colnames(seu_old)), sort(colnames(seu)))
+celltypes_tib <- select(as_tibble(seu_old@meta.data, rownames = "cell"), cell, celltype) %>%
+  full_join(., select(as_tibble(seu@meta.data, rownames = "cell"), cell, celltype), by = "cell") %>%
+  group_by(celltype.x, celltype.y) %>% count
+view(celltypes_tib)
 
 
 
-
-
-# Addition by Nurefsan, Make the T cell version 250403
-Tcells <- read_rds("~/250128_Tcell_subset.rds")
-Tcells@meta.data %>%
-  sample_frac(1) %>%  # Randomly shuffle rows
-  ggplot(aes(x = UMAP_1, y = UMAP_2, color = celltype)) +
-  geom_scattermore(pointsize = 8, pixels = c(4096, 4096)) +
-  scale_color_manual(values = celltype_colors) +
-  theme_bw() +
-  theme(aspect.ratio = 1,
-        panel.grid = element_blank()) +
-  guides(color = guide_legend(override.aes = list(size = 3)))

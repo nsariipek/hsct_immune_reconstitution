@@ -15,6 +15,7 @@ setwd("/home/rstudio/TP53_ImmuneEscape/2_Annotate")
 seu <- readRDS(file = "~/250409_MergedSeuratObject.rds")
 
 # Select 20% of the cells to make dimensionality reduction and clustering manageable. Later on, the remaining 80% of cells are added back.
+# An alternative method is described here: https://satijalab.org/seurat/articles/seurat5_sketch_analysis.html
 seu20.cells <- colnames(seu)[seq(1, length(colnames(seu)), by = 5)]
 seu20 <- subset(seu, cells = seu20.cells)
 

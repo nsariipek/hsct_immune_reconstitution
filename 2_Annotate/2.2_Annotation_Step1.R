@@ -22,7 +22,7 @@ seu20 <- readRDS("~/250410_SubsettedSeuratObject.rds")
 p1 <- DimPlot(seu20, reduction = "umap", group.by = "seurat_clusters", shuffle = T, label = T, raster = T) +
   theme(aspect.ratio = 1, legend.position = "none")
 
-pdf("2.2.1_UMAP_clusters.pdf", width = 10, height = 8)
+pdf("2.2.1_Step1_UMAP_clusters.pdf", width = 10, height = 8)
 print(p1)
 dev.off()
 
@@ -34,7 +34,7 @@ top50_markers_tib <- as_tibble(seu_markers) %>% filter(avg_log2FC > 0) %>%
   pivot_wider(names_from = "cluster", values_from = "gene",
               names_prefix = "cluster_", values_fn = list) %>%
   unnest(cols = everything())
-write_csv(top50_markers_tib, file = "2.2_Stage1_MarkerGenes.csv")
+write_csv(top50_markers_tib, file = "2.2_AlCells_MarkerGenes.csv")
 
 # Plot features to get an idea of cluster identities
 FeaturePlot(seu20, features = c("CD34","MPO", "CD14", "MS4A1", "CD3G","CD8B"))
@@ -184,59 +184,30 @@ for (group_name in names(feature_groups)) {
 }
 
 
-# ANNOTATE ---------------------------------------------------------------------
+# ANNOTATE AND SAVE ------------------------------------------------------------
 
 # Based on all the information above, add cell annotations
 Idents(seu20) <- "seurat_clusters"
-seu20.cluster.ids <- c("T cells", "T cells", "Monocytes", "T cells", "Late Erythroids", "T cells", "Mid Erythroids", "UD1", "B cells", "Monocytes", "Non Classical Monocytes", "T cells", "Pro Monocytes", "Late Erythroids", "Early Erythroids", "UD3", "Early Erythroids", "Pre-B", "Progenitors", "cDC", "Pro B cells", "UD1", "Early Erythroids", "Plasma cells", "Cycling T-NK cells", "pDC", "Progenitors", "Progenitors", "Pro B cells", "Late Erythroids", "UD2", "UD2", "UD2")
+seu20.cluster.ids <- c("T cells", "T cells", "Monocytes", "T cells", "Late Erythroid", "T cells", "Mid Erythroid", "UD1", "B cells", "Monocytes", "Non-Classical Monocytes", "T cells", "Pro Monocytes", "Late Erythroid", "Early Erythroid", "UD3", "Early Erythroid", "Pre-B", "Progenitors", "cDC", "Pro-B", "UD1", "Early Erythroid", "Plasma cells", "Cycling T-NK", "pDC", "Progenitors", "Progenitors", "Pro-B", "Late Erythroid", "UD2", "UD2", "UD2")
 names(seu20.cluster.ids) <- levels(seu20)
 seu20 <- RenameIdents(seu20, seu20.cluster.ids)
 seu20$celltype <- Idents(seu20)
 
-# Visualize the annotated clusters
-DimPlot(seu20, reduction = "umap", repel = T, group.by = "celltype", shuffle = T, label = T, raster = T) +
-  theme(aspect.ratio = 1)
+# Save plot
+p2 <- DimPlot(seu20, reduction = "umap", repel = T, label = T, raster = T) +
+  theme(aspect.ratio = 1, legend.position = "none")
 
-
-# PROJECT FULL UMAP AND PREDICT CELL TYPES -------------------------------------
-
-# Load the data from 1.1_CreateSeuratObject.R
-seu <- readRDS(file = "~/250409_MergedSeuratObject.rds")
-
-# Remove the 20% annotated cells from the full object
-seu80 <- subset(seu, cells = setdiff(colnames(seu), colnames(seu20)))
-
-# Check that the cells numbers make sense
-identical(ncol(seu), ncol(seu20)+ncol(seu80))
-
-# UMAP projection of the remaining 80% of cells (similar to https://satijalab.org/seurat/articles/integration_mapping.html#unimodal-umap-projection)
-seu80 <- NormalizeData(seu80)
-seu.anchors <- FindTransferAnchors(reference = seu20, query = seu80, dims = 1:18, reference.reduction = "pca")
-seu80 <- IntegrateEmbeddings(anchorset = seu.anchors, reference = seu20, query = seu80, new.reduction.name = "ref.pca")
-seu80 <- ProjectUMAP(query = seu80, query.reduction = "ref.pca", reference = seu20, reference.reduction = "pca", reduction.model = "umap")
-
-# Transfer celltype annotations
-predictions_df <- TransferData(anchorset = seu.anchors, refdata = seu20$celltype, dims = 1:18)
-colnames(predictions_df) <- gsub("predicted.id", "celltype", colnames(predictions_df))
-seu80 <- AddMetaData(seu80, metadata = select(predictions_df, celltype))
-
-# Compare UMAPs
-p2 <- DimPlot(seu20, reduction = "umap", group.by = "celltype", raster = T) + theme(aspect.ratio = 1)
-p3 <- DimPlot(seu80, reduction = "ref.umap", group.by = "celltype", raster = T) + theme(aspect.ratio = 1)
-
-pdf("2.2.2_AnnotationStage1.pdf", width = 15, height = 8)
-p2 + p3
+pdf("2.2.2_Step1_Annotated_clusters.pdf", width = 9, height = 8)
+print(p2)
 dev.off()
 
 # Save a tibble with all cell type annotations and predictions
-all_celltypes_df <- rbind(seu20@meta.data[,"celltype",drop=F], seu80@meta.data[,"celltype",drop=F])
-all_celltypes_tib <- as_tibble(all_celltypes_df, rownames = "cell")
-write_csv(all_celltypes_tib, file = "2.2_Stage1_celltype_annotations.csv")
-gzip("2.2_Stage1_celltype_annotations.csv", overwrite = T, remove = T)
+celltypes_tib <- as_tibble(seu20@meta.data, rownames = "cell") %>% select(cell, celltype)
+write_csv(celltypes_tib, file = "2.2_Step1_celltype_annotations.csv")
+gzip("2.2_Step1_celltype_annotations.csv", overwrite = T, remove = T)
 
-# Save a tibble with all UMAP coordinates and projections
-all_coordinates_df <- rbind(seu20@reductions$umap@cell.embeddings,
-                            seu80@reductions$ref.umap@cell.embeddings)
-all_coordinates_tib <- as_tibble(all_coordinates_df, rownames = "cell")
-write_csv(all_celltypes_tib, file = "2.2_Stage1_umap_coordinates.csv")
-gzip("2.2_Stage1_umap_coordinates.csv", overwrite = T, remove = T)
+# Save a tibble with all UMAP coordinates and projections (not needed)
+#coordinates_tib <- as_tibble(seu20@reductions$umap@cell.embeddings, rownames = "cell")
+#write_csv(coordinates_tib, file = "2.2_Step1_umap_coordinates.csv")
+#gzip("2.2_Step1_umap_coordinates.csv", overwrite = T, remove = T)
+

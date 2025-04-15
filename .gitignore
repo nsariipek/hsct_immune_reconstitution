@@ -6,6 +6,7 @@ AuxiliaryFiles/
 3_DGE/AuxiliaryFiles/
 5_Souporcell/AuxiliaryFiles/
 6_TCR_Diversity/AuxiliaryFiles/
+Obsolete*
 
 # This is a temporary solution, we should make sure all necessary files are synchronized or stored elsewhere:
 souporcell*.tsv

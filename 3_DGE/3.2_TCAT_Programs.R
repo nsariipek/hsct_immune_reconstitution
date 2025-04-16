@@ -70,7 +70,7 @@ metadata_100d_tib <- metadata_tib %>%
       mutate(cohort_binary = substr(cohort, 3, nchar(cohort)))
 
 # Quick look at antigen-specific activation (ASA) scores...Is the difference between cohorts driven by TP53?
-metadata_100d_tib %>%
+p1 <- metadata_100d_tib %>%
       filter(celltype == "CD8 Effector") %>%
       ggplot(aes(
             x = cohort_binary,
@@ -79,7 +79,13 @@ metadata_100d_tib %>%
       )) +
       geom_violin(scale = "width", fill = NA, draw_quantiles = 0.5) +
       stat_compare_means(method = "wilcox.test", show.legend = F) + # This may not be the best statistical test
-      theme_bw()
+      theme_bw()+
+  #nurefsan's edition
+  theme(panel.grid = element_blank())
+# Save the plot 
+pdf("asa_tcat.pdf",width= 8, height = 6 )
+p1
+dev.off()
 
 # Subset for analysis of activity programs from the paper (Figure 2C, Table S1)
 activity_programs <- c(

@@ -1,4 +1,4 @@
-# Nurefsan Sariipek and Peter van Galen, updated 250410
+# Nurefsan Sariipek and Peter van Galen, updated 250416
 # Annotate T cells in a more granular way
 
 # Load the libraries
@@ -19,7 +19,7 @@ setwd("~/TP53_ImmuneEscape/2_Annotate/")
 # 1. DIMENSIONALITY REDUCTION AND CLUSTER --------------------------------------
 
 # Load the Seurat object from 2.1_Subset20percent_and_cluster.R that contains 20% of the cells
-seu20 <- readRDS("~/250410_SubsettedSeuratObject.rds")
+seu20 <- readRDS("~/250416_SubsettedSeuratObject.rds")
 
 # Add cell type annotations from 2.2_AnnotationStage1.R
 anno_tib <- read_csv("2.2_Step1_celltype_annotations.csv.gz")
@@ -35,7 +35,7 @@ seu20_T <- FindClusters(seu20_T, resolution = 1.1)
 seu20_T <- RunUMAP(seu20_T, dims = 1:20, return.model = T)
 
 pdf("2.3.1_Step2_UMAP_clusters.pdf", width = 6, height = 6)
-DimPlot(seu20_T, group.by = "patient_id", shuffle = T, raster = T) + theme(aspect.ratio = 1, legend.position = "none")
+DimPlot(seu20_T, group.by = "patient_id", shuffle = T, raster = T) + theme(aspect.ratio = 1)
 DimPlot(seu20_T, group.by = "seurat_clusters", label = T, raster = T) + theme(aspect.ratio = 1)
 FeaturePlot(seu20_T, features = "CD4", reduction = "umap", raster = T) + theme(aspect.ratio = 1)
 FeaturePlot(seu20_T, features = "CD8A", reduction = "umap", raster = T) + theme(aspect.ratio = 1)
@@ -156,7 +156,7 @@ FeaturePlot(seu20_T, features = c("CD4_Naïve_Score", "CD56_dim_NK_Score", "CD8_
 ggsave("FeaturePlots/Tsubset_Kyle_FeaturePlots.pdf", width = 10, height = 8)
 
 
-# 3. # ANNOTATE AND SAVE -------------------------------------------------------
+# 3. ANNOTATE AND SAVE ---------------------------------------------------------
 
 # Add T cell cluster names
 Tcell.cluster.ids <- c("CD4 Memory","CD8 Memory","CD4 Naive","Treg","CD8 Effector","CD4 Effector Memory","Gamma-Delta T","CD8 Exhausted","CD56 Dim NK","CD8 Naive","NK-T","CD56 Dim NK","CD56 Bright NK", "Adaptive NK")

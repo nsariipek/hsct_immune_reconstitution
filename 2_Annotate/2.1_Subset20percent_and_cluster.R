@@ -12,7 +12,7 @@ rm(list=ls())
 setwd("/home/rstudio/TP53_ImmuneEscape/2_Annotate")
 
 # Load the data from 1.1_CreateSeuratObject.R
-seu <- readRDS(file = "~/250409_MergedSeuratObject.rds")
+seu <- readRDS(file = "~/250416_MergedSeuratObject.rds")
 
 # Select 20% of the cells to make dimensionality reduction and clustering manageable. Later on, the remaining 80% of cells are added back.
 # An alternative method is described here: https://satijalab.org/seurat/articles/seurat5_sketch_analysis.html
@@ -49,6 +49,6 @@ FeaturePlot(seu20, features = "CD34") + theme(aspect.ratio = 1)
 
 # Save seu20 to work on annotations. Save storage by removing the scale data slot
 seu20@assays$RNA$scale.data <- NULL
-saveRDS(seu20, "~/250410_SubsettedSeuratObject.rds")
+saveRDS(seu20, "~/250416_SubsettedSeuratObject.rds")
 
 

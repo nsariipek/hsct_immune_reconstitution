@@ -1,4 +1,4 @@
-# Nurefsan Sariipek, updated on 250104
+# Nurefsan Sariipek, updated on 250416
 # Create Seurat object with metadata from CellRanger count matrices
 
 # Load the needed libraries
@@ -118,7 +118,7 @@ ggsave("~/TP53_ImmuneEscape/1_Seurat/1.1_FeatureScatter.pdf", width = 10, height
 
 gc()
 
-# Count the cells before filtering 
+# Count the cells before filtering
 cell_numbers <- as.data.frame(seu$orig.ident %>% tabyl %>% select(".", "n") %>% rename(n_prefilter = n))
 
 # Filter data by QC thresholds based on the plots above
@@ -237,6 +237,10 @@ seu$sample_id <- case_when(grepl("2446", seu$orig.ident) ~ "P01_Pre", # previous
                            grepl("2332",seu$orig.ident) ~ "P27_Rem", # previously P31
                            grepl("2448",seu$orig.ident) ~ "P29_Rel", # previously P32
                            grepl("2745",seu$orig.ident) ~ "P28_Rem") # previously P33
+
+# Add TP53 mutation status
+seu$TP53_status <- case_when(grepl("P01|P02|P03|P04|P05|P06|P20|P21|P22|P23|P30|P31|P32|P33", seu$patient_id) ~ "MUT",
+                             grepl("P07|P08|P09|P10|P11|P12|P13|P14|P15|P16|P17|P18|P19|P24|P25|P26|P27|P28|P29", seu$patient_id) ~ "WT")
 
 # Add the time point to show the sample time as months after tx
 seu$timepoint <- case_when(grepl("2446", seu$orig.ident) ~ 0,

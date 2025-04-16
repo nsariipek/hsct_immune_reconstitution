@@ -1,4 +1,4 @@
-# Nurefsan Sariipek and Peter van Galen, updated 250410
+# Nurefsan Sariipek and Peter van Galen, updated 250416
 # This script quantifies signatures from previous papers (saved in Signatures) and visualizes them on UMAPs (saved in FeaturePlots). In the end, Seurat cluster annotations for the cells (subset 20%) and saved as a csv file
 
 library(tidyverse)
@@ -13,7 +13,7 @@ rm(list=ls())
 setwd("~/TP53_ImmuneEscape/2_Annotate/")
 
 # Load the Seurat object from 2.1_Subset20percent_and_cluster.R that contains 20% of the cells
-seu20 <- readRDS("~/250410_SubsettedSeuratObject.rds")
+seu20 <- readRDS("~/250416_SubsettedSeuratObject.rds")
 
 
 # VISUALIZE MARKER GENES AND SIGNATURES ----------------------------------------
@@ -188,7 +188,7 @@ for (group_name in names(feature_groups)) {
 
 # Based on all the information above, add cell annotations
 Idents(seu20) <- "seurat_clusters"
-seu20.cluster.ids <- c("T cells", "T cells", "Monocytes", "T cells", "Late Erythroid", "T cells", "Mid Erythroid", "UD1", "B cells", "Monocytes", "Non-Classical Monocytes", "T cells", "Pro Monocytes", "Late Erythroid", "Early Erythroid", "UD3", "Early Erythroid", "Pre-B", "Progenitors", "cDC", "Pro-B", "UD1", "Early Erythroid", "Plasma cells", "Cycling T-NK", "pDC", "Progenitors", "Progenitors", "Pro-B", "Late Erythroid", "UD2", "UD2", "UD2")
+seu20.cluster.ids <- c("T cells", "T cells", "Monocytes", "T cells", "Late Erythroid", "T cells", "Mid Erythroid", "UD1", "B cells", "Monocytes", "Non-Classical Monocytes", "T cells", "Pro Monocytes", "Late Erythroid", "Early Erythroid", "UD3", "Early Erythroid", "Pre-B", "HSPCs", "cDC", "Pro-B", "UD1", "Early Erythroid", "Plasma cells", "Cycling T-NK", "pDC", "HSPCs", "HSPCs", "Pro-B", "Late Erythroid", "UD2", "UD2", "UD2")
 names(seu20.cluster.ids) <- levels(seu20)
 seu20 <- RenameIdents(seu20, seu20.cluster.ids)
 seu20$celltype <- Idents(seu20)

@@ -1,4 +1,4 @@
-# Nurefsan Sariipek and Peter van Galen, 250127
+# Nurefsan Sariipek and Peter van Galen, 250416
 # Merge the 80% of cells, which were excluded in 1.2_DimensionalityReduction_Clustering.R, with the annotated 20% of cells and transfer UMAP coordinates as well as celltype labels.
 
 library(tidyverse)
@@ -13,8 +13,8 @@ setwd("~/TP53_ImmuneEscape/2_Annotate/")
 rm(list=ls())
 
 # Load the data from previous scripts
-seu <- readRDS(file = "~/250409_MergedSeuratObject.rds")
-seu20 <- readRDS("~/250410_SubsettedSeuratObject.rds")
+seu <- readRDS(file = "~/250416_MergedSeuratObject.rds")
+seu20 <- readRDS("~/250416_SubsettedSeuratObject.rds")
 
 # Remove the annotated cells from the full object
 seu80 <- subset(seu, cells = setdiff(colnames(seu), colnames(seu20)))
@@ -82,7 +82,7 @@ celltypes_df <- rbind(seu20@meta.data[,"celltype",drop = F],
 seu <- AddMetaData(seu, celltypes_df)
 
 # Set cell types as a logically ordered factor
-celltypes <- c("Progenitors", "Early Erythroid", "Mid Erythroid", "Late Erythroid", "Pro Monocytes",
+celltypes <- c("HSPCs", "Early Erythroid", "Mid Erythroid", "Late Erythroid", "Pro Monocytes",
                "Monocytes", "Non-Classical Monocytes", "cDC",  "pDC", "Pro-B", "Pre-B", "B cells",
                "Plasma cells", "CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg",
                "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "Gamma-Delta T", "NK-T",
@@ -125,10 +125,10 @@ DimPlot(seu, reduction = "umapTNK", shuffle = T, raster = T, pt.size = 2, cols =
 ggsave("2.4.2_TNK_cells_annotated.pdf", width = 6, height = 4)
 
 # Save to persistent disk
-saveRDS(seu, "~/250415_Seurat_all_cells_annotated.rds")
+saveRDS(seu, "~/250416_Seurat_all_cells_annotated.rds")
 
 # Copy to bucket (Terminal)
-#system("gsutil cp ~/250415_Seurat_all_cells_annotated.rds gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/")
+#system("gsutil cp ~/250416_Seurat_all_cells_annotated.rds gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/")
 
 
 
@@ -146,7 +146,6 @@ setdiff(colnames(seu_old@meta.data), colnames(seu@meta.data))
 setdiff(colnames(seu@meta.data), colnames(seu_old@meta.data))
 
 # Check cells and cell types
-identical(colnames(seu_old), colnames(seu))
 identical(sort(colnames(seu_old)), sort(colnames(seu)))
 celltypes_tib <- select(as_tibble(seu_old@meta.data, rownames = "cell"), cell, celltype) %>%
   full_join(., select(as_tibble(seu@meta.data, rownames = "cell"), cell, celltype), by = "cell") %>%

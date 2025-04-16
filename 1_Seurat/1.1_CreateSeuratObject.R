@@ -153,90 +153,90 @@ seu$sample_status <- case_when(grepl("9596|2379|4618|9355|2446|1972|1677|1195|56
                                grepl("2448|2737|1953|1811|1347", seu$orig.ident) ~ "relapse")
 
 # Add patient number
-seu$patient_id <- case_when(grepl("2446|25802|2645", seu$orig.ident) ~ "P01",
-                            grepl("1972|2220|2621", seu$orig.ident) ~ "P02",
-                            grepl("9185", seu$orig.ident) ~ "P03",
-                            grepl("2599", seu$orig.ident) ~ "P04",
-                            grepl("9596|25809|2737", seu$orig.ident) ~ "P05",
-                            grepl("2379|2434", seu$orig.ident) ~ "P06",
-                            grepl("2518", seu$orig.ident) ~ "P07",
-                            grepl("4618|6174|9931|1953", seu$orig.ident) ~ "P08",
-                            grepl("1677|1732|1811", seu$orig.ident) ~ "P09",
-                            grepl("1195|1285|1347", seu$orig.ident) ~ "P10",
-                            grepl("5641|6244", seu$orig.ident) ~ "P11",
-                            grepl("9355|1013", seu$orig.ident) ~ "P12",
-                            grepl("1665",seu$orig.ident) ~ "P13",
-                            grepl("1745",seu$orig.ident) ~ "P14",
-                            grepl("1817",seu$orig.ident) ~ "P15",
-                            grepl("2408",seu$orig.ident) ~ "P16",
-                            grepl("2988",seu$orig.ident) ~ "P17",
-                            grepl("1762",seu$orig.ident) ~ "P18",
-                            grepl("2698",seu$orig.ident) ~ "P19",
-                            grepl("2791",seu$orig.ident) ~ "P20",
-                            grepl("2977",seu$orig.ident) ~ "P21",
-                            grepl("2986",seu$orig.ident) ~ "P22",
-                            grepl("1671",seu$orig.ident) ~ "P23",
-                            grepl("2517",seu$orig.ident) ~ "P24",
-                            grepl("2820",seu$orig.ident) ~ "P25",
-                            grepl("2961",seu$orig.ident) ~ "P26",
-                            grepl("3000",seu$orig.ident) ~ "P27",
-                            grepl("1764",seu$orig.ident) ~ "P28",
-                            grepl("1804",seu$orig.ident) ~ "P29",
-                            grepl("1964",seu$orig.ident) ~ "P30",
-                            grepl("2332",seu$orig.ident) ~ "P31",
-                            grepl("2448",seu$orig.ident) ~ "P32",
-                            grepl("2745",seu$orig.ident) ~ "P33" )
+seu$patient_id <- case_when(grepl("2446|25802|2645", seu$orig.ident) ~ "P01", # previously P01
+                            grepl("1972|2220|2621", seu$orig.ident) ~ "P02", # previously P02
+                            grepl("9185", seu$orig.ident) ~ "P03", # previously P03
+                            grepl("2599", seu$orig.ident) ~ "P04", # previously P04
+                            grepl("9596|25809|2737", seu$orig.ident) ~ "P20", # previously P05
+                            grepl("2379|2434", seu$orig.ident) ~ "P21", # previously P06
+                            grepl("2518", seu$orig.ident) ~ "P22", # previously P07
+                            grepl("4618|6174|9931|1953", seu$orig.ident) ~ "P23", # previously P08
+                            grepl("1677|1732|1811", seu$orig.ident) ~ "P30", # previously P09
+                            grepl("1195|1285|1347", seu$orig.ident) ~ "P31", # previously P10
+                            grepl("5641|6244", seu$orig.ident) ~ "P32", # previously P11
+                            grepl("9355|1013", seu$orig.ident) ~ "P33", # previously P12
+                            grepl("1665",seu$orig.ident) ~ "P07", # previously P13
+                            grepl("1745",seu$orig.ident) ~ "P05", # previously P14
+                            grepl("1817",seu$orig.ident) ~ "P08", # previously P15
+                            grepl("2408",seu$orig.ident) ~ "P09", # previously P16
+                            grepl("2988",seu$orig.ident) ~ "P06", # previously P17
+                            grepl("1762",seu$orig.ident) ~ "P10", # previously P18
+                            grepl("2698",seu$orig.ident) ~ "P11", # previously P19
+                            grepl("2791",seu$orig.ident) ~ "P12", # previously P20
+                            grepl("2977",seu$orig.ident) ~ "P13", # previously P21
+                            grepl("2986",seu$orig.ident) ~ "P14", # previously P22
+                            grepl("1671",seu$orig.ident) ~ "P15", # previously P23
+                            grepl("2517",seu$orig.ident) ~ "P16", # previously P24
+                            grepl("2820",seu$orig.ident) ~ "P17", # previously P25
+                            grepl("2961",seu$orig.ident) ~ "P18", # previously P26
+                            grepl("3000",seu$orig.ident) ~ "P19", # previously P27
+                            grepl("1764",seu$orig.ident) ~ "P24", # previously P28
+                            grepl("1804",seu$orig.ident) ~ "P25", # previously P29
+                            grepl("1964",seu$orig.ident) ~ "P26", # previously P30
+                            grepl("2332",seu$orig.ident) ~ "P27", # previously P31
+                            grepl("2448",seu$orig.ident) ~ "P29", # previously P32
+                            grepl("2745",seu$orig.ident) ~ "P28" ) # previously P33
 
 # Add a unique sample identifier to combine MNC and CD3 libraries
-seu$sample_id <- case_when(grepl("2446", seu$orig.ident) ~ "P01_Pre",
-                           grepl("25802", seu$orig.ident) ~ "P01_Rem1",
-                           grepl("2645", seu$orig.ident) ~ "P01_Rem2",
-                           grepl("1972", seu$orig.ident) ~ "P02_Pre",
-                           grepl("2220", seu$orig.ident) ~ "P02_Rem1",
-                           grepl("2621", seu$orig.ident) ~ "P02_Rem2",
-                           grepl("9185", seu$orig.ident) ~ "P03_Rem",
-                           grepl("2599", seu$orig.ident) ~ "P04_Rem",
-                           grepl("9596", seu$orig.ident) ~ "P05_Pre",
-                           grepl("25809", seu$orig.ident) ~ "P05_Rem",
-                           grepl("2737", seu$orig.ident) ~ "P05_Rel",
-                           grepl("2379", seu$orig.ident) ~ "P06_Pre",
-                           grepl("2434", seu$orig.ident) ~ "P06_Rem",
-                           grepl("2518", seu$orig.ident) ~ "P07_Rem",
-                           grepl("4618", seu$orig.ident) ~ "P08_Pre",
-                           grepl("6174", seu$orig.ident) ~ "P08_Rem1",
-                           grepl("9931", seu$orig.ident) ~ "P08_Rem2",
-                           grepl("1953", seu$orig.ident) ~ "P08_Rel",
-                           grepl("1677", seu$orig.ident) ~ "P09_Pre",
-                           grepl("1732", seu$orig.ident) ~ "P09_Rem",
-                           grepl("1811", seu$orig.ident) ~ "P09_Rel",
-                           grepl("1195", seu$orig.ident) ~ "P10_Pre",
-                           grepl("1285", seu$orig.ident) ~ "P10_Rem",
-                           grepl("1347", seu$orig.ident) ~ "P10_Rel",
-                           grepl("5641", seu$orig.ident) ~ "P11_Pre",
-                           grepl("6244", seu$orig.ident) ~ "P11_Rem",
-                           grepl("9355", seu$orig.ident) ~ "P12_Pre",
-                           grepl("1013", seu$orig.ident) ~ "P12_Rem",
-                           grepl("1665",seu$orig.ident) ~ "P13_Rem",
-                           grepl("1745",seu$orig.ident) ~ "P14_Rem",
-                           grepl("1817",seu$orig.ident) ~ "P15_Rem",
-                           grepl("2408",seu$orig.ident) ~ "P16_Rem",
-                           grepl("2988",seu$orig.ident) ~ "P17_Rem",
-                           grepl("1762",seu$orig.ident) ~ "P18_Rem",
-                           grepl("2698",seu$orig.ident) ~ "P19_Rem",
-                           grepl("2791",seu$orig.ident) ~ "P20_Rem",
-                           grepl("2977",seu$orig.ident) ~ "P21_Rem",
-                           grepl("2986",seu$orig.ident) ~ "P22_Rem",
-                           grepl("1671",seu$orig.ident) ~ "P23_Rem",
-                           grepl("2517",seu$orig.ident) ~ "P24_Rem",
-                           grepl("2820",seu$orig.ident) ~ "P25_Rem",
-                           grepl("2961",seu$orig.ident) ~ "P26_Rem",
-                           grepl("3000",seu$orig.ident) ~ "P27_Rem",
-                           grepl("1764",seu$orig.ident) ~ "P28_Rem",
-                           grepl("1804",seu$orig.ident) ~ "P29_Rem",
-                           grepl("1964",seu$orig.ident) ~ "P30_Rem",
-                           grepl("2332",seu$orig.ident) ~ "P31_Rem",
-                           grepl("2448",seu$orig.ident) ~ "P32_Rel",
-                           grepl("2745",seu$orig.ident) ~ "P33_Rem")
+seu$sample_id <- case_when(grepl("2446", seu$orig.ident) ~ "P01_Pre", # previously P01
+                           grepl("25802", seu$orig.ident) ~ "P01_Rem1", # previously P01
+                           grepl("2645", seu$orig.ident) ~ "P01_Rem2", # previously P01
+                           grepl("1972", seu$orig.ident) ~ "P02_Pre", # previously P02
+                           grepl("2220", seu$orig.ident) ~ "P02_Rem1", # previously P02
+                           grepl("2621", seu$orig.ident) ~ "P02_Rem2", # previously P02
+                           grepl("9185", seu$orig.ident) ~ "P03_Rem", # previously P03
+                           grepl("2599", seu$orig.ident) ~ "P04_Rem", # previously P04
+                           grepl("9596", seu$orig.ident) ~ "P20_Pre", # previously P05
+                           grepl("25809", seu$orig.ident) ~ "P20_Rem", # previously P05
+                           grepl("2737", seu$orig.ident) ~ "P20_Rel", # previously P05
+                           grepl("2379", seu$orig.ident) ~ "P21_Pre", # previously P06
+                           grepl("2434", seu$orig.ident) ~ "P21_Rem", # previously P06
+                           grepl("2518", seu$orig.ident) ~ "P22_Rem", # previously P07
+                           grepl("4618", seu$orig.ident) ~ "P23_Pre", # previously P08
+                           grepl("6174", seu$orig.ident) ~ "P23_Rem1", # previously P08
+                           grepl("9931", seu$orig.ident) ~ "P23_Rem2", # previously P08
+                           grepl("1953", seu$orig.ident) ~ "P23_Rel", # previously P08
+                           grepl("1677", seu$orig.ident) ~ "P30_Pre", # previously P09
+                           grepl("1732", seu$orig.ident) ~ "P30_Rem", # previously P09
+                           grepl("1811", seu$orig.ident) ~ "P30_Rel", # previously P09
+                           grepl("1195", seu$orig.ident) ~ "P31_Pre", # previously P10
+                           grepl("1285", seu$orig.ident) ~ "P31_Rem", # previously P10
+                           grepl("1347", seu$orig.ident) ~ "P31_Rel", # previously P10
+                           grepl("5641", seu$orig.ident) ~ "P32_Pre", # previously P11
+                           grepl("6244", seu$orig.ident) ~ "P32_Rem", # previously P11
+                           grepl("9355", seu$orig.ident) ~ "P33_Pre", # previously P12
+                           grepl("1013", seu$orig.ident) ~ "P33_Rem", # previously P12
+                           grepl("1665",seu$orig.ident) ~ "P07_Rem", # previously P13
+                           grepl("1745",seu$orig.ident) ~ "P05_Rem", # previously P14
+                           grepl("1817",seu$orig.ident) ~ "P08_Rem", # previously P15
+                           grepl("2408",seu$orig.ident) ~ "P09_Rem", # previously P16
+                           grepl("2988",seu$orig.ident) ~ "P06_Rem", # previously P17
+                           grepl("1762",seu$orig.ident) ~ "P10_Rem", # previously P18
+                           grepl("2698",seu$orig.ident) ~ "P11_Rem", # previously P19
+                           grepl("2791",seu$orig.ident) ~ "P12_Rem", # previously P20
+                           grepl("2977",seu$orig.ident) ~ "P13_Rem", # previously P21
+                           grepl("2986",seu$orig.ident) ~ "P14_Rem", # previously P22
+                           grepl("1671",seu$orig.ident) ~ "P15_Rem", # previously P23
+                           grepl("2517",seu$orig.ident) ~ "P16_Rem", # previously P24
+                           grepl("2820",seu$orig.ident) ~ "P17_Rem", # previously P25
+                           grepl("2961",seu$orig.ident) ~ "P18_Rem", # previously P26
+                           grepl("3000",seu$orig.ident) ~ "P19_Rem", # previously P27
+                           grepl("1764",seu$orig.ident) ~ "P24_Rem", # previously P28
+                           grepl("1804",seu$orig.ident) ~ "P25_Rem", # previously P29
+                           grepl("1964",seu$orig.ident) ~ "P26_Rem", # previously P30
+                           grepl("2332",seu$orig.ident) ~ "P27_Rem", # previously P31
+                           grepl("2448",seu$orig.ident) ~ "P29_Rel", # previously P32
+                           grepl("2745",seu$orig.ident) ~ "P28_Rem") # previously P33
 
 # Add the time point to show the sample time as months after tx
 seu$timepoint <- case_when(grepl("2446", seu$orig.ident) ~ 0,
@@ -301,4 +301,4 @@ seu$sample_id <- as.factor(seu@meta.data$sample_id)
 sapply(seu@meta.data, function(x) sum(is.na(x)))
 
 # Save (this takes a while, you can monitor progress (growing file size) in the Terminal - it's about 2.2 Gb in the end)
-saveRDS(seu, file = "~/250409_MergedSeuratObject.rds")
+saveRDS(seu, file = "~/250416_MergedSeuratObject.rds")

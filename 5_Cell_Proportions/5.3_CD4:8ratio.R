@@ -1,5 +1,6 @@
 ## Calculating CD4/8 Ratio
 # NS 240418, updated at 250129
+# This need updating
 
 # Load libraries
 library(tidyverse)
@@ -61,9 +62,8 @@ tb <-
 
   #View(tb)
 
-# Survival colors
-survival_colors <- c("Non-relapsed" = "#546fb5FF","Relapsed" = "#e54c35ff")
-
+# Cohort colors
+cohort_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
 p1 <- tb %>%
   mutate(survival = factor(survival, levels = c("Non-relapsed","Relapsed"))) %>%
   ggplot(aes(x = survival, y = ratio)) +

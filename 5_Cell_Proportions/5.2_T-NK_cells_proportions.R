@@ -1,4 +1,4 @@
-# Nurefsan Sariipek, 231103 updated at 250225
+# Nurefsan Sariipek, 231103 updated at 250416
 # Check T/NK cell proportions
 # Load the libraries
 library(tidyverse)
@@ -14,19 +14,23 @@ rm(list=ls())
 
 # For Nurefsan:
 setwd("~/TP53_ImmuneEscape/5_Cell_Proportions/")
-# Read the latest and turn into data frame
-seu <- readRDS("~/250416_Seurat_all_cells_annotated.rds")
-seu_df <- seu @meta.data
-#Save as this 
-write_csv(seu_df,"~/seu_df_250416.csv")
 
-# Load the colors
+# # Read the latest and turn into data frame
+# seu <- readRDS("~/250416_Seurat_all_cells_annotated.rds")
+# seu_df <- seu@meta.data
+# #Save as this 
+# write_csv(seu_df,"~/seu_df_250416.csv")
+
+# Load the saved seu dataframe
+seu_df <- read_csv("~/seu_df_250416.csv")
+
+# Define the color palette
 # Celltype colors
 celltype_colors_df <- read.table("~/TP53_ImmuneEscape/celltype_colors.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE, comment.char = "")
-
 celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltype)
-# Survival colors
-survival_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
+
+# Cohort colors
+cohort_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
 
 # Prepare the data
 bar_data <- seu_df %>%
@@ -39,8 +43,7 @@ filter(timepoint %in% c("3","5","6") ,
   group_by(patient_id) %>%
   mutate(percent = count / sum(count) * 100) 
 
-
-
+# Plot 
 p1 <- ggplot(bar_data, aes(x = patient_id, y = percent, fill = celltype)) +
   geom_bar(stat = "identity", width = 0.8) +
   labs(x = "Patient ID", y = "Cell Type Proportion (%)") +
@@ -54,8 +57,7 @@ p1 <- ggplot(bar_data, aes(x = patient_id, y = percent, fill = celltype)) +
     legend.title = element_blank(),
     panel.grid.major.x = element_blank(),
     axis.line = element_line(color = "black"),
-    axis.ticks = element_line(color = "black")
-  )
+    axis.ticks = element_line(color = "black"))
 p1
 
 # Save as a pdf
@@ -64,6 +66,7 @@ p1
 dev.off()
 
 ###############################################################
+
 # Calculate the proportions for T cells in MT samples
 proportions_df <- seu_df %>%
   filter(celltype %in% c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg",
@@ -71,8 +74,7 @@ proportions_df <- seu_df %>%
                          "Gamma-Delta T"),
          timepoint %in% c("3", "5", "6"),
          sample_status == "remission",
-         TP53_status == "MUT") %>%
-  mutate(celltype = droplevels(celltype)) %>%  
+         TP53_status == "WT") %>%
   group_by(sample_id, cohort) %>%
   count(celltype, name = "n") %>%   # Simpler and more reliable than `tabyl()`
   mutate(total_T_cells = sum(n),
@@ -86,7 +88,7 @@ p2 <- ggplot(proportions_df, aes(x = cohort, y = percent_within_T, fill = cohort
   coord_cartesian(ylim = c(0, 50)) +
   scale_y_continuous(breaks = seq(0, 50, 10)) +  # Add y-axis ticks every 10
   facet_wrap(~ celltype, ncol = 10) +
-  scale_fill_manual(values = survival_colors) +
+  scale_fill_manual(values = cohortl_colors) +
   labs(y = "% within total T cells", x = NULL) +
   stat_compare_means(
     aes(x = cohort, y = percent_within_T, group = cohort),
@@ -110,8 +112,9 @@ p2 <- ggplot(proportions_df, aes(x = cohort, y = percent_within_T, fill = cohort
 
 # Check the plot
 p2
+
 # Save as a pdf
-pdf("5.2_T_proportions_TP53_MT_pvalue.pdf", width = 8, height = 6)
+pdf("5.2_T_proportions_TP53_WT_pvalue.pdf", width = 8, height = 6)
 p2
 dev.off()
 

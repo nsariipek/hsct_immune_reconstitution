@@ -14,48 +14,32 @@ rm(list=ls())
 
 # For Nurefsan:
 setwd("~/TP53_ImmuneEscape/5_Cell_Proportions/")
+# Read the latest and turn into data frame
+seu <- readRDS("~/250416_Seurat_all_cells_annotated.rds")
+seu_df <- seu @meta.data
+#Save as this 
+write_csv(seu_df,"~/seu_df_250416.csv")
 
-# Load the seurat meta data that I saved previously instead of the whole seurat object
-seu_df <- read_csv("~/seu_df_250411.csv")
+# Load the colors
+# Celltype colors
+celltype_colors_df <- read.table("~/TP53_ImmuneEscape/celltype_colors.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE, comment.char = "")
 
-# Add the TP53 MT information
-seu_df <- seu_df %>%
-  mutate(TP53_status = case_when(
-    patient_id %in% c("P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P14", "P17") ~ "MT",
-    patient_id %in% c("P13", "P15", "P16", "P18", "P19", "P20", "P21", "P22", "P23", "P24", "P25", "P26", "P27",
-                      "P28", "P29", "P30", "P31", "P32", "P33") ~ "WT",
-    TRUE ~ NA_character_  # fallback in case of unmatched ID
-  ))
-
-
-# Set the sample order same as Figure 1 swimmer plot
-sample_order <- c(paste0("P", str_pad(1:4, 2, pad = "0")),     
-                  paste0("P", str_pad(13:27, 2, pad = "0")),     
-                  paste0("P", str_pad(5:12, 2, pad = "0")),   
-                  paste0("P", str_pad(28:33, 2, pad = "0")))     
-
-cell_order <- c("CD4 Naïve", "CD4 Memory", "CD4 Effector Memory", "CD8 Naïve","CD8 Memory","CD8 Effector","CD8 Exhausted","Treg","γδ T")
+celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltype)
+# Survival colors
+survival_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
 
 # Prepare the data
 bar_data <- seu_df %>%
-  mutate(patient_id = factor(patient_id, levels = sample_order)) %>%
-  filter(timepoint %in% c("3","5","6") & sample_status =="remission")%>%
-  filter(celltype %in% c("CD4 Naïve","CD4 Memory","CD4 Effector Memory","Treg","CD8 Naïve","CD8 Memory",
-                         "CD8 Effector","CD8 Exhausted", "γδ T")) %>%
+mutate(patient_id = factor(patient_id)) %>%
+filter(timepoint %in% c("3","5","6") , 
+       sample_status =="remission", 
+       celltype %in% c("CD4 Naive","CD4 Memory","CD4 Effector Memory","Treg","CD8 Naive","CD8 Memory", "CD8 Effector","CD8 Exhausted", "Gamma-Delta T")) %>%
   group_by(patient_id, celltype) %>%
   summarise(count = n(), .groups = "drop") %>%
   group_by(patient_id) %>%
   mutate(percent = count / sum(count) * 100) 
-  
 
- bar_data$celltype <- factor(bar_data$celltype, levels = cell_order)
 
- # Load colors from 2.3_PvG-Colors.R
- celltype_colors_df <- read.table("../celltype_colors.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE, comment.char = "")
- celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltype)
- 
- # Survival colors
- survival_colors <- c("Non-relapsed" = "#546fb5FF","Relapsed" = "#e54c35ff")
 
 p1 <- ggplot(bar_data, aes(x = patient_id, y = percent, fill = celltype)) +
   geom_bar(stat = "identity", width = 0.8) +
@@ -81,43 +65,35 @@ dev.off()
 
 ###############################################################
 # Calculate the proportions for T cells in MT samples
-
-  proportions_df <- seu_df %>%
-  filter(celltype %in% c("CD4 Naïve","CD4 Memory","CD4 Effector Memory","Treg",
-                         "CD8 Naïve","CD8 Memory","CD8 Effector","CD8 Exhausted", 
-                         "delta-gamma T") &
-           timepoint %in% c("3","5","6") &
-           sample_status == "remission"
-         &  TP53_status == "WT"
-         ) %>%
-  group_by(sample_id, survival) %>%
-  reframe(tabyl(celltype)) %>%
-  group_by(sample_id, survival) %>%
-  mutate(
-    total_T_cells = sum(n),
-    percent_within_T = (n / total_T_cells) * 100,
-    celltype = factor(celltype, levels = c("CD4 Naïve","CD4 Memory","CD4 Effector Memory",
-                                           "Treg","CD8 Naïve","CD8 Memory",
-                                           "CD8 Effector","CD8 Exhausted","delta-gamma T")),
-    survival = factor(survival, levels = c("Non-relapsed", "Relapsed")))
-
-
+proportions_df <- seu_df %>%
+  filter(celltype %in% c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg",
+                         "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted",
+                         "Gamma-Delta T"),
+         timepoint %in% c("3", "5", "6"),
+         sample_status == "remission",
+         TP53_status == "MUT") %>%
+  mutate(celltype = droplevels(celltype)) %>%  
+  group_by(sample_id, cohort) %>%
+  count(celltype, name = "n") %>%   # Simpler and more reliable than `tabyl()`
+  mutate(total_T_cells = sum(n),
+         percent_within_T = (n / total_T_cells) * 100) %>%
+  ungroup()
 
 # Plot
-p2 <- ggplot(proportions_df, aes(x = survival, y = percent_within_T, fill = survival)) +
+p2 <- ggplot(proportions_df, aes(x = cohort, y = percent_within_T, fill = cohort)) +
   geom_boxplot(outlier.shape = NA, width = 0.6, alpha = 0.9, linewidth = 0.5, color = "black") + 
-  geom_jitter(shape = 21, size = 1.8, width = 0.15, stroke = 0.2, color = "black", aes(fill = survival)) +
+  geom_jitter(shape = 21, size = 1.8, width = 0.15, stroke = 0.2, color = "black", aes(fill = cohort)) +
   coord_cartesian(ylim = c(0, 50)) +
+  scale_y_continuous(breaks = seq(0, 50, 10)) +  # Add y-axis ticks every 10
   facet_wrap(~ celltype, ncol = 10) +
   scale_fill_manual(values = survival_colors) +
   labs(y = "% within total T cells", x = NULL) +
   stat_compare_means(
-    aes(x = survival, y = percent_within_T, group = survival),  # safest
+    aes(x = cohort, y = percent_within_T, group = cohort),
     method = "wilcox.test",
     label = "p.format",
     size = 4,
-    hide.ns = TRUE
-  ) +
+    hide.ns = TRUE) +
   theme_minimal(base_size = 8) +
   theme(
     axis.text.x = element_text(size = 8, color = "black", angle = 45, hjust = 1),
@@ -126,15 +102,16 @@ p2 <- ggplot(proportions_df, aes(x = survival, y = percent_within_T, fill = surv
     strip.text = element_text(size = 8, face = "plain", color = "black"),
     panel.grid = element_blank(),
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
+    axis.ticks = element_line(color = "black", linewidth = 0.3),
+    axis.ticks.length = unit(2, "pt"),
     legend.position = "none",
     aspect.ratio = 2,
-    plot.margin = margin(4, 4, 4, 4)
-  )
+    plot.margin = margin(4, 4, 4, 4))
 
 # Check the plot
 p2
 # Save as a pdf
-pdf("5.2_T_proportions_TP53_WT_pvalue.pdf", width = 8, height = 6)
+pdf("5.2_T_proportions_TP53_MT_pvalue.pdf", width = 8, height = 6)
 p2
 dev.off()
 

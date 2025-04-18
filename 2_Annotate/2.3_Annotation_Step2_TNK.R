@@ -1,4 +1,4 @@
-# Nurefsan Sariipek and Peter van Galen, updated 250416
+# Nurefsan Sariipek and Peter van Galen, updated 250417
 # Annotate T cells in a more granular way
 
 # Load the libraries
@@ -19,7 +19,7 @@ setwd("~/TP53_ImmuneEscape/2_Annotate/")
 # 1. DIMENSIONALITY REDUCTION AND CLUSTER --------------------------------------
 
 # Load the Seurat object from 2.1_Subset20percent_and_cluster.R that contains 20% of the cells
-seu20 <- readRDS("~/250416_SubsettedSeuratObject.rds")
+seu20 <- readRDS("~/250417_SubsettedSeuratObject.rds")
 
 # Add cell type annotations from 2.2_AnnotationStage1.R
 anno_tib <- read_csv("2.2_Step1_celltype_annotations.csv.gz")

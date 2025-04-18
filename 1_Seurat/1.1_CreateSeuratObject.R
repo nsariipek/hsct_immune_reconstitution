@@ -1,4 +1,4 @@
-# Nurefsan Sariipek, updated on 250416
+# Nurefsan Sariipek and Peter van Galen, updated on 250417
 # Create Seurat object with metadata from CellRanger count matrices
 
 # Load the needed libraries
@@ -122,7 +122,7 @@ gc()
 cell_numbers <- as.data.frame(seu$orig.ident %>% tabyl %>% select(".", "n") %>% rename(n_prefilter = n))
 
 # Filter data by QC thresholds based on the plots above
-seu <- subset(seu, subset = nFeature_RNA > 250 & nCount_RNA > 500 & percent_mito < 20)   
+seu <- subset(seu, subset = nFeature_RNA > 250 & nCount_RNA > 500 & percent_mito < 20)
 
 # Check how many cells were filtered
 t1 <- as.data.frame(seu$orig.ident %>% tabyl %>% select(".", "n") %>% rename(n_postfilter = n)) 
@@ -149,8 +149,8 @@ seu$cohort_detail <- case_when(grepl("9596|2737|2379|2434|2518|4618|6174|9931|19
 
 # Add sample status
 seu$sample_status <- case_when(grepl("9596|2379|4618|9355|2446|1972|1677|1195|5641", seu$orig.ident) ~ "pre-transplant",
-                               grepl("25809|2434|2518|6174|9931|1013|25802|2645|2220|2621|9185|2599|1732|1285|6244|1764|1804|1964|2332|2745|1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu$orig.ident) ~ "remission",
-                               grepl("2448|2737|1953|1811|1347", seu$orig.ident) ~ "relapse")
+                               grepl("25809|2434|2518|6174|9931|1013|25802|2645|2220|2621|9185|2599|1732|1285|6244|1764|1804|2332|2745|1665|1745|1817|2408|2988|1762|2698|2791|2977|2986|1671|2517|2820|2961|3000", seu$orig.ident) ~ "remission",
+                               grepl("1964|2448|2737|1953|1811|1347", seu$orig.ident) ~ "relapse")
 
 # Add patient number
 seu$patient_id <- case_when(grepl("2446|25802|2645", seu$orig.ident) ~ "P01", # previously P01
@@ -182,10 +182,10 @@ seu$patient_id <- case_when(grepl("2446|25802|2645", seu$orig.ident) ~ "P01", # 
                             grepl("3000",seu$orig.ident) ~ "P19", # previously P27
                             grepl("1764",seu$orig.ident) ~ "P24", # previously P28
                             grepl("1804",seu$orig.ident) ~ "P25", # previously P29
-                            grepl("1964",seu$orig.ident) ~ "P26", # previously P30
+                            grepl("1964",seu$orig.ident) ~ "P28", # previously P30
                             grepl("2332",seu$orig.ident) ~ "P27", # previously P31
                             grepl("2448",seu$orig.ident) ~ "P29", # previously P32
-                            grepl("2745",seu$orig.ident) ~ "P28" ) # previously P33
+                            grepl("2745",seu$orig.ident) ~ "P26" ) # previously P33
 
 # Add a unique sample identifier to combine MNC and CD3 libraries
 seu$sample_id <- case_when(grepl("2446", seu$orig.ident) ~ "P01_Pre", # previously P01
@@ -233,10 +233,10 @@ seu$sample_id <- case_when(grepl("2446", seu$orig.ident) ~ "P01_Pre", # previous
                            grepl("3000",seu$orig.ident) ~ "P19_Rem", # previously P27
                            grepl("1764",seu$orig.ident) ~ "P24_Rem", # previously P28
                            grepl("1804",seu$orig.ident) ~ "P25_Rem", # previously P29
-                           grepl("1964",seu$orig.ident) ~ "P26_Rem", # previously P30
+                           grepl("1964",seu$orig.ident) ~ "P28_Rel", # previously P30
                            grepl("2332",seu$orig.ident) ~ "P27_Rem", # previously P31
                            grepl("2448",seu$orig.ident) ~ "P29_Rel", # previously P32
-                           grepl("2745",seu$orig.ident) ~ "P28_Rem") # previously P33
+                           grepl("2745",seu$orig.ident) ~ "P26_Rem") # previously P33
 
 # Add TP53 mutation status
 seu$TP53_status <- case_when(grepl("P01|P02|P03|P04|P05|P06|P20|P21|P22|P23|P30|P31|P32|P33", seu$patient_id) ~ "MUT",
@@ -293,7 +293,7 @@ seu$timepoint <- case_when(grepl("2446", seu$orig.ident) ~ 0,
                            grepl("2448",seu$orig.ident) ~ 3,
                            grepl("2745",seu$orig.ident) ~ 3)
 
-# Convert each variable to a factor
+# Convert variables to factors
 seu$orig.ident <- as.factor(seu@meta.data$orig.ident)
 seu$library_type <- factor(seu@meta.data$library_type, levels = c("MNC", "CD3", "MIX"))
 seu$cohort <- factor(seu@meta.data$cohort, levels = c("long-term-remission", "relapse"))
@@ -305,4 +305,4 @@ seu$sample_id <- as.factor(seu@meta.data$sample_id)
 sapply(seu@meta.data, function(x) sum(is.na(x)))
 
 # Save (this takes a while, you can monitor progress (growing file size) in the Terminal - it's about 2.2 Gb in the end)
-saveRDS(seu, file = "~/250416_MergedSeuratObject.rds")
+saveRDS(seu, file = "~/250417_MergedSeuratObject.rds")

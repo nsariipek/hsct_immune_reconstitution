@@ -1,10 +1,11 @@
-# Nurefsan Sariipek and Peter van Galen, 250416
+# Nurefsan Sariipek and Peter van Galen, 250418
 # Merge the 80% of cells, which were excluded in 1.2_DimensionalityReduction_Clustering.R, with the annotated 20% of cells and transfer UMAP coordinates as well as celltype labels.
 
 library(tidyverse)
 library(Seurat)
 #library(ggsci) # for scale_color_igv
 #library(scattermore)
+#options(future.globals.maxSize = 1000 * 1024^2)
 
 # Set working directory
 setwd("~/TP53_ImmuneEscape/2_Annotate/")
@@ -13,8 +14,8 @@ setwd("~/TP53_ImmuneEscape/2_Annotate/")
 rm(list=ls())
 
 # Load the data from previous scripts
-seu <- readRDS(file = "~/250416_MergedSeuratObject.rds")
-seu20 <- readRDS("~/250416_SubsettedSeuratObject.rds")
+seu <- readRDS(file = "~/250417_MergedSeuratObject.rds")
+seu20 <- readRDS("~/250417_SubsettedSeuratObject.rds")
 
 # Remove the annotated cells from the full object
 seu80 <- subset(seu, cells = setdiff(colnames(seu), colnames(seu20)))
@@ -125,10 +126,12 @@ DimPlot(seu, reduction = "umapTNK", shuffle = T, raster = T, pt.size = 2, cols =
 ggsave("2.4.2_TNK_cells_annotated.pdf", width = 6, height = 4)
 
 # Save to persistent disk
-saveRDS(seu, "~/250416_Seurat_all_cells_annotated.rds")
+saveRDS(seu, "~/250418_Seurat_all_cells_annotated.rds")
 
-# Copy to bucket (Terminal)
-#system("gsutil cp ~/250416_Seurat_all_cells_annotated.rds gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/")
+# Copy to bucket
+#system("gsutil cp ~/250417_MergedSeuratObject.rds gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/")
+#system("gsutil cp ~/250417_SubsettedSeuratObject.rds gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/")
+#system("gsutil cp ~/250418_Seurat_all_cells_annotated.rds gs://fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b/")
 
 
 

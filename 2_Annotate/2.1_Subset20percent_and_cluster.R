@@ -1,4 +1,4 @@
-# Nurefsan Sariipek, updated on 250104
+# Nurefsan Sariipek, updated on 250417
 # Dimensionality reduction and clustering of the merged Seurat object
 
 # Load the needed libraries
@@ -12,11 +12,11 @@ rm(list=ls())
 setwd("/home/rstudio/TP53_ImmuneEscape/2_Annotate")
 
 # Load the data from 1.1_CreateSeuratObject.R
-seu <- readRDS(file = "~/250416_MergedSeuratObject.rds")
+seu <- readRDS(file = "~/250417_MergedSeuratObject.rds")
 
 # Select 20% of the cells to make dimensionality reduction and clustering manageable. Later on, the remaining 80% of cells are added back.
 # An alternative method is described here: https://satijalab.org/seurat/articles/seurat5_sketch_analysis.html
-seu20.cells <- colnames(seu)[seq(1, length(colnames(seu)), by = 5)]
+seu20.cells <- readRDS("2.1_seu20_cells.rds")
 seu20 <- subset(seu, cells = seu20.cells)
 
 # Find variable features on the smaller object
@@ -49,6 +49,6 @@ FeaturePlot(seu20, features = "CD34") + theme(aspect.ratio = 1)
 
 # Save seu20 to work on annotations. Save storage by removing the scale data slot
 seu20@assays$RNA$scale.data <- NULL
-saveRDS(seu20, "~/250416_SubsettedSeuratObject.rds")
+saveRDS(seu20, "~/250417_SubsettedSeuratObject.rds")
 
 

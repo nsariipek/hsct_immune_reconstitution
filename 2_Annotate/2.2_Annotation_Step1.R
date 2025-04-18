@@ -1,4 +1,4 @@
-# Nurefsan Sariipek and Peter van Galen, updated 250416
+# Nurefsan Sariipek and Peter van Galen, updated 250417
 # This script quantifies signatures from previous papers (saved in Signatures) and visualizes them on UMAPs (saved in FeaturePlots). In the end, Seurat cluster annotations for the cells (subset 20%) and saved as a csv file
 
 library(tidyverse)
@@ -13,7 +13,7 @@ rm(list=ls())
 setwd("~/TP53_ImmuneEscape/2_Annotate/")
 
 # Load the Seurat object from 2.1_Subset20percent_and_cluster.R that contains 20% of the cells
-seu20 <- readRDS("~/250416_SubsettedSeuratObject.rds")
+seu20 <- readRDS("~/250417_SubsettedSeuratObject.rds")
 
 
 # VISUALIZE MARKER GENES AND SIGNATURES ----------------------------------------

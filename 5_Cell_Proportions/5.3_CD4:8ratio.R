@@ -16,6 +16,18 @@ setwd("/home/rstudio/TP53_ImmuneEscape/5_Cell_Proportions")
 # Load the data that contains T cells+ assignments
 Tcells <- readRDS("~/250128_Tcell_subset.rds")
 
+
+
+
+# filter(celltype %in% c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg",
+#                        "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted",
+#                        "Gamma-Delta T")
+       
+       
+# Levels disapear after turning seu object to metadata, add the new levels
+my_levels <- c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg", "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "Gamma-Delta T", "NK-T", "Adaptive NK", "CD56 Bright NK", "CD56 Dim NK", "Cycling T-NK")       
+
+
 # Update P32 information
 Tcells@meta.data <- Tcells@meta.data %>%
   mutate(

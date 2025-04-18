@@ -83,7 +83,7 @@ proportions_df <- seu_df %>%
          timepoint %in% c("3", "5", "6"),
          sample_status == "remission",
          TP53_status == "MUT") %>%
-  group_by(sample_id, cohort) %>%
+  group_by(patient_id, cohort) %>%
   count(celltype, name = "n") %>%   # Simpler and more reliable than `tabyl()`
   mutate(total_T_cells = sum(n),
          percent_within_T = (n / total_T_cells) * 100) %>%
@@ -136,7 +136,7 @@ proportions_df <- seu_df %>%
          timepoint %in% c("3", "5", "6"),
          sample_status == "remission",
          TP53_status == "WT") %>%
-  group_by(sample_id, cohort) %>%
+  group_by(patient_id, cohort) %>%
   count(celltype, name = "n") %>%   # Simpler and more reliable than `tabyl()`
   mutate(total_T_cells = sum(n),
          percent_within_T = (n / total_T_cells) * 100) %>%

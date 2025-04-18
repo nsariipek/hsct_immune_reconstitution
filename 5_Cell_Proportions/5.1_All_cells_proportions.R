@@ -42,7 +42,6 @@ bar_data <- seu_df %>%
 
 bar_data$celltype <- factor(bar_data$celltype, levels = my_levels)
 
-
 # Plot
 p1 <- ggplot(bar_data, aes(x = patient_id, y = percent, fill = celltype)) +
   geom_bar(stat = "identity", width = 0.8) +
@@ -68,7 +67,6 @@ dev.off()
 ##################################################################################################
 
 # Calculate total cells and myeloid cells per patient ==percentage of all myeloid cells out of all cell types in each sample (MNC libraries only)
-
 proportions_df <- seu_df %>%
   filter(timepoint %in% c("3", "5", "6"),
          sample_status == "remission", library_type=="MNC") %>%
@@ -79,7 +77,6 @@ proportions_df <- seu_df %>%
   mutate(percent = (cell_count / total_cells) * 100) 
 
 proportions_df$celltype <- factor(proportions_df$celltype, levels = my_levels)
-
 
 # Plot 
 p2 <- ggplot(proportions_df, aes(x = cohort, y = percent, fill = cohort)) +

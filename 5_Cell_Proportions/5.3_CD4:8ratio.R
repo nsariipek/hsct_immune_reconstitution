@@ -13,63 +13,43 @@ rm(list=ls())
 # Set directory
 setwd("/home/rstudio/TP53_ImmuneEscape/5_Cell_Proportions")
 
-# Load the data that contains T cells+ assignments
-Tcells <- readRDS("~/250128_Tcell_subset.rds")
+# Load the seurat object and select and save the only T cells
 
+seu <- readRDS("~/250418_Seurat_all_cells_annotated.rds")
 
+Tcells <-seu %>% subset(celltype %in% c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg", "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "Gamma-Delta T"))
 
-
-# filter(celltype %in% c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg",
-#                        "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted",
-#                        "Gamma-Delta T")
-       
+# Save this for future use   
+saveRDS(Tcells,"~/250418_Tcells.rds")
        
 # Levels disapear after turning seu object to metadata, add the new levels
 my_levels <- c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg", "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "Gamma-Delta T", "NK-T", "Adaptive NK", "CD56 Bright NK", "CD56 Dim NK", "Cycling T-NK")       
 
 
-# Update P32 information
-Tcells@meta.data <- Tcells@meta.data %>%
-  mutate(
-    sample_status = if_else(patient_id == "P32", "relapse", sample_status),
-    sample_id = if_else(patient_id == "P32" & sample_id == "P32_Rem", "P32_Rel", sample_id))
-
 # Select only needed variables
 meta= Tcells@meta.data  %>%
-      dplyr::select(celltype, cohort, sample_status, orig.ident, sample_id, patient_id,timepoint,survival, library_type) 
-# Choose donor or recipient cells if needed
+      dplyr::select(celltype, cohort, sample_status, orig.ident, sample_id, patient_id,timepoint,cohort, library_type, TP53_status) 
+# Choose donor or recipient cells if needed# Choose donor or recipient cells if neededcohort
   #meta <- subset(x=meta, subset = assignment== "host")
 
 rownames(meta) <- NULL
 
-meta$type <- case_when(grepl("CD8.", meta$celltype)| grepl("γδ.", meta$celltype) ~ "CD8",
+meta$type <- case_when(grepl("CD8.", meta$celltype)| grepl("Gamma.", meta$celltype) ~ "CD8",
                        grepl("CD4.",meta$celltype)| grepl("Treg", meta$celltype)~ "CD4")
 meta$type <- as.factor(meta$type)
-
-#Add TP53 status
-mt_patients <- paste0("P", sprintf("%02d", c(1:9, 10:12, 14, 17)))
-wt_patients <- paste0("P", sprintf("%02d", c(13, 15, 16, 18:33)))  
-
-meta <- meta %>%
-  mutate(patient_id = as.factor(patient_id))%>%
-  mutate(TP53 = case_when(
-    patient_id %in% mt_patients ~ "MT",
-    patient_id %in% wt_patients ~ "WT"))
-
-
 
 # Select only 100-day samples that were in remission at that timepoint
 meta_subset<- meta %>%
              subset(sample_status == "remission" & timepoint %in% c("3", "5", "6") 
-                 #  & TP53== "MT"
+                & TP53_status== "MUT"
                     )
 
 #For calculations make the table
 tb <- 
-  meta_subset %>% group_by(sample_id, type,cohort, survival,TP53,patient_id) %>%
+  meta_subset %>% group_by(patient_id, type, cohort) %>%
   dplyr::summarize(n = n())  %>%
   ungroup() %>%
-  group_by(sample_id) %>% 
+  group_by(patient_id) %>% 
   pivot_wider(names_from = type, values_from = n) %>% mutate(ratio= CD4/CD8) 
 
   #View(tb)
@@ -77,20 +57,19 @@ tb <-
 # Cohort colors
 cohort_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
 p1 <- tb %>%
-  mutate(survival = factor(survival, levels = c("Non-relapsed","Relapsed"))) %>%
-  ggplot(aes(x = survival, y = ratio)) +
-  geom_jitter(aes(fill = survival), shape = 21, size = 5, stroke = 0.2, width = 0.15, color = "black") +
+  ggplot(aes(x = cohort, y = ratio)) +
+  geom_jitter(aes(fill = cohort), shape = 21, size = 5, stroke = 0.2, width = 0.15, color = "black") +
   stat_summary(fun.data = mean_se, geom = "errorbar", 
                width = 0.3, linewidth = 0.6, color = "black") +
   stat_compare_means(
-    aes(group = survival),
+    aes(group = cohort),
     method = "t.test",
     method.args = list(var.equal = TRUE),
     label = "p.format",
     label.y = 3,
     size = 4,
     tip.length = 0.02) +
-  scale_fill_manual(values = survival_colors) +
+  scale_fill_manual(values = cohort_colors) +
   ylab("CD4/CD8 Ratio") +
   expand_limits(y = 0) +
   coord_cartesian(ylim = c(0, 3.5))+
@@ -109,7 +88,7 @@ p1 <- tb %>%
 
 p1
 # Save the plot
-pdf("5.3_CD4-CD8ratio.pdf", width = 3, height = 6)
+pdf("5.3_CD4-CD8ratio_MT.pdf", width = 3, height = 6)
 p1
 dev.off()
 

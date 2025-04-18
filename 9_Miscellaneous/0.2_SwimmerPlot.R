@@ -1,3 +1,5 @@
+# Nurefsan Sariipek, 250417
+# Make the swimmer plot using the sample information for Figure 1C
 library(tidyverse)
 library(readxl)
 
@@ -92,8 +94,9 @@ swimmer <- ggplot() +
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     axis.line = element_line(color = "black", linewidth = 0.4),
-    axis.ticks = element_line(color = "black", linewidth = 0.4)
-  )
-pdf("swimmer_plot.pdf", width = 12,height = 8)
+    axis.ticks = element_line(color = "black", linewidth = 0.4),
+  aspect.ratio = 1.5)
+
+pdf("swimmer_plot.pdf", width = 8,height = 10)
 swimmer
 dev.off()

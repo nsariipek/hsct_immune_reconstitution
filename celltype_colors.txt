@@ -1,5 +1,5 @@
 celltype	color
-Progenitors	#3B1B53FF
+HSPCs	#3B1B53FF
 Early Erythroid	#D60047FF
 Mid Erythroid	#924822FF
 Late Erythroid	#AE1F63FF

@@ -1,7 +1,5 @@
 ## Calculating CD4/8 Ratio
-# NS 240418, updated at 250129
-# This need updating
-
+# NS 250129 , updated at 240418 
 # Load libraries
 library(tidyverse)
 library(Seurat)

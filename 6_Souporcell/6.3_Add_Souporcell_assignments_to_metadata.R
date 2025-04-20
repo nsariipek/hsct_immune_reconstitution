@@ -11,13 +11,10 @@ library(janitor)
 rm(list=ls())
 
 # For Nurefsan:
-setwd("~/TP53_ImmuneEscape/5_Souporcell/")
+setwd("~/TP53_ImmuneEscape/6_Souporcell/")
 
 # Load the metadata
-seu <- readRDS("~/250128_seurat_annotated_final.rds")
-
-seu@meta.data <- seu@meta.data %>%
-  mutate(timepoint = ifelse(timepoint == "pre-transplant", "0", timepoint))
+seu <- readRDS("~/250418_Seurat_all_cells_annotated.rds")
 
 # List of patients
 patient_list <- unique(seu$patient_id) %>% sort()
@@ -120,7 +117,7 @@ for (patient_id in patient_list) {
         mutate(percent = total_all_cells / sum(total_all_cells) * 100)
       
       all_cells_donor_assignment <- all_cells_count %>%
-        filter(percent > 80) %>%
+        filter(percent > 75) %>%
         pull(assignment)
       
       
@@ -164,7 +161,7 @@ for (patient_id in patient_list) {
 
 # Save final dataset as CSV, saved this to auxillary file on the dropbox since it is too big to snyc at github
 if (nrow(final_dataset) > 0) {
-  write_csv(final_dataset, "~/final_dataset.csv")
+  write_csv(final_dataset, "~/250418_final_dataset.csv")
   message("📁 Final dataset saved as final_dataset.csv")
 } else {
   message("⚠️ No valid patient data processed.")

@@ -1,271 +1,406 @@
-sample_id,celltype,survival,donor_percentage
-P01_Rem1,Progenitors,Non-relapsed,100
-P01_Rem1,Early Erythroids,Non-relapsed,99.72129319955407
-P01_Rem1,Mid Erythroids,Non-relapsed,100
-P01_Rem1,Late Erythroids,Non-relapsed,97.9381443298969
-P01_Rem1,Pro Monocytes,Non-relapsed,99.14893617021276
-P01_Rem1,Monocytes,Non-relapsed,99.54643112914778
-P01_Rem1,Non Classical Monocytes,Non-relapsed,100
-P01_Rem1,cDC,Non-relapsed,100
-P01_Rem1,pDC,Non-relapsed,99.43820224719101
-P01_Rem1,Pro B cells,Non-relapsed,100
-P01_Rem1,Pre-B,Non-relapsed,100
-P01_Rem1,B cells,Non-relapsed,99.47916666666666
-P01_Rem1,Plasma cells,Non-relapsed,62.27642276422765
-P01_Rem1,CD4 Naïve,Non-relapsed,30.19271948608137
-P01_Rem1,CD4 Effector Memory,Non-relapsed,83.49358974358975
-P01_Rem1,CD4 Memory,Non-relapsed,48.93617021276596
-P01_Rem1,Treg,Non-relapsed,27.416520210896312
-P01_Rem1,CD8 Naïve,Non-relapsed,62.36933797909408
-P01_Rem1,CD8 Effector,Non-relapsed,86.40776699029125
-P01_Rem1,CD8 Memory,Non-relapsed,85.09933774834437
-P01_Rem1,CD8 Exhausted,Non-relapsed,78.14207650273224
-P01_Rem1,γδ T,Non-relapsed,94.33962264150944
-P01_Rem1,NK T,Non-relapsed,86.11111111111111
-P01_Rem1,Adaptive NK,Non-relapsed,99.40828402366864
-P01_Rem1,CD56 Bright NK,Non-relapsed,99.4535519125683
-P01_Rem1,CD56 Dim NK,Non-relapsed,99.79919678714859
-P01_Rem1,Cycling T-NK cells,Non-relapsed,96.20253164556962
-P01_Rem2,Progenitors,Non-relapsed,100
-P01_Rem2,Early Erythroids,Non-relapsed,98.89502762430939
-P01_Rem2,Mid Erythroids,Non-relapsed,100
-P01_Rem2,Late Erythroids,Non-relapsed,100
-P01_Rem2,Pro Monocytes,Non-relapsed,100
-P01_Rem2,Monocytes,Non-relapsed,100
-P01_Rem2,Non Classical Monocytes,Non-relapsed,100
-P01_Rem2,cDC,Non-relapsed,100
-P01_Rem2,pDC,Non-relapsed,100
-P01_Rem2,Pro B cells,Non-relapsed,100
-P01_Rem2,Pre-B,Non-relapsed,100
-P01_Rem2,B cells,Non-relapsed,100
-P01_Rem2,Plasma cells,Non-relapsed,43.75
-P01_Rem2,CD4 Naïve,Non-relapsed,23.809523809523807
-P01_Rem2,CD4 Effector Memory,Non-relapsed,65.33333333333333
-P01_Rem2,CD4 Memory,Non-relapsed,38.064516129032256
-P01_Rem2,Treg,Non-relapsed,27.450980392156865
-P01_Rem2,CD8 Naïve,Non-relapsed,28.30188679245283
-P01_Rem2,CD8 Effector,Non-relapsed,68.96551724137932
-P01_Rem2,CD8 Memory,Non-relapsed,72.72727272727273
-P01_Rem2,CD8 Exhausted,Non-relapsed,49.42528735632184
-P01_Rem2,γδ T,Non-relapsed,91.11111111111111
-P01_Rem2,NK T,Non-relapsed,55.769230769230774
-P01_Rem2,Adaptive NK,Non-relapsed,100
-P01_Rem2,CD56 Bright NK,Non-relapsed,100
-P01_Rem2,CD56 Dim NK,Non-relapsed,100
-P01_Rem2,Cycling T-NK cells,Non-relapsed,100
-P02_Rem1,Progenitors,Non-relapsed,100
-P02_Rem1,Early Erythroids,Non-relapsed,100
-P02_Rem1,Mid Erythroids,Non-relapsed,100
-P02_Rem1,Late Erythroids,Non-relapsed,100
-P02_Rem1,Pro Monocytes,Non-relapsed,100
-P02_Rem1,Monocytes,Non-relapsed,100
-P02_Rem1,Non Classical Monocytes,Non-relapsed,100
-P02_Rem1,cDC,Non-relapsed,100
-P02_Rem1,pDC,Non-relapsed,100
-P02_Rem1,Pro B cells,Non-relapsed,100
-P02_Rem1,Pre-B,Non-relapsed,99.71181556195965
-P02_Rem1,B cells,Non-relapsed,99.55436720142602
-P02_Rem1,Plasma cells,Non-relapsed,44.230769230769226
-P02_Rem1,CD4 Naïve,Non-relapsed,92.02898550724638
-P02_Rem1,CD4 Effector Memory,Non-relapsed,92.7710843373494
-P02_Rem1,CD4 Memory,Non-relapsed,90.95744680851064
-P02_Rem1,Treg,Non-relapsed,85.94847775175644
-P02_Rem1,CD8 Naïve,Non-relapsed,80.51948051948052
-P02_Rem1,CD8 Effector,Non-relapsed,94.33962264150944
-P02_Rem1,CD8 Memory,Non-relapsed,97.08029197080292
-P02_Rem1,CD8 Exhausted,Non-relapsed,92.63157894736842
-P02_Rem1,γδ T,Non-relapsed,99.14529914529915
-P02_Rem1,NK T,Non-relapsed,93.05555555555556
-P02_Rem1,Adaptive NK,Non-relapsed,99.64664310954063
-P02_Rem1,CD56 Bright NK,Non-relapsed,100
-P02_Rem1,CD56 Dim NK,Non-relapsed,100
-P02_Rem1,Cycling T-NK cells,Non-relapsed,100
-P04_Rem,Progenitors,Non-relapsed,100
-P04_Rem,Early Erythroids,Non-relapsed,100
-P04_Rem,Mid Erythroids,Non-relapsed,100
-P04_Rem,Late Erythroids,Non-relapsed,99.35483870967742
-P04_Rem,Pro Monocytes,Non-relapsed,100
-P04_Rem,Monocytes,Non-relapsed,100
-P04_Rem,Non Classical Monocytes,Non-relapsed,100
-P04_Rem,cDC,Non-relapsed,100
-P04_Rem,pDC,Non-relapsed,100
-P04_Rem,Pro B cells,Non-relapsed,100
-P04_Rem,Pre-B,Non-relapsed,99.63099630996311
-P04_Rem,B cells,Non-relapsed,97.77777777777777
-P04_Rem,Plasma cells,Non-relapsed,28.57142857142857
-P04_Rem,CD4 Naïve,Non-relapsed,8.437856328392247
-P04_Rem,CD4 Effector Memory,Non-relapsed,28.162291169451077
-P04_Rem,CD4 Memory,Non-relapsed,13.657142857142857
-P04_Rem,Treg,Non-relapsed,7.223942208462332
-P04_Rem,CD8 Naïve,Non-relapsed,40.88888888888889
-P04_Rem,CD8 Effector,Non-relapsed,94.13265306122449
-P04_Rem,CD8 Memory,Non-relapsed,85.29411764705883
-P04_Rem,CD8 Exhausted,Non-relapsed,88.90784982935153
-P04_Rem,γδ T,Non-relapsed,94.87179487179486
-P04_Rem,NK T,Non-relapsed,57.14285714285714
-P04_Rem,Adaptive NK,Non-relapsed,94.73684210526315
-P04_Rem,CD56 Bright NK,Non-relapsed,100
-P04_Rem,CD56 Dim NK,Non-relapsed,99.02439024390245
-P04_Rem,Cycling T-NK cells,Non-relapsed,84.16666666666667
-P14_Rem,Progenitors,Non-relapsed,100
-P14_Rem,Early Erythroids,Non-relapsed,100
-P14_Rem,Mid Erythroids,Non-relapsed,99.8546511627907
-P14_Rem,Late Erythroids,Non-relapsed,98.50746268656717
-P14_Rem,Pro Monocytes,Non-relapsed,99.29577464788733
-P14_Rem,Monocytes,Non-relapsed,100
-P14_Rem,Non Classical Monocytes,Non-relapsed,100
-P14_Rem,cDC,Non-relapsed,100
-P14_Rem,pDC,Non-relapsed,100
-P14_Rem,Pro B cells,Non-relapsed,100
-P14_Rem,Pre-B,Non-relapsed,99.7489539748954
-P14_Rem,B cells,Non-relapsed,99.62848297213623
-P14_Rem,Plasma cells,Non-relapsed,27.77777777777778
-P14_Rem,CD4 Naïve,Non-relapsed,25.14450867052023
-P14_Rem,CD4 Effector Memory,Non-relapsed,82.43243243243244
-P14_Rem,CD4 Memory,Non-relapsed,47.89156626506024
-P14_Rem,Treg,Non-relapsed,33.89830508474576
-P14_Rem,CD8 Naïve,Non-relapsed,44.09448818897638
-P14_Rem,CD8 Effector,Non-relapsed,98.64864864864865
-P14_Rem,CD8 Memory,Non-relapsed,92.1259842519685
-P14_Rem,CD8 Exhausted,Non-relapsed,89.53488372093024
-P14_Rem,γδ T,Non-relapsed,99.48453608247422
-P14_Rem,NK T,Non-relapsed,66.22222222222223
-P14_Rem,Adaptive NK,Non-relapsed,98.79518072289156
-P14_Rem,CD56 Bright NK,Non-relapsed,98.97260273972603
-P14_Rem,CD56 Dim NK,Non-relapsed,100
-P14_Rem,Cycling T-NK cells,Non-relapsed,100
-P17_Rem,Progenitors,Non-relapsed,100
-P17_Rem,Early Erythroids,Non-relapsed,99.65397923875432
-P17_Rem,Mid Erythroids,Non-relapsed,100
-P17_Rem,Late Erythroids,Non-relapsed,98.40425531914893
-P17_Rem,Pro Monocytes,Non-relapsed,100
-P17_Rem,Monocytes,Non-relapsed,100
-P17_Rem,Non Classical Monocytes,Non-relapsed,99.53271028037383
-P17_Rem,cDC,Non-relapsed,100
-P17_Rem,pDC,Non-relapsed,100
-P17_Rem,Pro B cells,Non-relapsed,100
-P17_Rem,Pre-B,Non-relapsed,100
-P17_Rem,B cells,Non-relapsed,100
-P17_Rem,Plasma cells,Non-relapsed,33.33333333333333
-P17_Rem,CD4 Naïve,Non-relapsed,36.59090909090909
-P17_Rem,CD4 Effector Memory,Non-relapsed,56.88311688311688
-P17_Rem,CD4 Memory,Non-relapsed,42.91139240506329
-P17_Rem,Treg,Non-relapsed,41.02564102564102
-P17_Rem,CD8 Naïve,Non-relapsed,49.46236559139785
-P17_Rem,CD8 Effector,Non-relapsed,85.38011695906432
-P17_Rem,CD8 Memory,Non-relapsed,80
-P17_Rem,CD8 Exhausted,Non-relapsed,73.04347826086956
-P17_Rem,γδ T,Non-relapsed,94.19354838709677
-P17_Rem,NK T,Non-relapsed,56.25
-P17_Rem,Adaptive NK,Non-relapsed,95.42168674698796
-P17_Rem,CD56 Bright NK,Non-relapsed,98.3739837398374
-P17_Rem,CD56 Dim NK,Non-relapsed,85.48338820712361
-P17_Rem,Cycling T-NK cells,Non-relapsed,91.56626506024097
-P05_Rem,Progenitors,Relapsed,80.32786885245902
-P05_Rem,Early Erythroids,Relapsed,88.32116788321169
-P05_Rem,Mid Erythroids,Relapsed,95.52238805970148
-P05_Rem,Late Erythroids,Relapsed,98.13664596273291
-P05_Rem,Pro Monocytes,Relapsed,98.75
-P05_Rem,Monocytes,Relapsed,99.79879275653923
-P05_Rem,Non Classical Monocytes,Relapsed,100
-P05_Rem,cDC,Relapsed,99.45652173913044
-P05_Rem,pDC,Relapsed,100
-P05_Rem,Pro B cells,Relapsed,100
-P05_Rem,Pre-B,Relapsed,100
-P05_Rem,B cells,Relapsed,90.38461538461539
-P05_Rem,Plasma cells,Relapsed,69.56521739130434
-P05_Rem,CD4 Naïve,Relapsed,32.098765432098766
-P05_Rem,CD4 Effector Memory,Relapsed,37.07865168539326
-P05_Rem,CD4 Memory,Relapsed,35.10204081632653
-P05_Rem,Treg,Relapsed,43.10850439882698
-P05_Rem,CD8 Naïve,Relapsed,52.459016393442624
-P05_Rem,CD8 Effector,Relapsed,89.67596081386586
-P05_Rem,CD8 Memory,Relapsed,89.91452991452992
-P05_Rem,CD8 Exhausted,Relapsed,92.24952741020795
-P05_Rem,γδ T,Relapsed,75.6931608133087
-P05_Rem,NK T,Relapsed,75.52447552447552
-P05_Rem,Adaptive NK,Relapsed,95.16129032258065
-P05_Rem,CD56 Bright NK,Relapsed,99.09909909909909
-P05_Rem,CD56 Dim NK,Relapsed,97.0873786407767
-P05_Rem,Cycling T-NK cells,Relapsed,89.74358974358975
-P06_Rem,Progenitors,Relapsed,59.25925925925925
-P06_Rem,Early Erythroids,Relapsed,96.62576687116564
-P06_Rem,Mid Erythroids,Relapsed,100
-P06_Rem,Late Erythroids,Relapsed,99.93924665856622
-P06_Rem,Pro Monocytes,Relapsed,100
-P06_Rem,Monocytes,Relapsed,100
-P06_Rem,Non Classical Monocytes,Relapsed,99.9
-P06_Rem,cDC,Relapsed,100
-P06_Rem,pDC,Relapsed,100
-P06_Rem,Pro B cells,Relapsed,100
-P06_Rem,Pre-B,Relapsed,100
-P06_Rem,B cells,Relapsed,100
-P06_Rem,Plasma cells,Relapsed,40
-P06_Rem,CD4 Naïve,Relapsed,47.91666666666667
-P06_Rem,CD4 Effector Memory,Relapsed,88.28828828828829
-P06_Rem,CD4 Memory,Relapsed,57.692307692307686
-P06_Rem,Treg,Relapsed,56.25
-P06_Rem,CD8 Naïve,Relapsed,39.130434782608695
-P06_Rem,CD8 Effector,Relapsed,97.72727272727273
-P06_Rem,CD8 Memory,Relapsed,70.96774193548387
-P06_Rem,CD8 Exhausted,Relapsed,97.77777777777777
-P06_Rem,γδ T,Relapsed,58.333333333333336
-P06_Rem,NK T,Relapsed,89.47368421052632
-P06_Rem,Adaptive NK,Relapsed,93.75
-P06_Rem,CD56 Bright NK,Relapsed,97.36842105263158
-P06_Rem,CD56 Dim NK,Relapsed,97.70642201834863
-P06_Rem,Cycling T-NK cells,Relapsed,99.02439024390245
-P07_Rem,Progenitors,Relapsed,51.20772946859904
-P07_Rem,Early Erythroids,Relapsed,75.75757575757575
-P07_Rem,Mid Erythroids,Relapsed,99.06542056074767
-P07_Rem,Late Erythroids,Relapsed,99.20724801812004
-P07_Rem,Pro Monocytes,Relapsed,84.375
-P07_Rem,Monocytes,Relapsed,82.16175359032502
-P07_Rem,Non Classical Monocytes,Relapsed,66.45962732919256
-P07_Rem,cDC,Relapsed,94.6843853820598
-P07_Rem,pDC,Relapsed,98.57142857142858
-P07_Rem,Pro B cells,Relapsed,100
-P07_Rem,Pre-B,Relapsed,100
-P07_Rem,B cells,Relapsed,94.94949494949495
-P07_Rem,Plasma cells,Relapsed,70.96774193548387
-P07_Rem,CD4 Naïve,Relapsed,90.96045197740112
-P07_Rem,CD4 Effector Memory,Relapsed,95.66755083996463
-P07_Rem,CD4 Memory,Relapsed,91.58415841584159
-P07_Rem,Treg,Relapsed,92.07161125319693
-P07_Rem,CD8 Naïve,Relapsed,96.23376623376623
-P07_Rem,CD8 Effector,Relapsed,99.45155393053017
-P07_Rem,CD8 Memory,Relapsed,99.213217938631
-P07_Rem,CD8 Exhausted,Relapsed,98.32703723691311
-P07_Rem,γδ T,Relapsed,99.43848902501277
-P07_Rem,NK T,Relapsed,97.87775891341256
-P07_Rem,Adaptive NK,Relapsed,100
-P07_Rem,CD56 Bright NK,Relapsed,100
-P07_Rem,CD56 Dim NK,Relapsed,99.38144329896907
-P07_Rem,Cycling T-NK cells,Relapsed,99.32432432432432
-P08_Rem1,Progenitors,Relapsed,100
-P08_Rem1,Early Erythroids,Relapsed,100
-P08_Rem1,Mid Erythroids,Relapsed,100
-P08_Rem1,Late Erythroids,Relapsed,98.59154929577466
-P08_Rem1,Pro Monocytes,Relapsed,100
-P08_Rem1,Monocytes,Relapsed,99.37888198757764
-P08_Rem1,Non Classical Monocytes,Relapsed,100
-P08_Rem1,cDC,Relapsed,100
-P08_Rem1,pDC,Relapsed,100
-P08_Rem1,Pro B cells,Relapsed,100
-P08_Rem1,Pre-B,Relapsed,94.85294117647058
-P08_Rem1,B cells,Relapsed,80.72289156626506
-P08_Rem1,Plasma cells,Relapsed,33.33333333333333
-P08_Rem1,CD4 Naïve,Relapsed,68.11955168119552
-P08_Rem1,CD4 Effector Memory,Relapsed,70.17543859649122
-P08_Rem1,CD4 Memory,Relapsed,59.83754512635379
-P08_Rem1,Treg,Relapsed,58.333333333333336
-P08_Rem1,CD8 Naïve,Relapsed,65.59546313799622
-P08_Rem1,CD8 Effector,Relapsed,99.3849938499385
-P08_Rem1,CD8 Memory,Relapsed,97.60191846522783
-P08_Rem1,CD8 Exhausted,Relapsed,96.20012666244459
-P08_Rem1,γδ T,Relapsed,99.63099630996311
-P08_Rem1,NK T,Relapsed,87.61904761904762
-P08_Rem1,Adaptive NK,Relapsed,93.33333333333333
-P08_Rem1,CD56 Bright NK,Relapsed,96.55172413793103
-P08_Rem1,CD56 Dim NK,Relapsed,99.10714285714286
-P08_Rem1,Cycling T-NK cells,Relapsed,72.72727272727273
+patient_id,celltype,cohort,donor_percentage
+P01,HSPCs,long-term-remission,100
+P01,Early Erythroid,long-term-remission,99.66922005571031
+P01,Mid Erythroid,long-term-remission,100
+P01,Late Erythroid,long-term-remission,99.5085995085995
+P01,Pro Monocytes,long-term-remission,99.42528735632183
+P01,Monocytes,long-term-remission,99.62361331220285
+P01,Non-Classical Monocytes,long-term-remission,100
+P01,cDC,long-term-remission,100
+P01,pDC,long-term-remission,99.55156950672645
+P01,Pro-B,long-term-remission,100
+P01,Pre-B,long-term-remission,100
+P01,B cells,long-term-remission,99.78632478632478
+P01,Plasma cells,long-term-remission,61.806656101426306
+P01,CD4 Naive,long-term-remission,29.219600725952816
+P01,CD4 Memory,long-term-remission,47.25274725274725
+P01,CD4 Effector Memory,long-term-remission,81.54506437768241
+P01,Treg,long-term-remission,27.419354838709676
+P01,CD8 Naive,long-term-remission,57.05882352941176
+P01,CD8 Memory,long-term-remission,83.88059701492537
+P01,CD8 Effector,long-term-remission,82.57575757575758
+P01,CD8 Exhausted,long-term-remission,68.88888888888889
+P01,Gamma-Delta T,long-term-remission,93.93939393939394
+P01,NK-T,long-term-remission,78.06122448979592
+P01,Adaptive NK,long-term-remission,99.57264957264957
+P01,CD56 Bright NK,long-term-remission,99.74554707379136
+P01,CD56 Dim NK,long-term-remission,99.87789987789988
+P01,Cycling T-NK,long-term-remission,97.22222222222221
+P02,HSPCs,long-term-remission,100
+P02,Early Erythroid,long-term-remission,100
+P02,Mid Erythroid,long-term-remission,100
+P02,Late Erythroid,long-term-remission,100
+P02,Pro Monocytes,long-term-remission,100
+P02,Monocytes,long-term-remission,100
+P02,Non-Classical Monocytes,long-term-remission,100
+P02,cDC,long-term-remission,100
+P02,pDC,long-term-remission,100
+P02,Pro-B,long-term-remission,100
+P02,Pre-B,long-term-remission,99.71181556195965
+P02,B cells,long-term-remission,99.55436720142602
+P02,Plasma cells,long-term-remission,44.230769230769226
+P02,CD4 Naive,long-term-remission,92.02898550724638
+P02,CD4 Memory,long-term-remission,90.95744680851064
+P02,CD4 Effector Memory,long-term-remission,92.7710843373494
+P02,Treg,long-term-remission,85.94847775175644
+P02,CD8 Naive,long-term-remission,80.51948051948052
+P02,CD8 Memory,long-term-remission,97.08029197080292
+P02,CD8 Effector,long-term-remission,94.33962264150944
+P02,CD8 Exhausted,long-term-remission,92.63157894736842
+P02,Gamma-Delta T,long-term-remission,99.14529914529915
+P02,NK-T,long-term-remission,93.05555555555556
+P02,Adaptive NK,long-term-remission,99.64664310954063
+P02,CD56 Bright NK,long-term-remission,100
+P02,CD56 Dim NK,long-term-remission,100
+P02,Cycling T-NK,long-term-remission,100
+P05,HSPCs,long-term-remission,100
+P05,Early Erythroid,long-term-remission,100
+P05,Mid Erythroid,long-term-remission,99.8546511627907
+P05,Late Erythroid,long-term-remission,98.50746268656717
+P05,Pro Monocytes,long-term-remission,99.29577464788733
+P05,Monocytes,long-term-remission,100
+P05,Non-Classical Monocytes,long-term-remission,100
+P05,cDC,long-term-remission,100
+P05,pDC,long-term-remission,100
+P05,Pro-B,long-term-remission,100
+P05,Pre-B,long-term-remission,99.7489539748954
+P05,B cells,long-term-remission,99.62848297213623
+P05,Plasma cells,long-term-remission,27.77777777777778
+P05,CD4 Naive,long-term-remission,25.14450867052023
+P05,CD4 Memory,long-term-remission,47.89156626506024
+P05,CD4 Effector Memory,long-term-remission,82.43243243243244
+P05,Treg,long-term-remission,33.89830508474576
+P05,CD8 Naive,long-term-remission,44.09448818897638
+P05,CD8 Memory,long-term-remission,92.1259842519685
+P05,CD8 Effector,long-term-remission,98.64864864864865
+P05,CD8 Exhausted,long-term-remission,89.53488372093024
+P05,Gamma-Delta T,long-term-remission,99.48453608247422
+P05,NK-T,long-term-remission,66.22222222222223
+P05,Adaptive NK,long-term-remission,98.79518072289156
+P05,CD56 Bright NK,long-term-remission,98.97260273972603
+P05,CD56 Dim NK,long-term-remission,100
+P05,Cycling T-NK,long-term-remission,100
+P06,HSPCs,long-term-remission,100
+P06,Early Erythroid,long-term-remission,99.65397923875432
+P06,Mid Erythroid,long-term-remission,100
+P06,Late Erythroid,long-term-remission,98.40425531914893
+P06,Pro Monocytes,long-term-remission,100
+P06,Monocytes,long-term-remission,100
+P06,Non-Classical Monocytes,long-term-remission,99.53271028037383
+P06,cDC,long-term-remission,100
+P06,pDC,long-term-remission,100
+P06,Pro-B,long-term-remission,100
+P06,Pre-B,long-term-remission,100
+P06,B cells,long-term-remission,100
+P06,Plasma cells,long-term-remission,33.33333333333333
+P06,CD4 Naive,long-term-remission,36.59090909090909
+P06,CD4 Memory,long-term-remission,42.91139240506329
+P06,CD4 Effector Memory,long-term-remission,56.88311688311688
+P06,Treg,long-term-remission,41.02564102564102
+P06,CD8 Naive,long-term-remission,49.46236559139785
+P06,CD8 Memory,long-term-remission,80
+P06,CD8 Effector,long-term-remission,85.38011695906432
+P06,CD8 Exhausted,long-term-remission,73.04347826086956
+P06,Gamma-Delta T,long-term-remission,94.19354838709677
+P06,NK-T,long-term-remission,56.25
+P06,Adaptive NK,long-term-remission,95.42168674698796
+P06,CD56 Bright NK,long-term-remission,98.3739837398374
+P06,CD56 Dim NK,long-term-remission,85.48338820712361
+P06,Cycling T-NK,long-term-remission,91.56626506024097
+P07,HSPCs,long-term-remission,100
+P07,Early Erythroid,long-term-remission,100
+P07,Mid Erythroid,long-term-remission,100
+P07,Late Erythroid,long-term-remission,97.91666666666666
+P07,Pro Monocytes,long-term-remission,100
+P07,Monocytes,long-term-remission,99.80582524271846
+P07,Non-Classical Monocytes,long-term-remission,100
+P07,cDC,long-term-remission,100
+P07,pDC,long-term-remission,100
+P07,Pro-B,long-term-remission,100
+P07,Pre-B,long-term-remission,100
+P07,B cells,long-term-remission,99.7584541062802
+P07,Plasma cells,long-term-remission,28.57142857142857
+P07,CD4 Naive,long-term-remission,58.610914245216165
+P07,CD4 Memory,long-term-remission,68.8659793814433
+P07,CD4 Effector Memory,long-term-remission,80.73065902578797
+P07,Treg,long-term-remission,71.95121951219512
+P07,CD8 Naive,long-term-remission,90.93023255813954
+P07,CD8 Memory,long-term-remission,98.91891891891892
+P07,CD8 Effector,long-term-remission,97.89473684210527
+P07,CD8 Exhausted,long-term-remission,92.6829268292683
+P07,Gamma-Delta T,long-term-remission,97.51381215469614
+P07,NK-T,long-term-remission,78.29457364341084
+P07,Adaptive NK,long-term-remission,97.72727272727273
+P07,CD56 Bright NK,long-term-remission,99
+P07,CD56 Dim NK,long-term-remission,99.83792544570503
+P07,Cycling T-NK,long-term-remission,61.81818181818181
+P15,HSPCs,long-term-remission,100
+P15,Early Erythroid,long-term-remission,99.26470588235294
+P15,Mid Erythroid,long-term-remission,99.44444444444444
+P15,Late Erythroid,long-term-remission,91.90751445086705
+P15,Pro Monocytes,long-term-remission,100
+P15,Monocytes,long-term-remission,99.59266802443992
+P15,Non-Classical Monocytes,long-term-remission,100
+P15,cDC,long-term-remission,100
+P15,pDC,long-term-remission,100
+P15,Pro-B,long-term-remission,100
+P15,Pre-B,long-term-remission,96.7741935483871
+P15,B cells,long-term-remission,99.59072305593452
+P15,Plasma cells,long-term-remission,0
+P15,CD4 Naive,long-term-remission,78.74762808349146
+P15,CD4 Memory,long-term-remission,80.41504539559014
+P15,CD4 Effector Memory,long-term-remission,91.73553719008265
+P15,Treg,long-term-remission,73.00613496932516
+P15,CD8 Naive,long-term-remission,75.6989247311828
+P15,CD8 Memory,long-term-remission,86.58823529411764
+P15,CD8 Effector,long-term-remission,95.71428571428572
+P15,CD8 Exhausted,long-term-remission,91.78743961352657
+P15,Gamma-Delta T,long-term-remission,95.07908611599298
+P15,NK-T,long-term-remission,75.93261131167269
+P15,Adaptive NK,long-term-remission,96.3963963963964
+P15,CD56 Bright NK,long-term-remission,95.48022598870057
+P15,CD56 Dim NK,long-term-remission,98.24451410658307
+P15,Cycling T-NK,long-term-remission,98.18181818181819
+P16,HSPCs,long-term-remission,100
+P16,Early Erythroid,long-term-remission,99.46666666666667
+P16,Mid Erythroid,long-term-remission,98.6159169550173
+P16,Late Erythroid,long-term-remission,84.58498023715416
+P16,Pro Monocytes,long-term-remission,98.76543209876543
+P16,Monocytes,long-term-remission,98.24561403508771
+P16,Non-Classical Monocytes,long-term-remission,100
+P16,cDC,long-term-remission,100
+P16,pDC,long-term-remission,100
+P16,Pro-B,long-term-remission,100
+P16,Pre-B,long-term-remission,100
+P16,B cells,long-term-remission,100
+P16,Plasma cells,long-term-remission,28.888888888888886
+P16,CD4 Naive,long-term-remission,54.054054054054056
+P16,CD4 Memory,long-term-remission,60.65573770491803
+P16,CD4 Effector Memory,long-term-remission,61.53846153846154
+P16,Treg,long-term-remission,62.365591397849464
+P16,CD8 Naive,long-term-remission,50
+P16,CD8 Memory,long-term-remission,87.78135048231512
+P16,CD8 Effector,long-term-remission,82.50825082508251
+P16,CD8 Exhausted,long-term-remission,79.87012987012987
+P16,Gamma-Delta T,long-term-remission,89.21933085501858
+P16,NK-T,long-term-remission,68.90459363957598
+P16,Adaptive NK,long-term-remission,93.93939393939394
+P16,CD56 Bright NK,long-term-remission,100
+P16,CD56 Dim NK,long-term-remission,98.72611464968153
+P16,Cycling T-NK,long-term-remission,93.90243902439023
+P17,HSPCs,long-term-remission,96.96969696969697
+P17,Early Erythroid,long-term-remission,98.83449883449883
+P17,Mid Erythroid,long-term-remission,93.37539432176656
+P17,Late Erythroid,long-term-remission,81.01694915254237
+P17,Pro Monocytes,long-term-remission,97.33570159857904
+P17,Monocytes,long-term-remission,98.3705491852746
+P17,Non-Classical Monocytes,long-term-remission,99.67105263157895
+P17,cDC,long-term-remission,98.61111111111111
+P17,pDC,long-term-remission,98.75
+P17,Pro-B,long-term-remission,97.46835443037975
+P17,Pre-B,long-term-remission,92.99474605954467
+P17,B cells,long-term-remission,98.36065573770492
+P17,Plasma cells,long-term-remission,56.99999999999999
+P17,CD4 Naive,long-term-remission,64.02877697841727
+P17,CD4 Memory,long-term-remission,67.83216783216784
+P17,CD4 Effector Memory,long-term-remission,70.2127659574468
+P17,Treg,long-term-remission,61.398963730569946
+P17,CD8 Naive,long-term-remission,42.600896860986545
+P17,CD8 Memory,long-term-remission,72.45508982035929
+P17,CD8 Effector,long-term-remission,96.84210526315789
+P17,CD8 Exhausted,long-term-remission,81.48148148148148
+P17,Gamma-Delta T,long-term-remission,94.32624113475178
+P17,NK-T,long-term-remission,50.522648083623686
+P17,Adaptive NK,long-term-remission,98.18181818181819
+P17,CD56 Bright NK,long-term-remission,97.6470588235294
+P17,CD56 Dim NK,long-term-remission,99.11242603550295
+P17,Cycling T-NK,long-term-remission,97.5609756097561
+P20,HSPCs,relapse,80.32786885245902
+P20,Early Erythroid,relapse,88.32116788321169
+P20,Mid Erythroid,relapse,95.52238805970148
+P20,Late Erythroid,relapse,98.13664596273291
+P20,Pro Monocytes,relapse,98.75
+P20,Monocytes,relapse,99.79879275653923
+P20,Non-Classical Monocytes,relapse,100
+P20,cDC,relapse,99.45652173913044
+P20,pDC,relapse,100
+P20,Pro-B,relapse,100
+P20,Pre-B,relapse,100
+P20,B cells,relapse,90.38461538461539
+P20,Plasma cells,relapse,69.56521739130434
+P20,CD4 Naive,relapse,32.098765432098766
+P20,CD4 Memory,relapse,35.10204081632653
+P20,CD4 Effector Memory,relapse,37.07865168539326
+P20,Treg,relapse,43.10850439882698
+P20,CD8 Naive,relapse,52.459016393442624
+P20,CD8 Memory,relapse,89.91452991452992
+P20,CD8 Effector,relapse,89.67596081386586
+P20,CD8 Exhausted,relapse,92.24952741020795
+P20,Gamma-Delta T,relapse,75.6931608133087
+P20,NK-T,relapse,75.52447552447552
+P20,Adaptive NK,relapse,95.16129032258065
+P20,CD56 Bright NK,relapse,99.09909909909909
+P20,CD56 Dim NK,relapse,97.0873786407767
+P20,Cycling T-NK,relapse,89.74358974358975
+P21,HSPCs,relapse,59.25925925925925
+P21,Early Erythroid,relapse,96.62576687116564
+P21,Mid Erythroid,relapse,100
+P21,Late Erythroid,relapse,99.93924665856622
+P21,Pro Monocytes,relapse,100
+P21,Monocytes,relapse,100
+P21,Non-Classical Monocytes,relapse,99.9
+P21,cDC,relapse,100
+P21,pDC,relapse,100
+P21,Pro-B,relapse,100
+P21,Pre-B,relapse,100
+P21,B cells,relapse,100
+P21,Plasma cells,relapse,40
+P21,CD4 Naive,relapse,47.91666666666667
+P21,CD4 Memory,relapse,57.692307692307686
+P21,CD4 Effector Memory,relapse,88.28828828828829
+P21,Treg,relapse,56.25
+P21,CD8 Naive,relapse,39.130434782608695
+P21,CD8 Memory,relapse,70.96774193548387
+P21,CD8 Effector,relapse,97.72727272727273
+P21,CD8 Exhausted,relapse,97.77777777777777
+P21,Gamma-Delta T,relapse,58.333333333333336
+P21,NK-T,relapse,89.47368421052632
+P21,Adaptive NK,relapse,93.75
+P21,CD56 Bright NK,relapse,97.36842105263158
+P21,CD56 Dim NK,relapse,97.70642201834863
+P21,Cycling T-NK,relapse,99.02439024390245
+P22,HSPCs,relapse,51.20772946859904
+P22,Early Erythroid,relapse,75.75757575757575
+P22,Mid Erythroid,relapse,99.06542056074767
+P22,Late Erythroid,relapse,99.20724801812004
+P22,Pro Monocytes,relapse,84.375
+P22,Monocytes,relapse,82.16175359032502
+P22,Non-Classical Monocytes,relapse,66.45962732919256
+P22,cDC,relapse,94.6843853820598
+P22,pDC,relapse,98.57142857142858
+P22,Pro-B,relapse,100
+P22,Pre-B,relapse,100
+P22,B cells,relapse,94.94949494949495
+P22,Plasma cells,relapse,70.96774193548387
+P22,CD4 Naive,relapse,90.96045197740112
+P22,CD4 Memory,relapse,91.58415841584159
+P22,CD4 Effector Memory,relapse,95.66755083996463
+P22,Treg,relapse,92.07161125319693
+P22,CD8 Naive,relapse,96.23376623376623
+P22,CD8 Memory,relapse,99.213217938631
+P22,CD8 Effector,relapse,99.45155393053017
+P22,CD8 Exhausted,relapse,98.32703723691311
+P22,Gamma-Delta T,relapse,99.43848902501277
+P22,NK-T,relapse,97.87775891341256
+P22,Adaptive NK,relapse,100
+P22,CD56 Bright NK,relapse,100
+P22,CD56 Dim NK,relapse,99.38144329896907
+P22,Cycling T-NK,relapse,99.32432432432432
+P23,HSPCs,relapse,100
+P23,Early Erythroid,relapse,100
+P23,Mid Erythroid,relapse,100
+P23,Late Erythroid,relapse,98.59154929577466
+P23,Pro Monocytes,relapse,100
+P23,Monocytes,relapse,99.37888198757764
+P23,Non-Classical Monocytes,relapse,100
+P23,cDC,relapse,100
+P23,pDC,relapse,100
+P23,Pro-B,relapse,100
+P23,Pre-B,relapse,94.85294117647058
+P23,B cells,relapse,80.72289156626506
+P23,Plasma cells,relapse,33.33333333333333
+P23,CD4 Naive,relapse,68.11955168119552
+P23,CD4 Memory,relapse,59.83754512635379
+P23,CD4 Effector Memory,relapse,70.17543859649122
+P23,Treg,relapse,58.333333333333336
+P23,CD8 Naive,relapse,65.59546313799622
+P23,CD8 Memory,relapse,97.60191846522783
+P23,CD8 Effector,relapse,99.3849938499385
+P23,CD8 Exhausted,relapse,96.20012666244459
+P23,Gamma-Delta T,relapse,99.63099630996311
+P23,NK-T,relapse,87.61904761904762
+P23,Adaptive NK,relapse,93.33333333333333
+P23,CD56 Bright NK,relapse,96.55172413793103
+P23,CD56 Dim NK,relapse,99.10714285714286
+P23,Cycling T-NK,relapse,72.72727272727273
+P24,HSPCs,relapse,32.59803921568628
+P24,Early Erythroid,relapse,88.94637817497649
+P24,Mid Erythroid,relapse,97.10572947430597
+P24,Late Erythroid,relapse,96.00997506234414
+P24,Pro Monocytes,relapse,84.22442244224423
+P24,Monocytes,relapse,94.4412932501418
+P24,Non-Classical Monocytes,relapse,92.25449515905947
+P24,cDC,relapse,74.78991596638656
+P24,pDC,relapse,74.19354838709677
+P24,Pro-B,relapse,86.37992831541219
+P24,Pre-B,relapse,94.11764705882352
+P24,B cells,relapse,92.3076923076923
+P24,Plasma cells,relapse,33.193277310924366
+P24,CD4 Naive,relapse,81.73076923076923
+P24,CD4 Memory,relapse,83.77192982456141
+P24,CD4 Effector Memory,relapse,87.96296296296296
+P24,Treg,relapse,63.91382405745063
+P24,CD8 Naive,relapse,56.76392572944297
+P24,CD8 Memory,relapse,67.84140969162996
+P24,CD8 Effector,relapse,33.33333333333333
+P24,CD8 Exhausted,relapse,74.46808510638297
+P24,Gamma-Delta T,relapse,95.58823529411765
+P24,NK-T,relapse,76.33136094674556
+P24,Adaptive NK,relapse,99.72375690607734
+P24,CD56 Bright NK,relapse,100
+P24,CD56 Dim NK,relapse,99.72067039106145
+P24,Cycling T-NK,relapse,94.9367088607595
+P26,HSPCs,relapse,48.484848484848484
+P26,Early Erythroid,relapse,99.62049335863378
+P26,Mid Erythroid,relapse,100
+P26,Late Erythroid,relapse,100
+P26,Pro Monocytes,relapse,98.52941176470588
+P26,Monocytes,relapse,96.7741935483871
+P26,Non-Classical Monocytes,relapse,99.14893617021276
+P26,cDC,relapse,100
+P26,pDC,relapse,100
+P26,Pro-B,relapse,100
+P26,Pre-B,relapse,100
+P26,B cells,relapse,93.24324324324324
+P26,Plasma cells,relapse,13.636363636363635
+P26,CD4 Naive,relapse,98.79518072289156
+P26,CD4 Memory,relapse,98.80597014925372
+P26,CD4 Effector Memory,relapse,98.0392156862745
+P26,Treg,relapse,100
+P26,CD8 Naive,relapse,100
+P26,CD8 Memory,relapse,100
+P26,CD8 Effector,relapse,100
+P26,CD8 Exhausted,relapse,100
+P26,Gamma-Delta T,relapse,100
+P26,NK-T,relapse,100
+P26,Adaptive NK,relapse,100
+P26,CD56 Bright NK,relapse,100
+P26,CD56 Dim NK,relapse,99.3993993993994
+P26,Cycling T-NK,relapse,100
+P27,HSPCs,relapse,16.91542288557214
+P27,Early Erythroid,relapse,98.10725552050474
+P27,Mid Erythroid,relapse,99.85119047619048
+P27,Late Erythroid,relapse,99.38398357289527
+P27,Pro Monocytes,relapse,72.15189873417721
+P27,Monocytes,relapse,96.12403100775194
+P27,Non-Classical Monocytes,relapse,100
+P27,cDC,relapse,48.275862068965516
+P27,pDC,relapse,47.368421052631575
+P27,Pro-B,relapse,99.16839916839916
+P27,Pre-B,relapse,97.92746113989638
+P27,B cells,relapse,98.04928131416838
+P27,Plasma cells,relapse,48.38709677419355
+P27,CD4 Naive,relapse,79.5608108108108
+P27,CD4 Memory,relapse,93.57798165137615
+P27,CD4 Effector Memory,relapse,98.92761394101876
+P27,Treg,relapse,80
+P27,CD8 Naive,relapse,97.80701754385966
+P27,CD8 Memory,relapse,100
+P27,CD8 Effector,relapse,100
+P27,CD8 Exhausted,relapse,99.74683544303798
+P27,Gamma-Delta T,relapse,100
+P27,NK-T,relapse,94.44444444444444
+P27,Adaptive NK,relapse,100
+P27,CD56 Bright NK,relapse,100
+P27,CD56 Dim NK,relapse,100
+P27,Cycling T-NK,relapse,100

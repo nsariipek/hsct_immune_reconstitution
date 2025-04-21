@@ -246,7 +246,7 @@ plot_cd8 <- function(df, title = NULL) {
       legend.title = element_text(size = 11, color = "black"),
       panel.grid = element_blank(),
       axis.ticks = element_line(color = "black", size = 0.5),
-      aspect.ratio = 1
+      aspect.ratio = 2
     )
 }
 

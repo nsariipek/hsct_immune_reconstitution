@@ -16,7 +16,6 @@ setwd("~/TP53_ImmuneEscape/5_Cell_Proportions/")
 seu_df <- read_csv("~/seu_df_250418.csv")
 
 # Define the colors
-
 # Celltype colors
 celltype_colors_df <- read.table("~/TP53_ImmuneEscape/celltype_colors.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE, comment.char = "")
 celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltype)

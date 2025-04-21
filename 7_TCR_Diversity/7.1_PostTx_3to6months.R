@@ -1,6 +1,6 @@
 # Nurefsan Sariipek
 # Date: January 22nd, 2024
-# Updated February 14, 2025
+# Updated April 21, 2025
 # Analyze post 3-6 months remission samples and subset donor/host CD4/CD8 compartments using subsampling based on cell numbers which is different than scRepertoire built in subsampling which can be found on 6.1 script
 
 # Load the libraries
@@ -31,115 +31,107 @@ gcs_global_bucket("fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b")
 # Check if you can list the objects. In Terra, you may need to authenticate using gcs_auth(). In VM, this did not work - hence the alternative function on line 65.
 gcs_list_objects()
 
-#Do not include Patient 32 since  it is a relapse sample
-
-# Define samples
+# Define samples(only the 3-6 mo remission samples)
 Samples <- c("P1665_MIX", "P1671_MIX", "P1745_MNC", "P1762_MIX", "P1764_MIX", 
-             "P1804_MNC", "P1817_MIX", "P1964_MNC", "P2220_MNC", "P2332_MNC", "P2408_MNC", 
-             "P2434_MNC", "P2517_MIX", "P2518_CD3", "P2518_MNC", "P2599_CD3", "P2599_MNC", "P2698_MIX", "P2745_MNC", "P2791_MNC", "P2820_MIX", "P2961_MNC", "P2977_MIX", "P2986_MNC", "P2988_MNC", "P3000_MIX", "P6174_CD3", "P6174_MNC", "P25802_CD3", "P25802_MNC","P25809_MNC")
+             "P1804_MNC", "P1817_MIX", "P2220_MNC", "P2332_MNC", "P2408_MNC", 
+             "P2434_MNC", "P2517_MIX", "P2518_CD3", "P2518_MNC", "P2599_CD3", 
+             "P2599_MNC", "P2698_MIX", "P2745_MNC", "P2791_MNC", "P2820_MIX", 
+             "P2961_MNC", "P2977_MIX", "P2986_MNC", "P2988_MNC", "P3000_MIX", 
+             "P6174_CD3", "P6174_MNC", "P25802_CD3", "P25802_MNC","P25809_MNC")
 
-  # Temporary directory to save downloaded files
-  tmp_dir <- "/home/rstudio/tmp"
-  dir.create(tmp_dir)
+
+# Temporary directory to save downloaded files
+tmp_dir <- "/home/rstudio/tmp"
+dir.create(tmp_dir)
+
+# Track successfully loaded samples
+successful_samples <- c()
+
+# Process each sample and assign to dynamically named variables
+for (Sample in Samples) {
+  print(Sample) # Log the sample being processed
   
-  # Track successfully loaded samples
-  successful_samples <- c()
+  # Define file paths
+  sample_path <- paste0(Sample, "/vdj-t/")
+  file_name <- paste0(Sample, "_filtered_contig_annotations.csv")
+  save_path <- file.path(tmp_dir, file_name)
   
-  # Process each sample and assign to dynamically named variables
-  for (Sample in Samples) {
-    print(Sample) # Log the sample being processed
+  # Download the file and create variables
+  tryCatch({
+    gcs_get_object(
+      object_name = paste0(sample_path, "filtered_contig_annotations.csv"),
+      saveToDisk = save_path
+    )
     
-    # Define file paths
-    sample_path <- paste0(Sample, "/vdj-t/")
-    file_name <- paste0(Sample, "_filtered_contig_annotations.csv")
-    save_path <- file.path(tmp_dir, file_name)
-    
-    # Download the file and create variables
-    tryCatch({
-      gcs_get_object(
-        object_name = paste0(sample_path, "filtered_contig_annotations.csv"),
-        saveToDisk = save_path
-      )
-      
-      # Read the downloaded file into a variable named after the sample
-      assign(Sample, read.csv(save_path), envir = globalenv())
-      successful_samples <- c(successful_samples, Sample) # Track success
-    }, error = function(e) {
-      message(glue("Error processing sample: {Sample}"))
-    })
-  }
-  
-  # Dynamically construct the contig_list for successfully loaded samples
-  contig_list <- mget(successful_samples, envir = globalenv())
-  
-  # Combine all the samples into a single object
-  combined <- combineTCR(
-    contig_list,
-    samples = successful_samples
-  )
-  
+    # Read the downloaded file into a variable named after the sample
+    assign(Sample, read.csv(save_path), envir = globalenv())
+    successful_samples <- c(successful_samples, Sample) # Track success
+  }, error = function(e) {
+    message(glue("Error processing sample: {Sample}"))
+  })
+}
+
+# Dynamically construct the contig_list for successfully loaded samples
+contig_list <- mget(successful_samples, envir = globalenv())
+
+# Combine all the samples into a single object
+combined <- combineTCR(
+  contig_list,
+  samples = successful_samples
+)
+
 # Add variables. For scRepertoire below v2.0, replace variable.name with name
 combined <- addVariable(combined, variable.name = "patient_id",
-                        variables = c("P13", "P23", "P14", "P18", "P28", "P29", "P15", "P30","P02", "P31", "P16", "P06", "P24", "P07", "P07", "P04", "P04", "P19", "P33", "P20", "P25", "P26", "P21", "P22", "P17", "P27", "P08", "P08", "P01", "P01", "P05"))
+                        variables = c("P07", "P15", "P05", "P10", "P24", 
+                                      "P25", "P08", "P02","P27", "P09", 
+                                      "P21", "P16", "P22", "P22", "P04", 
+                                      "P04", "P11", "P26", "P12", "P17", 
+                                      "P18", "P13", "P14", "P06", "P19", 
+                                      "P23", "P23", "P01", "P01", "P20"))
 
 # Optional: merge data if the same sample was analyzed as both MNC and sorted T cells
 combined2 <- do.call(rbind, combined)
 combined <- split(combined2, f = combined2$patient_id)
 
 # load the T cells
-Tcells <- readRDS("~/250128_Tcell_subset.rds")
-
-# Update P32 information
-Tcells@meta.data <- Tcells@meta.data %>%
-  mutate(
-    sample_status = if_else(patient_id == "P32", "relapse", sample_status),
-    sample_id = if_else(patient_id == "P32" & sample_id == "P32_Rem", "P32_Rel", sample_id))
-
-# Define TP53 MT and WT patient groups
-mt_patients <- paste0("P", sprintf("%02d", c(1:12, 14, 17)))
-wt_patients <- paste0("P", c(13, 15, 16, 18:33))  
-
-Tcells@meta.data <- Tcells@meta.data %>%
-  mutate(patient_id = as.factor(patient_id))%>%
-  mutate(TP53 = case_when(
-    patient_id %in% mt_patients ~ "MT",
-    patient_id %in% wt_patients ~ "WT"))
+Tcells <- readRDS("~/250418_Tcells.rds")
 
 # Subset to keep only 3-6M remission samples from seurat object(might be unneccessary)
-Tcells <- subset(x = Tcells, subset = timepoint %in% c("3","5","6") & sample_status == "remission")
+Tcells_subset <- subset(x = Tcells, subset = timepoint %in% c("3","5","6") & sample_status == "remission")
 
 # Turn to a dataframe and keep only needed variables
-meta = Tcells@meta.data %>% 
-       select(barcode, celltype, cohort, sample_status, orig.ident, sample_id, patient_id,timepoint,survival, library_type,TP53)
-rownames(meta) <- NULL
+meta = Tcells_subset@meta.data 
+meta$barcode <- rownames(meta)
+meta %>%
+  select(barcode, celltype, cohort, sample_status, orig.ident, sample_id, patient_id,timepoint, library_type,TP53_status)
 meta = meta %>% drop_na()
 
 ########### Optional subsetting for exploring different cell types #############
-# # Only MT samples
-# meta <- subset(x=meta, subset = TP53=="MT")
-# 
-# # Only subset CD8+ cells
-#  meta <- subset(x = meta, subset = celltype %in% c("CD8 Memory", "CD8 Effector", "CD8 Exhausted","γδ T","CD8 Naïve"))
-#  
+## Only subset CD8+ cells
+#  meta <- subset(x = meta, subset = celltype %in% c("CD8 Memory","CD8 Effector", "CD8 Exhausted","Delta-Gamma T","CD8 Naive"))
+#
 # # Only subset CD4+ cells
-# meta <- subset(x = meta, subset = celltype %in% c("Treg","CD4 Effector Memory", "CD4 Naïve","CD4 Memory"))
+# meta <- subset(x = meta, subset = celltype %in% c("Treg","CD4 Effector Memory", "CD4 Naive","CD4 Memory"))
 
 ### Add Souporcell information ####
 
-# # Load the metadata that contains souporcell information
-# souporcell_df <- read_csv("~/final_dataset.csv")
-# 
-# # Wrangle the df 
-# souporcell_df <- souporcell_df %>%
-#   mutate(modified_barcode = paste(orig.ident, barcode, sep = "_")) %>% 
-#   select(modified_barcode, origin)
-# 
-# # Join 2 dataframe
-# meta_merged <- souporcell_df %>%
-#   inner_join(meta, by = c("modified_barcode" = "barcode")) %>% drop_na()
+# Load the metadata that contains souporcell information
+souporcell_df <- read_csv("~/250418_final_dataset.csv")
 
-# # Select only recipient cells
-# meta <- meta_merged %>% rename(barcode=modified_barcode) %>% filter(origin == "donor")
+# Wrangle the df
+souporcell_df <- souporcell_df %>%
+  mutate(modified_barcode = paste(orig.ident, barcode, sep = "_")) %>%
+  select(modified_barcode, origin)
+
+# Join 2 dataframe
+meta_merged <- souporcell_df %>%
+  inner_join(meta, by = c("modified_barcode" = "barcode")) %>% drop_na()
+
+# Select only recipient cells
+meta <- meta_merged %>% rename(barcode=modified_barcode) %>% filter(origin == "recipient")
+
+# Select only donor cells
+meta <- meta_merged %>% rename(barcode=modified_barcode) %>% filter(origin == "donor")
 
 ################  End of selection ###################
 
@@ -154,24 +146,23 @@ for (i in names(combined)) {
 
 View(combined.sc)
 
-# Remove samples P20, P26  from the list since they had less than <500 TCR calls
+# Remove samples P12, P18  from the list since they had less than <500 TCR calls and remove the ones are empty( more for souporcell)
+combined.sc <- combined.sc[sapply(combined.sc, function(x) nrow(x) > 0)]
 
-
-samples_to_remove <- c("P16","P20","P26","P33")
-#mt_samples <- c("P01","P02","P03","P04","P05","P06","P07","P08","P10","P11","P12","P14","P17")
+samples_to_remove <- c("P09","P12","P18")
+samples_to_remove <-("P26")
 combined.sc <- combined.sc[!names(combined.sc) %in% samples_to_remove]
-#combined.sc <- combined.sc[names(combined.sc) %in% mt_samples]
 
 # Verify the remaining samples
 print(names(combined.sc))
 
-# You need to save RDS with TCR info for calculating neoantigen signature 
-# Turn combined.sc to a seurat object
-# x <- do.call(rbind, combined.sc)
-# row.names(x) <- x$barcode
-# Tcells_TCR <- AddMetaData(Tcells, select(x, CTstrict))
-# # Save this combinedseurat object to use in other purposes.
-# saveRDS(Tcells_TCR, file = "~/Tcells_TCR.rds")
+## You need to save RDS with TCR info for calculating neoantigen signature 
+## Turn combined.sc to a seurat object
+#  x <- do.call(rbind, combined.sc)
+#  row.names(x) <- x$barcode
+#  Tcells_TCR <- AddMetaData(Tcells, select(x, CTstrict))
+## Save this combinedseurat object to use in other purposes.
+#  saveRDS(Tcells_TCR, file = "~/250421_Tcells_TCR.rds")
 
 # This section is from the scRepertoire clonal diversity function. It calculates different diversity indices.
 .diversityCall <- function(data) {
@@ -287,7 +278,7 @@ View(m)
 
 # Add more information to table to make more annotated plots
 joined_tibble <- as_tibble(meta) %>% 
-  select(sample_id, cohort, timepoint,sample_status , patient_id, survival,TP53,celltype) %>% unique() %>%
+  select(sample_id, cohort, timepoint, sample_status, patient_id,TP53_status ,celltype) %>% unique() %>%
   right_join(m, by = "patient_id")
 
 # Determine y axis for visualization purposes
@@ -295,23 +286,24 @@ y_lim <- c(0,max(joined_tibble$inv.simpson))
 
 # Visualize the diversities
 # Survival colors
-survival_colors <- c("Non-relapsed" = "#546fb5FF","Relapsed" = "#e54c35ff")
-p2 <- joined_tibble %>%
+cohort_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
+
+plot_TCR <- function(df, title = NULL) {
+  df %>%
   filter(!duplicated(patient_id)) %>%
-  filter(TP53=="WT") %>%
-  ggplot(aes(x = survival, y = inv.simpson, fill = survival)) +
+  ggplot(aes(x = cohort, y = inv.simpson, fill = cohort)) +
   geom_bar(stat = "summary", fun = mean, width = 0.6, color = "black") +
   geom_jitter(width = 0.15, size = 4, alpha = 0.7, color = "black") +
   stat_summary(fun.data = mean_se, geom = "errorbar", 
                width = 0.2, linewidth = 1, color = "black") +
-  scale_fill_manual(values = survival_colors) +
+  scale_fill_manual(values = cohort_colors) +
   theme_pubr(base_size = 16) +
   coord_cartesian(ylim = y_lim) +
   labs(y = "Inverse Simpson Index",
     x = NULL,
     fill = "Survival Status") +
    stat_compare_means(
-    aes(group = survival), 
+    aes(group = cohort), 
     method = "wilcox.test", 
     label = "p.format", 
     label.y = max(y_lim) * 0.95,
@@ -322,63 +314,21 @@ p2 <- joined_tibble %>%
     legend.position = "right",
     legend.title = element_text(size = 14),
     legend.text = element_text(size = 12),
-    aspect.ratio = 1.5)
-p2
+    aspect.ratio = 1.5) }
+
+TCR_all <- plot_TCR(joined_tibble, title = "All samples")
+TCR_MT  <- plot_TCR(filter(joined_tibble, TP53_status == "MUT"), title = "TP53-MUT samples")
+TCR_WT  <- plot_TCR(filter(joined_tibble, TP53_status == "WT"), title = "TP53-WT samples") 
 
 # Save as a pdf
-pdf("7.1_Post-transplant_WT_only_samples.pdf", width = 6, height = 8)
-p2
+pdf("7.1_Post-transplant_recipient_MT_only.pdf", width = 6, height = 8)
+TCR_MT
 dev.off()
 
+pdf("7.1_Post-transplant_recipient_WT_only.pdf", width = 6, height = 8)
+TCR_WT
+dev.off()
 
-# # Peter's plots 250214
-# p1 <- joined_tibble %>% group_by(patient_id, survival) %>%
-#   dplyr::summarize(inv.simpson = mean(inv.simpson)) %>% # take the average for P01
-#   ggplot(aes(x = survival, y = inv.simpson)) + 
-#   geom_bar(stat = "summary", fun=mean, aes(fill = survival), color = "black") +
-#   scale_fill_manual(values=c("skyblue1", "salmon"))+
-#   geom_jitter(color = "#00000080", size = 4) +
-#   stat_summary(fun.data=mean_se, geom="errorbar", width=.5, linewidth=0.5) +
-#   stat_compare_means(aes(group = survival), method = "t.test", label = "p.format", size = 8,
-#                      label.y = max(joined_tibble$inv.simpson)*0.95) +
-#   ylab("Inverse Simpson Index") +
-#   theme_pubr() +
-#   theme(strip.text = element_text(size = 20 , color = "black", face="bold"),
-#         aspect.ratio = 2,
-#         axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 24, color = "black"),
-#         axis.title.x = element_blank(), 
-#         axis.text.y = element_text(size = 24),
-#         axis.title.y = element_text(size = 24, color = "black"),
-#         plot.title =  element_text(size = 24,color = "black", face = "bold"),
-#         legend.key.size = unit(10,"mm"),
-#         legend.title = element_text(size = 20),
-#         legend.position = "right",
-#         legend.text = element_text(size = 20))
-# 
-# ggsave("6.1_AllPatients.pdf", width = 6, height = 8)
-# 
-# joined_tibble %>% group_by(patient_id, survival) %>% filter(patient_id %in% mt_patients) %>%
-#   dplyr::summarize(inv.simpson = mean(inv.simpson)) %>% # take the average for P01
-#   ggplot(aes(x = survival, y = inv.simpson)) + 
-#   geom_bar(stat = "summary", fun=mean, aes(fill = survival), color = "black") +
-#   scale_fill_manual(values=c("skyblue1", "salmon"))+
-#   geom_jitter(color = "#00000080", size = 4) +
-#   stat_summary(fun.data=mean_se, geom="errorbar", width=.5, linewidth=0.5) +
-#   stat_compare_means(aes(group = survival), method = "t.test", label = "p.format", size = 8,
-#                       label.y = max(joined_tibble$inv.simpson)*0.9) +
-#   ylab("Inverse Simpson Index") +
-#   theme_pubr() +
-#   theme(strip.text = element_text(size = 20 , color = "black", face="bold"),
-#         aspect.ratio = 2,
-#         axis.text.x = element_text(angle = 45, vjust= 1, hjust = 1, size = 24, color = "black"),
-#         axis.title.x = element_blank(), 
-#         axis.text.y = element_text(size = 24),
-#         axis.title.y = element_text(size = 24, color = "black"),
-#         plot.title =  element_text(size = 24,color = "black", face = "bold"),
-#         legend.key.size = unit(10,"mm"),
-#         legend.title = element_text(size = 20),
-#         legend.position = "right",
-#         legend.text = element_text(size = 20))
-# ggsave("6.1_TP53mut-only.pdf", width = 6, height = 8)
-
-
+pdf("7.1_Post-transplant_recipient_only.pdf", width = 6, height = 8)
+TCR_all
+dev.off()

@@ -1,5 +1,5 @@
-# Neantigen score+TCRs
-# Nurefsan Sariipek, 24-07-01, updated at Terra 25-04-21
+# Neoantigen score+TCRs
+# Nurefsan Sariipek, 24-07-01, updated at 25-04-21
 # Load the libraries
 library(scRepertoire)
 library(Seurat)
@@ -13,13 +13,13 @@ library(ggforce) # for geom_sina
 # Empty environment
 rm(list=ls())
 
-#set working directory
+# Set working directory
 setwd("~/TP53_ImmuneEscape/3_DGE/3.3_Neoantigenscore/")
 
 # Load the seurat object from 6.1 script end of line 163 which has the TCR+ scRNA combined object
 combined <- readRDS("~/250421_Tcells_TCR.rds")
 
-#Select oly 3-6 mo and remission samples
+# Select only 3-6 mo and remission samples
 combined_subset <- subset(x= combined, subset= timepoint %in% c("3","5","6") & sample_status == "remission")
 
 # Load antigen scores from Rosenberg lab papers https://www.sciencedirect.com/science/article/pii/S1535610823003963?via%3Dihub
@@ -27,15 +27,8 @@ combined_subset <- subset(x= combined, subset= timepoint %in% c("3","5","6") & s
 cd4neoA <- read.csv("signatures/cd4.csv")
 cd8neoA <- read.csv("signatures/cd8.csv")
 neoA <- read.csv("signatures/neoantigen.csv")
-ex <- read.csv("signatures/exhausted_signature.csv")
 
-# Optional
-# #Only select the MT samples
-# combined_subset_MT <- subset(x = combined, subset = TP53=="MT")
-# #Only select the WT samples
-# combined_subset_WT <- subset(x = combined, subset =TP53=="WT")
-
-# Optional
+# Optional step for subsetting
 # Subset for different celltypes before adding the antigen score
  cd8cells <- subset(x = combined_subset, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naive","CD8 Exhausted","Delta-Gamma T"))
 #  cd8ef <- subset(x = combined_subset, subset = celltype == "CD8 Effector")
@@ -48,34 +41,15 @@ ex <- read.csv("signatures/exhausted_signature.csv")
 #  cd4na <- subset(x = combined, subset = celltype == "CD4 Naïve")
 
 # Add this module score to the subsetted dataset
-neoantigen <- AddModuleScore(object =   cd8cells,
-                             features = cd8neoA,
+neoantigen <- AddModuleScore(object = combined_subset,
+                             features = neoA,
                              name = "neoantigen",
                              assay = "RNA",
                              search = T)
 
-neoantigen_2 <- AddModuleScore(object =   cd8cells,
-                               features = ex,
-                               name = "neoantigen",
-                               assay = "RNA",
-                               search = T)
-
-
-# View 
-#View(neoantigen@meta.data)
-#you can see there are a lot of NAs
-
-# If you want to select the t cell type after adding the antigen score Select only CD8+ T cells 
-# neoantigen <- subset(x = neoantigen, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naïve","CD8 Terminally Exhausted"))'
-# neoantigen <- subset(x = neoantigen, subset = celltype == "CD8 Effector")
-# neoantigen <- subset(x = neoantigen, subset = celltype =="CD8 Memory")
-# neoantigen <- subset(x = neoantigen, subset = celltype=="CD8 Naïve")
-# neoantigen <- subset(x = neoantigen, subset = celltype=="CD8 Terminally Exhausted")
-# neoantigen <- subset(x = neoantigen, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
-
 # Visualize the score per patient
-neoantigen_2 <- SetIdent(neoantigen_2, value = "patient_id")
-p1 <- VlnPlot(neoantigen_2, features = "neoantigen1", split.by = "TP53", sort = "increasing")
+neoantigen <- SetIdent(neoantigen, value = "patient_id")
+p1 <- VlnPlot(neoantigen, features = "neoantigen1", split.by = "TP53", sort = "increasing")
 p1
 
 pdf("Neocd8cells_perpt_all.pdf", width = 20, height = 10)
@@ -83,14 +57,15 @@ p1
 dev.off()
 
 # Turn seurat object to tibble
-neoantigen <- as_tibble(neoantigen_2@meta.data, rownames = "cell") 
+neoantigen <- as_tibble(neoantigen@meta.data, rownames = "cell") 
 
 # Select only needed variables
-neotb <- neoantigen%>%
+neotb <- neoantigen %>%
   select(patient_id,CTstrict, neoantigen1,cohort,patient_id,TP53_status)
 
 # For each TCR, calculate relative clonotype size (grouped by sample)
 neotb_grouped <- neotb %>% 
+  filter(cohort=="relapse") %>% 
   group_by(patient_id) %>%
   mutate(n_total = n()) %>%
   ungroup() %>%
@@ -99,7 +74,7 @@ neotb_grouped <- neotb %>%
     n = n(),
     prop = n / first(n_total),
     meanScore = mean(neoantigen1)) %>%
-  ungroup()
+    ungroup()
 
 # There may a difference between the cohorts when taking all clonotypes, but this test is not stringent enough
 mt_meanScores <- filter(neotb_grouped, TP53_status == "MUT")$meanScore
@@ -112,21 +87,22 @@ w_test_result <- wilcox.test(mt_meanScores, wt_meanScores)
 fc <- median(mt_meanScores)/median(wt_meanScores)
 
 # Sina plot, grouped by survival
-s <- ggplot(neotb_grouped, aes(x=cohort, y=meanScore)) +
-  geom_sina(aes(size = prop, color = patient_id, group = cohort), scale = "width")+
+s <- ggplot(neotb_grouped, aes(x=TP53_status, y=meanScore)) +
+  geom_sina(aes(size = prop, color = patient_id, group = TP53_status), scale = "width")+
   geom_violin(alpha=0, scale = "width", draw_quantiles = 0.5) +
   #ggtitle(label = unique(neoantigen$celltype)) + # this should be changed in the final script
   theme_pubr() +
   theme(aspect.ratio = 1)+
   annotate("text", x = 1.5, y = max(neotb_grouped$meanScore)-0.02,
            label = paste0("Fold change: ", round(fc, 4), "\n",
-             "p = ", signif(w_test_result$p.value, digits = 4)), size=4.5)
+             "p = ", signif(w_test_result$p.value, digits = 8)), size=4.5)
 
 s
 
-pdf("Neocd8cells_MTvsWT.pdf", width = 20, height = 10)
+pdf("Relapse_cohort_Neo_cells_MTvsWT.pdf", width = 20, height = 10)
 s
 dev.off()
+
 # survival_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
 # # Bar plot showing mean for each patient's score
 # b <-neotb_grouped %>%

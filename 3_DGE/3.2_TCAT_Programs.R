@@ -19,9 +19,13 @@ cutf <- function(x, f = 1, d = "/")
       sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
 
 # Load data. This file is available on Dropbox but not Github.
-seu_T <- readRDS("../AuxiliaryFiles/250128_Tcell_subset.rds")
+#seu_T <- readRDS("../AuxiliaryFiles/250128_Tcell_subset.rds")
 # THIS IS A TEMPORARY FIX
-seu_T <- subset(seu_T, patient_id != "P32")
+seu <- readRDS("../AuxiliaryFiles/250418_Seurat_all_cells_annotated.rds")
+tnk_celltypes <- c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg",
+"CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "Gamma-Delta T", "NK-T",
+"Adaptive NK", "CD56 Bright NK", "CD56 Dim NK")
+seu_T <- subset(seu, celltype %in% tnk_celltypes)
 
 # Load colors from 2.3_PvG-Colors.R
 celltype_colors_df <- read.table(
@@ -37,11 +41,7 @@ celltype_colors <- setNames(
 )
 
 # Check visually
-seu_T@meta.data %>%
-      sample_frac(1) %>%
-      ggplot(aes(x = UMAP_TNK_1, y = UMAP_TNK_2, color = celltype)) +
-      geom_scattermore(pointsize = 8, pixels = c(4096, 4096)) +
-      scale_color_manual(values = celltype_colors) +
+DimPlot(seu_T, reduction = "umapTNK", shuffle = T, cols = celltype_colors) +
       theme_bw() +
       theme(aspect.ratio = 1, panel.grid = element_blank()) +
       guides(color = guide_legend(override.aes = list(size = 3)))
@@ -55,27 +55,29 @@ metadata_tib <- as_tibble(seu_T@meta.data, rownames = "cell")
 metadata_tib <- left_join(metadata_tib, scores_tib)
 metadata_tib <- left_join(metadata_tib, usage_tib)
 
-# Define TP53 MT and WT patient groups
-mt_patients <- paste0("P", sprintf("%02d", c(1:12, 14, 17)))
-wt_patients <- paste0("P", c(13, 15, 16, 18:33))
-# Optional: subset for TP53 MT patients
-metadata_tib <- filter(metadata_tib, patient_id %in% mt_patients)
+#This part is no linger needed since the new object has the mutation info in the metadata
+# # Define TP53 MT and WT patient groups
+# mt_patients <- paste0("P", sprintf("%02d", c(1:12, 14, 17)))
+# wt_patients <- paste0("P", c(13, 15, 16, 18:33))
+# # Optional: subset for TP53 MT patients
+# metadata_tib <- filter(metadata_tib, patient_id %in% mt_patients)
 
 # Filter data for relevant time points etc.
 metadata_100d_tib <- metadata_tib %>%
       filter(
             timepoint %in% c("3", "5", "6"), # 100 days after transplant
             sample_status == "remission"
-      ) %>%
-      mutate(cohort_binary = substr(cohort, 3, nchar(cohort)))
+      ) 
+#Nurefsan removed the following line since it did not work for her.
+#%>%mutate(cohort_binary = substr(cohort, 3, nchar(cohort)))
 
 # Quick look at antigen-specific activation (ASA) scores...Is the difference between cohorts driven by TP53?
 p1 <- metadata_100d_tib %>%
       filter(celltype == "CD8 Effector") %>%
       ggplot(aes(
-            x = cohort_binary,
+            x = cohort,
             y = `ASA`,
-            color = patient_id %in% mt_patients
+            color = TP53_status =="MUT"
       )) +
       geom_violin(scale = "width", fill = NA, draw_quantiles = 0.5) +
       stat_compare_means(method = "wilcox.test", show.legend = F) + # This may not be the best statistical test

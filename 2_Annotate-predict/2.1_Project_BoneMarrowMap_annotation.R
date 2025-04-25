@@ -1,27 +1,46 @@
-suppressMessages(suppressWarnings({
+# Nurefsan is trying to run the BM annotation using Ksenia's script, 250424
+# Load the libraries
   library(tidyverse)
   library(dplyr)
   library(Seurat)
   library(BoneMarrowMap)
   library(symphony)
-  library(cowplot)
-  library(MuDataSeurat)
-}))
+  library(RColorBrewer)
+  library(patchwork)
+  
+# For BM library see this :  
 
-setwd("~/Documents/projects/nurefsan_integration/")
+# Set working directory
+setwd("~/TP53_ImmuneEscape/2_Annotate-predict/")
 
 base_dir = "/Users/kr72/Documents/projects/aging_blood/prepare_for_publication/"
 
-seu = readRDS("250416_MergedSeuratObject.rds")
+seu = readRDS("~/250417_MergedSeuratObject.rds")
 samples = seu$orig.ident %>% unique()
+
+
+# Set directory to store projection reference files
+projection_path = '~/'
+
+# Download Bone Marrow Reference - 344 Mb
+curl::curl_download('https://bonemarrowmap.s3.us-east-2.amazonaws.com/BoneMarrowMap_SymphonyReference.rds', 
+                    destfile = paste0(projection_path, 'BoneMarrowMap_SymphonyReference.rds'))
+# Download uwot model file - 221 Mb
+curl::curl_download('https://bonemarrowmap.s3.us-east-2.amazonaws.com/BoneMarrow_RefMap_uwot_model.uwot', 
+                    destfile = paste0(projection_path, 'BoneMarrowMap_uwot_model.uwot'))
+
+# Load Symphony reference
+ref <- readRDS(paste0(projection_path, 'BoneMarrowMap_SymphonyReference.rds'))
+# Set uwot path for UMAP projection
+ref$save_uwot_path <- paste0(projection_path, 'BoneMarrowMap_uwot_model.uwot')
+
+ReferenceSeuratObj <- create_ReferenceObject(ref)
+DimPlot(ReferenceSeuratObj, reduction = 'umap', group.by = 'CellType_Annotation_formatted', 
+        raster=FALSE, label=TRUE, label.size = 4) + NoAxes()
 
 ### Map each of the samples onto BMM reference; this follows BMM tutorial ####
 
-# Load Symphony reference (pre-downloaded)
-ref = readRDS(paste0(base_dir, "input_data/BoneMarrowMap/BoneMarrow_RefMap_SymphonyRef.rds"))
-# Set uwot path for UMAP projection
-ref$save_uwot_path = paste0(base_dir, "input_data/BoneMarrowMap/BoneMarrow_RefMap_uwot_model.uwot")
-
+samples <- unique(seu$orig.ident)
 for (i in 1:length(samples)) {
   
   query = subset(seu, orig.ident==samples[i])
@@ -64,12 +83,15 @@ for (i in 1:length(annotation_files)) {
 
 bmm_annotations = bmm_annotations[colnames(seu), ]
 all(colnames(seu) == rownames(bmm_annotations))
-bmm_annotations = bmm_annotations[,c(14:21)]
+
+#just select the needed columns and saved them for later 
+bmm_annotations = bmm_annotations[,c(16:23)]
 
 write.table(bmm_annotations, "bmm_annotations.tsv", append = F, quote = F, sep = "\t", row.names = T, col.names = T)
 
 seu = AddMetaData(seu, bmm_annotations)
 
+# take out the UMAP coordinates
 umap_coords = as.matrix(seu@meta.data[, c("umap_1", "umap_2")])
 
 # Ensure row names match the Seurat object cell names
@@ -84,3 +106,6 @@ seu[["umap_bmm"]] = CreateDimReducObject(
 DimPlot(seu, group.by = "predicted_CellType", label = T) & scale_color_manual(values = c(brewer.pal("Paired", n=12), brewer.pal(n=11, "Spectral"), brewer.pal(n=9, "Set1"), "black", "purple", "grey", "cyan", "gold", "green", "violet", brewer.pal("Paired", n=12), brewer.pal("Paired", n=12))) & NoLegend()
 
 DimPlot(seu, group.by = "predicted_CellType", label = F, split.by = "patient_id", ncol=6) & scale_color_manual(values = c(brewer.pal("Paired", n=12), brewer.pal(n=11, "Spectral"), brewer.pal(n=9, "Set1"), "black", "purple", "grey", "cyan", "gold", "green", "violet", brewer.pal("Paired", n=12), brewer.pal("Paired", n=12))) & NoLegend()
+
+saveRDS(seu, "~/250424_seu_bm_annotated.rds")
+

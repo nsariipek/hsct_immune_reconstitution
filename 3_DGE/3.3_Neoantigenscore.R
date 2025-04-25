@@ -65,7 +65,7 @@ neotb <- neoantigen %>%
 
 # For each TCR, calculate relative clonotype size (grouped by sample)
 neotb_grouped <- neotb %>% 
-  filter(cohort=="relapse") %>% 
+  filter(cohort=="long-term-remission") %>%
   group_by(patient_id) %>%
   mutate(n_total = n()) %>%
   ungroup() %>%
@@ -96,8 +96,8 @@ s <- ggplot(neotb_grouped, aes(x=TP53_status, y=meanScore)) +
   annotate("text", x = 1.5, y = max(neotb_grouped$meanScore)-0.02,
            label = paste0("Fold change: ", round(fc, 4), "\n",
              "p = ", signif(w_test_result$p.value, digits = 8)), size=4.5)
-
 s
+
 
 pdf("Relapse_cohort_Neo_cells_MTvsWT.pdf", width = 20, height = 10)
 s

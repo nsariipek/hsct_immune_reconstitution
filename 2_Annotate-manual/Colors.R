@@ -1,5 +1,6 @@
 # Peter van Galen, 250206
 # Save standard cell type colors for throughout the project
+# This script has been superseded by 2_Annotate-predict/2.1_Project_BoneMarrowMap_annotation.R
 
 library(tidyverse)
 library(ggsci) # for scale_color_igv
@@ -88,4 +89,4 @@ all(celltype_colors %in% color_data$color)
 all(color_data$color %in% celltype_colors)
 
 # Save. Some later changes were made to this file in Excel/text processor
-write.table(data.frame(celltype = names(celltype_colors), color = celltype_colors, stringsAsFactors = FALSE), "../celltype_colors.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+#write.table(data.frame(celltype = names(celltype_colors), color = celltype_colors, stringsAsFactors = FALSE), "../celltype_colors.txt", sep = "\t", row.names = FALSE, quote = FALSE)

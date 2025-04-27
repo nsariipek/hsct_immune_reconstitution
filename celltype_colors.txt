@@ -1,52 +1,107 @@
-celltype	color
-HSPCs	#3B1B53FF
-Early Erythroid	#D60047FF
-Mid Erythroid	#924822FF
-Late Erythroid	#AE1F63FF
-Pro Monocytes	#99CC00FF
-Monocytes	#E4AF69FF
-Non-Classical Monocytes	#7A65A5FF
-cDC	#5DB1DDFF
-pDC	#CDDEB7FF
-Pro-B	#14FFB1FF
-Pre-B	#00991AFF
-B cells	#003399FF
-Plasma cells	#802268FF
-CD4 Naive	#466983FF
-CD4 Memory	#C75127FF
-CD4 Effector Memory	#D58F5CFF
-Treg	#FFC20AFF
-CD8 Naive	#33CC00FF
-CD8 Memory	#0099CCFF
-CD8 Effector	#612A79FF
-CD8 Exhausted	#CE3D32FF
-Gamma-Delta T	#D595A7FF
-NK-T	#5050FFFF
-Adaptive NK	#1A0099FF
-CD56 Bright NK	#00D68FFF
-CD56 Dim NK	#008099FF
-Cycling T-NK	#F0E685FF
-UD1	#A9A9A9FF
-UD2	#837B8DFF
-UD3	#5A655EFF
-pal_igv_unused01	#BA6338FF
-pal_igv_unused02	#CC9900FF
-pal_igv_unused03	#99CC00FF
-pal_igv_unused04	#E7C76FFF
-pal_igv_unused05	#CC9900FF
-pal_igv_unused06	#00CC99FF
-pal_igv_unused07	#4775FFFF
-pal_igv_unused08	#00CC33FF
-pal_igv_unused09	#0A47FFFF
-pal_igv_unused10	#990033FF
-pal_igv_unused11	#991A00FF
-pal_igv_unused12	#996600FF
-pal_igv_unused13	#809900FF
-pal_igv_unused14	#749B58FF
-pal_igv_unused15	#339900FF
-pal_igv_unused16	#009966FF
-pal_igv_unused17	#660099FF
-pal_igv_unused18	#990080FF
-Donor cells	#6BD76BFF
-pal_igv_unused20	#FFD147FF
-pal_igv_unused21	#FF1463FF
+celltype	color	granularity
+HSC MPP	#7A65A5	Broad
+HSC	#990080	Granular
+MPP-MkEry	#F781BF	Granular
+MEP	#BA6338	Both
+EoBasoMast Precursor	#FFFF33	Both
+Megakaryocyte Precursor	#D9D9D9	Both
+Megakaryocyte	#BF5B17	Granular
+BFU-E	#AE1F63	Granular
+Early Erythroid	#FDBF6F	Broad
+CFU-E	#5E4FA2	Granular
+Pro-Erythroblast	#FB9A99	Granular
+Basophilic Erythroblast	#E41A1C	Granular
+Late Erythroid	#CE3D32	Broad
+Polychromatic Erythroblast	#FF7F00	Granular
+Orthochromatic Erythroblast	#749B58	Granular
+MPP-MyLy	#FFD147	Granular
+LMPP	#4DAF4A	Both
+Cycling Progenitor	#FB8072	Both
+Early GMP	#1F78B4	Both
+Late GMP	#FCCDE5	Broad
+GMP-Cycle	#E6F598	Granular
+GMP-Neut	#FC8D62	Granular
+GMP-Mono	#E4AF69	Both
+Pro-Monocyte	#B2DF8A	Broad
+Early ProMono	#33A02C	Granular
+Late ProMono	#5050FF	Granular
+Monocyte	#666666	Broad
+CD14 Mono	#5DB1DD	Granular
+CD16 Mono	#FDAE61	Granular
+cDC	#FFFF99	Broad
+Pre-cDC	#4775FF	Granular
+cDC1	#FFD92F	Granular
+cDC2	#FDB462	Granular
+ASDC	#CCEBC5	Granular
+Pre-pDC	#802268	Granular
+Pre-pDC Cycling	#999999	Granular
+pDC	#A6CEE3	Both
+Early Lymphoid	#ABDDA4	Broad
+MLP	#F0027F	Granular
+MLP-II	#BC80BD	Granular
+CLP	#984EA3	Granular
+Pre-ProB	#8DD3C7	Granular
+Pro-B	#F0E685	Broad
+Pro-B Cycling	#924822	Granular
+Pro-B VDJ	#BEBADA	Granular
+Pre-B	#837B8D	Broad
+Large Pre-B	#E5C494	Granular
+Small Pre-B	#386CB0	Granular
+B	#C75127	Broad
+Immature B	#FDC086	Granular
+Mature B	#BEAED4	Granular
+Plasma Cell	#A6D854	Both
+Naive T	#466983	Broad
+CD4 Memory T	#6BD76B	Broad
+CD8 Memory T	#D595A7	Broad
+CD4 Naive	#8DA0CB	Granular
+CD4 Central Memory	#CAB2D6	Granular
+CD4 Effector Memory	#B3DE69	Granular
+CD4 Regulatory	#FFED6F	Granular
+CD8 Naive	#6A3D9A	Granular
+CD8 Central Memory	#E78AC3	Granular
+CD8 Effector Memory 1	#377EB8	Granular
+CD8 Effector Memory 2	#E31A1C	Granular
+CD8 Tissue Resident Memory	#FEE08B	Granular
+T Proliferating	#66C2A5	Granular
+NK	#9E0142	Both
+NK CD56high	#D58F5C	Granular
+NK Proliferating	#80B1D3	Granular
+Stromal	#A65628	Both
+NA	#FF1463	NA
+NA	#B15928	NA
+NA	#F46D43	NA
+NA	#FFFFB3	NA
+NA	#3B1B53	NA
+NA	#CDDEB7	NA
+NA	#612A79	NA
+NA	#FFFFBF	NA
+NA	#E7C76F	NA
+NA	#5A655E	NA
+NA	#CC9900	NA
+NA	#99CC00	NA
+NA	#A9A9A9	NA
+NA	#33CC00	NA
+NA	#00CC33	NA
+NA	#00CC99	NA
+NA	#0099CC	NA
+NA	#0A47FF	NA
+NA	#7FC97F	NA
+NA	#FFC20A	NA
+NA	#B3B3B3	NA
+NA	#990033	NA
+NA	#991A00	NA
+NA	#996600	NA
+NA	#809900	NA
+NA	#339900	NA
+NA	#00991A	NA
+NA	#009966	NA
+NA	#008099	NA
+NA	#003399	NA
+NA	#1A0099	NA
+NA	#660099	NA
+NA	#D53E4F	NA
+NA	#D60047	NA
+NA	#3288BD	NA
+NA	#00D68F	NA
+NA	#14FFB1	NA

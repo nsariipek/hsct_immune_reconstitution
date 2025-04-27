@@ -305,4 +305,4 @@ seu$sample_id <- as.factor(seu@meta.data$sample_id)
 sapply(seu@meta.data, function(x) sum(is.na(x)))
 
 # Save (this takes a while, you can monitor progress (growing file size) in the Terminal - it's about 2.2 Gb in the end)
-saveRDS(seu, file = "~/250417_MergedSeuratObject.rds")
+saveRDS(seu, file = "~/TP53_ImmuneEscape/AuxiliaryFiles/250417_MergedSeuratObject.rds")

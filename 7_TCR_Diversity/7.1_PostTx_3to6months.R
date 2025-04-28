@@ -1,8 +1,7 @@
 # Nurefsan Sariipek
 # Date: January 22nd, 2024
-# Updated April 21, 2025
+# Updated April 28, 2025
 # Analyze post 3-6 months remission samples and subset donor/host CD4/CD8 compartments using subsampling based on cell numbers which is different than scRepertoire built in subsampling which can be found on 6.1 script
-
 # Load the libraries
 library(scRepertoire)
 library(Seurat)
@@ -94,7 +93,7 @@ combined2 <- do.call(rbind, combined)
 combined <- split(combined2, f = combined2$patient_id)
 
 # load the T cells
-Tcells <- readRDS("~/250418_Tcells.rds")
+Tcells <- readRDS("~/250428_Tcells.rds")
 
 # Subset to keep only 3-6M remission samples from seurat object(might be unneccessary)
 Tcells_subset <- subset(x = Tcells, subset = timepoint %in% c("3","5","6") & sample_status == "remission")
@@ -108,15 +107,15 @@ meta = meta %>% drop_na()
 
 ########### Optional subsetting for exploring different cell types #############
 ## Only subset CD8+ cells
-#  meta <- subset(x = meta, subset = celltype %in% c("CD8 Memory","CD8 Effector", "CD8 Exhausted","Delta-Gamma T","CD8 Naive"))
+#  meta <- subset(x = meta, subset = celltype %in% c("CD8 Naive", "CD8 Central Memory", "CD8 Effector Memory 1", "CD8 Effector Memory 2", "CD8 Tissue Resident Memory"))
 #
 # # Only subset CD4+ cells
-# meta <- subset(x = meta, subset = celltype %in% c("Treg","CD4 Effector Memory", "CD4 Naive","CD4 Memory"))
+# meta <- subset(x = meta, subset = celltype %in% c("CD4 Naive", "CD4 Central Memory", "CD4 Effector Memory", "CD4 Regulatory"))
 
 ### Add Souporcell information ####
 
 # Load the metadata that contains souporcell information
-souporcell_df <- read_csv("~/250418_final_dataset.csv")
+souporcell_df <- read_csv("~/250428_final_dataset.csv")
 
 # Wrangle the df
 souporcell_df <- souporcell_df %>%
@@ -149,8 +148,8 @@ View(combined.sc)
 # Remove samples P12, P18  from the list since they had less than <500 TCR calls and remove the ones are empty( more for souporcell)
 combined.sc <- combined.sc[sapply(combined.sc, function(x) nrow(x) > 0)]
 
-samples_to_remove <- c("P09","P12","P18")
-samples_to_remove <-("P26")
+samples_to_remove <- c("P09","P12","P18","P26")
+
 combined.sc <- combined.sc[!names(combined.sc) %in% samples_to_remove]
 
 # Verify the remaining samples
@@ -159,10 +158,10 @@ print(names(combined.sc))
 ## You need to save RDS with TCR info for calculating neoantigen signature 
 ## Turn combined.sc to a seurat object
 #  x <- do.call(rbind, combined.sc)
-#  row.names(x) <- x$barcode
-#  Tcells_TCR <- AddMetaData(Tcells, select(x, CTstrict))
-## Save this combinedseurat object to use in other purposes.
-#  saveRDS(Tcells_TCR, file = "~/250421_Tcells_TCR.rds")
+#   row.names(x) <- x$barcode
+#   Tcells_TCR <- AddMetaData(Tcells, select(x, CTstrict))
+# ## Save this combinedseurat object to use in other purposes.
+#   saveRDS(Tcells_TCR, file = "~/250428_Tcells_TCR.rds")
 
 # This section is from the scRepertoire clonal diversity function. It calculates different diversity indices.
 .diversityCall <- function(data) {

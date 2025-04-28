@@ -14,7 +14,7 @@ rm(list=ls())
 setwd("~/TP53_ImmuneEscape/6_Souporcell/")
 
 # Load the metadata
-seu <- readRDS("~/250418_Seurat_all_cells_annotated.rds")
+seu <- readRDS("~/250426_Seurat_annotated.rds")
 
 # List of patients
 patient_list <- unique(seu$patient_id) %>% sort()
@@ -161,7 +161,7 @@ for (patient_id in patient_list) {
 
 # Save final dataset as CSV, saved this to auxillary file on the dropbox since it is too big to snyc at github
 if (nrow(final_dataset) > 0) {
-  write_csv(final_dataset, "~/250418_final_dataset.csv")
+  write_csv(final_dataset, "~/250428_final_dataset.csv")
   message("📁 Final dataset saved as final_dataset.csv")
 } else {
   message("⚠️ No valid patient data processed.")

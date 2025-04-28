@@ -1,4 +1,4 @@
-# Nurefsan Sariipek, 250220- Updated at 250420
+# Nurefsan Sariipek, 250220- Updated at 250428
 # Visualize the souporcell results 
 # Load the libraries
 library(tidyverse)
@@ -17,18 +17,18 @@ setwd("~/TP53_ImmuneEscape/6_Souporcell/")
 #setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_Souporcell/")
 
 #Load the saved souporcell result table
-final_dataset <- read_csv("~/250418_final_dataset.csv")
+final_dataset <- read_csv("~/250428_final_dataset.csv") 
 
 # For Peter:
 #final_dataset <- read_csv("AuxiliaryFiles/final_dataset_250418.csv")
 
 #reorder
-celltypes <- c("HSPCs", "Early Erythroid", "Mid Erythroid", "Late Erythroid", "Pro Monocytes",
-               "Monocytes", "Non-Classical Monocytes", "cDC",  "pDC", "Pro-B", "Pre-B", "B cells",
-               "Plasma cells", "CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg",
-               "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "Gamma-Delta T", "NK-T",
-               "Adaptive NK", "CD56 Bright NK", "CD56 Dim NK", "Cycling T-NK",
-               "UD1", "UD2", "UD3")
+celltypes <-  c("HSC MPP", "MEP", "EoBasoMast Precursor", "Megakaryocyte Precursor", "Early Erythroid", "Late Erythroid", 
+                "LMPP", "Cycling Progenitor", "Early GMP", "Late GMP", "Pro-Monocyte", "CD14 Mono", 
+                "CD16 Mono", "cDC", "pDC", "Early Lymphoid", "Pro-B", "Pre-B", 
+                "Immature B", "Mature B", "Plasma Cell", "CD4 Naive", "CD4 Central Memory", "CD4 Effector Memory", 
+                "CD4 Regulatory", "CD8 Naive", "CD8 Central Memory", "CD8 Effector Memory 1", "CD8 Effector Memory 2", 
+                "CD8 Tissue Resident Memory", "T Proliferating", "NK", "NK CD56high", "NK Proliferating", "Stromal")
 
 # Convert to factor with specified order
 final_dataset$celltype <- factor(final_dataset$celltype, levels = celltypes)
@@ -40,6 +40,7 @@ cohort_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
 
 # Organize the dataset 
 t1 <- final_dataset %>%
+  drop_na(celltype) %>%
   filter(sample_status=="remission") %>%
   count(patient_id, celltype, sample_status, origin, name = "count") %>%
   group_by(patient_id, celltype) %>%
@@ -47,8 +48,7 @@ t1 <- final_dataset %>%
   ungroup()
 
 p1 <- t1 %>%
-  filter(!celltype %in% c("UD1", "UD2", "UD3"),
-         origin %in% c("donor", "recipient")) %>%
+  filter(origin %in% c("donor", "recipient")) %>%
   ggplot(aes(x = patient_id, y = proportion, fill = origin)) +
   geom_bar(stat = "identity", position = "stack", width = 0.8) +
   facet_wrap(~celltype, scales = "free_x", nrow = 3) +
@@ -81,10 +81,12 @@ p1
 pdf("6.4_souporcell_results_all_cells_.pdf", width = 16, height = 8)
 p1
 dev.off()
-
-
 # See the genotype results per patient by each sample status for the ones that worked
+status <- c("pre-transplant","remission","relapse")
+final_dataset$sample_status <- factor(final_dataset$sample_status, levels = status)
+
 t2 <- final_dataset %>%
+  drop_na(celltype) %>%
   filter(origin %in% c("donor", "recipient")) %>%
   count(patient_id,origin,sample_status, name = "count") %>%
   group_by(patient_id, sample_status) %>%  
@@ -102,40 +104,43 @@ p2 <- ggplot(t2, aes(x = sample_status, y = proportion, fill = origin)) +
 p2
 
 # Save as a pdf file 
-pdf("6.4_souporcell_per_patient_.pdf", width = 12, height = 8)
+pdf("6.4_souporcell_per_patient.pdf", width = 12, height = 8)
 p2
 dev.off()
 
 #### Heatmap ####
 # Prepare data
 t3 <- final_dataset %>%
-  filter(origin %in% c("donor", "recipient"),
+  drop_na(celltype) %>%
+ filter(origin %in% c("donor", "recipient"),
     sample_status == "remission",
-    timepoint %in% c("3","5","6"),
-    !celltype %in% c("UD1", "UD2", "UD3")) %>%
-  count(patient_id, celltype, origin, cohort,TP53_status, name = "count") %>%
-  group_by(patient_id, celltype, cohort,TP53_status) %>%
+    timepoint %in% c("3","5","6")) %>%
+  count(patient_id, celltype, origin, cohort, TP53_status, name = "count") %>%
+  group_by(patient_id, celltype, cohort, TP53_status) %>%
   mutate(
     total_cells = sum(count),
     donor_percentage = sum(ifelse(origin == "donor", count, 0)) / total_cells * 100
   ) %>%
   ungroup() %>%
-  select(patient_id, celltype, cohort, donor_percentage,TP53_status) %>%
+  filter(total_cells > 0) %>%
+  select(patient_id, cohort, celltype, donor_percentage, TP53_status) %>%
   distinct()
 
-#Save the table to put into the supplemantary
+# Save the table to put intocelltypentary
 write_csv(t3,"donorchimerism.csv")
 
 
 # Plot
-heatmap <- ggplot(t3, aes(x = celltype, y = patient_id, fill = donor_percentage)) +
-  geom_tile() +
+plot <- t3 %>% 
+ggplot(aes(x = celltype, y = patient_id, fill = donor_percentage)) +
+ geom_raster()+
   scale_fill_gradientn(
     colors = c("#E4C9B0", "#C9AB8F", "#AA8D6E", "#866A78", "#5F4B5B", "#4B3140"),
     limits = c(0, 100),
     name = "Percentage"
   ) +
-  scale_y_discrete(limits = rev) +  # Reverse the y-axis
+  scale_x_discrete(expand = c(0,0)) +
+  scale_y_discrete(expand = c(0,0), limits = rev(unique(t3$patient_id))) +
   labs(
     x = "Cell Type",
     y = "Patient ID",
@@ -150,10 +155,10 @@ heatmap <- ggplot(t3, aes(x = celltype, y = patient_id, fill = donor_percentage)
     legend.title = element_text(size = 11, color = "black"),
     panel.grid = element_blank(),                
     axis.ticks = element_line(color = "black", size = 0.5)) +
-  coord_fixed(ratio = 1)  # Make tiles square
+    coord_fixed(ratio = 1)  # Make tiles square
 
 # View the heatmap
-heatmap
+plot
 
 pdf("6.4_souporcell_heatmap.pdf", width = 8, height = 8)
 heatmap
@@ -164,7 +169,7 @@ donor_chimerism_comparision <- t3 %>%
   ggplot(aes(x = cohort, y = donor_percentage, color = cohort)) +
   geom_jitter(width = 0.2, size = 3, alpha = 0.8) +  
   stat_summary(fun = mean, geom = "crossbar", width = 0.5, color = "black", fatten = 2) + 
-  facet_wrap(~ celltype, nrow = 3) +
+  facet_wrap(~ celltype, nrow = 5) +
   stat_compare_means(aes(group = cohort), method = "wilcox.test", label.y = 50, label.x = 1.25, size= 3, label="p.format") +  # Mann-Whitney U
   theme_bw() +
   labs( x = "Cohort",
@@ -172,7 +177,7 @@ donor_chimerism_comparision <- t3 %>%
   scale_color_manual(values = cohort_colors) +
   scale_y_continuous(limits = c(0, 100)) + 
   theme_minimal(base_size = 10) +
-  theme(
+  theme( aspect.ratio = 2,
     axis.line = element_line(color = "black", size = 0.5),
     axis.text.x = element_text(size = 10, angle = 45, hjust = 1, vjust = 1, color = "black"),
     axis.text.y = element_text(size = 8, color = "black"),
@@ -184,17 +189,18 @@ donor_chimerism_comparision <- t3 %>%
     axis.ticks = element_line(color = "black", size = 0.5)) 
 
 donor_chimerism_comparision
-pdf("6.4_donor_chimerism_comparision.pdf", width = 8, height = 6)
+pdf("6.4_donor_chimerism_comparision_all.pdf", width = 8, height = 6)
 donor_chimerism_comparision
 dev.off()
 
 # Just progenitor cells
 plot_prog <- function(df, title = NULL) {
   df %>%
-    filter(celltype == "HSPCs") %>%
+    filter(celltype %in% c( "HSC MPP","MEP","LMPP","Cycling Progenitors","Early GMP","Late GMP")) %>%
     ggplot(aes(x = cohort, y = donor_percentage, color = cohort)) +
-    geom_jitter(width = 0.2, size = 3, alpha = 0.8) +
+    geom_jitter(width = 0.2, size = 2, alpha = 0.8) +
     stat_summary(fun = mean, geom = "crossbar", width = 0.5, color = "black", fatten = 2) +
+    facet_wrap(~ celltype, nrow = 1) +
     stat_compare_means(aes(group = cohort), method = "wilcox.test",
                        label.y = 50, label.x = 1.25, size = 3, label = "p.format") +
     labs(y = "Donor Chimerism", title = title) +
@@ -216,46 +222,15 @@ plot_prog <- function(df, title = NULL) {
 }
 
 # Generate both plots
-prog_all <- plot_prog(t3, title = "All HSPCs")
-prog_MT  <- plot_prog(filter(t3, TP53_status == "MUT"), title = "TP53-Mutated HSPCs")
+prog_all <- plot_prog(t3, title = "All Cells")
+prog_MT  <- plot_prog(filter(t3, TP53_status == "MUT"), title = "TP53-Mutated Cells")
 
-pdf("6.4_donor_chimerism_progenitors.pdf", width = 8, height = 8)
-prog_all +prog_MT
+pdf("6.4_donor_chimerism_progenitors_all.pdf", width = 8, height = 6)
+prog_all 
 dev.off()
 
-# Just progenitor cells
-plot_cd8 <- function(df, title = NULL) {
-  df %>%
-    filter(celltype == "CD8 Exhausted") %>%
-    ggplot(aes(x = cohort, y = donor_percentage, color = cohort)) +
-    geom_jitter(width = 0.2, size = 3, alpha = 0.8) +
-    stat_summary(fun = mean, geom = "crossbar", width = 0.5, color = "black", fatten = 2) +
-    stat_compare_means(aes(group = cohort), method = "wilcox.test",
-                       label.y = 50, label.x = 1.25, size = 3, label = "p.format") +
-    labs(y = "Donor Chimerism", title = title) +
-    scale_color_manual(values = cohort_colors) +
-    coord_cartesian(ylim = c(0, 100)) +
-    theme_minimal(base_size = 10) +
-    theme(
-      axis.line = element_line(color = "black", size = 0.5),
-      axis.text.x = element_text(size = 10, angle = 45, hjust = 1, vjust = 1, color = "black"),
-      axis.text.y = element_text(size = 8, color = "black"),
-      axis.title.x = element_text(size = 10, color = "black"),
-      axis.title.y = element_text(size = 11, color = "black"),
-      strip.text = element_text(size = 10, color = "black"),
-      legend.title = element_text(size = 11, color = "black"),
-      panel.grid = element_blank(),
-      axis.ticks = element_line(color = "black", size = 0.5),
-      aspect.ratio = 2
-    )
-}
-
-# Generate both plots
-cd8_all <- plot_cd8(t3, title = "All CD8 Exhausted")
-cd8_MT  <- plot_cd8(filter(t3, TP53_status == "MUT"), title = "TP53-Mutated CD8 Exhausted")
-
-pdf("6.4_donor_chimerism_cd8_exhausted.pdf", width = 8, height = 8)
-cd8_all +cd8_MT
+pdf("6.4_donor_chimerism_progenitors_TP53.pdf", width = 8, height = 6)
+prog_MT 
 dev.off()
 
 

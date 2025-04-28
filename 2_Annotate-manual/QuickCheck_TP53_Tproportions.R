@@ -1,18 +1,16 @@
 # Peter van Galen, 250418
 # Quickly check T cell type proportions between cohorts for the TP53 mutated patients
 
-library(tidyverse)
-library(Seurat)
-library(ggpubr)
-
 # Clear environment
 rm(list = ls())
 
 # Load complete Seurat object
-seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
+seu <- readRDS("../AuxiliaryFiles/250418_Seurat_all_cells_annotated.rds")
 
 # Define T and NK cell types
-t_celltypes <- c("CD4 Naive", "CD4 Central Memory", "CD4 Effector Memory", "CD4 Regulatory", "CD8 Naive", "CD8 Central Memory", "CD8 Effector Memory 1", "CD8 Effector Memory 2", "CD8 Tissue Resident Memory", "T Proliferating")
+t_celltypes <- c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg",
+"CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted",
+"Gamma-Delta T")
 
 # Quick check of TP53 cell type proportions
 metadata_tib <- as_tibble(seu@meta.data, rownames = "cell") 

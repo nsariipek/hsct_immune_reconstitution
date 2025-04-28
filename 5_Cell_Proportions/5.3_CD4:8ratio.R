@@ -1,5 +1,5 @@
 ## Calculating CD4/8 Ratio
-# NS 250129 , updated at 240418 
+# NS 250129 , updated at 240428 
 # Load libraries
 library(tidyverse)
 library(Seurat)
@@ -12,22 +12,21 @@ rm(list=ls())
 setwd("/home/rstudio/TP53_ImmuneEscape/5_Cell_Proportions")
 
 # Load the seurat object and select and save the only T cells
+seu <- readRDS("~/250426_Seurat_annotated.rds")
 
-seu <- readRDS("~/250418_Seurat_all_cells_annotated.rds")
-
-Tcells <-seu %>% subset(celltype %in% c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg", "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "Gamma-Delta T"))
+Tcells <-seu %>% subset(celltype %in% c("CD4 Naive", "CD4 Central Memory", "CD4 Effector Memory", "CD4 Regulatory", "CD8 Naive", "CD8 Central Memory", "CD8 Effector Memory 1", "CD8 Effector Memory 2", "CD8 Tissue Resident Memory", "T Proliferating"))
 
 # Save this for future use   
-saveRDS(Tcells,"~/250418_Tcells.rds")
+saveRDS(Tcells,"~/250428_Tcells.rds")
        
 # Levels disapear after turning seu object to metadata, add the new levels
-my_levels <- c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg", "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "Gamma-Delta T", "NK-T", "Adaptive NK", "CD56 Bright NK", "CD56 Dim NK", "Cycling T-NK")       
+my_levels <- c("CD4 Naive", "CD4 Central Memory", "CD4 Effector Memory", "CD4 Regulatory", "CD8 Naive", "CD8 Central Memory", "CD8 Effector Memory 1", "CD8 Effector Memory 2", "CD8 Tissue Resident Memory", "T Proliferating")    
 
 
 # Select only needed variables
 meta= Tcells@meta.data  %>%
       dplyr::select(celltype, cohort, sample_status, orig.ident, sample_id, patient_id,timepoint,cohort, library_type, TP53_status) 
-# Choose donor or recipient cells if needed# Choose donor or recipient cells if neededcohort
+# Choose donor or recipient cells if needed# Choose donor or recipient cells if needed cohort
   #meta <- subset(x=meta, subset = assignment== "host")
 
 rownames(meta) <- NULL
@@ -39,8 +38,8 @@ meta$type <- as.factor(meta$type)
 # Select only 100-day samples that were in remission at that timepoint
 meta_subset<- meta %>%
              subset(sample_status == "remission" & timepoint %in% c("3", "5", "6") 
-                & TP53_status== "MUT"
-                    )
+              #  & TP53_status== "MUT"
+              )
 
 #For calculations make the table
 tb <- 
@@ -86,7 +85,7 @@ p1 <- tb %>%
 
 p1
 # Save the plot
-pdf("5.3_CD4-CD8ratio_MT.pdf", width = 3, height = 6)
+pdf("5.3_CD4-CD8ratio_all.pdf", width = 3, height = 6)
 p1
 dev.off()
 

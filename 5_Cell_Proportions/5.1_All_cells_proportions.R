@@ -1,5 +1,5 @@
 # Calculate the cells proportions across 2 different cohort
-# Nurefsan Sariipek, 250418
+# Nurefsan Sariipek, 250428
 # Load the libraries
 library(tidyverse)
 library(janitor)
@@ -13,7 +13,7 @@ rm(list=ls())
 setwd("~/TP53_ImmuneEscape/5_Cell_Proportions/")
 
 # Load the seurat meta data that saved in 5.2 instead of the whole seurat object
-seu_df <- read_csv("~/seu_df_250418.csv")
+seu_df <- read_csv("~/seu_df_250428.csv")
 
 # Define the colors
 # Celltype colors
@@ -24,16 +24,17 @@ celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltyp
 cohort_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
 
 # Levels disapear after turning seu object to metadata, add the new levels
-my_levels <- c("HSPCs", "Early Erythroid", "Mid Erythroid", "Late Erythroid", "Pro Monocytes", "Monocytes", 
-                "Non-Classical Monocytes", "cDC", "pDC", "Pro-B", "Pre-B", "B cells", 
-                "Plasma cells", "CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg", 
-                "CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "Gamma-Delta T", 
-                "NK-T", "Adaptive NK", "CD56 Bright NK", "CD56 Dim NK", "Cycling T-NK")
+my_levels <- c("HSC MPP", "MEP", "EoBasoMast Precursor", "Megakaryocyte Precursor", "Early Erythroid", "Late Erythroid", 
+               "LMPP", "Cycling Progenitor", "Early GMP", "Late GMP", "Pro-Monocyte", "CD14 Mono", 
+               "CD16 Mono", "cDC", "pDC", "Early Lymphoid", "Pro-B", "Pre-B", 
+               "Immature B", "Mature B", "Plasma Cell", "CD4 Naive", "CD4 Central Memory", "CD4 Effector Memory", 
+               "CD4 Regulatory", "CD8 Naive", "CD8 Central Memory", "CD8 Effector Memory 1", "CD8 Effector Memory 2", 
+               "CD8 Tissue Resident Memory", "T Proliferating", "NK", "NK CD56high", "NK Proliferating", "Stromal")
 
 # Turn into right format for plotting
 bar_data <- seu_df %>%
   filter(library_type == "MNC",timepoint %in% c("3","5","6") , sample_status =="remission") %>% 
-  filter(!celltype %in% c("UD1","UD2","UD3")) %>%
+  drop_na(celltype) %>%
   group_by(patient_id, celltype) %>%
   summarise(count = n(), .groups = "drop") %>%
   group_by(patient_id) %>%
@@ -69,7 +70,7 @@ dev.off()
 proportions_df <- seu_df %>%
   filter(timepoint %in% c("3", "5", "6"),
          sample_status == "remission", library_type=="MNC") %>%
-  filter(!celltype %in% c("UD1", "UD2","UD3")) %>%
+  drop_na(celltype) %>%
   group_by(patient_id, cohort) %>%
   mutate(total_cells = n()) %>%  # total cells per sample
   count(patient_id, cohort, total_cells, celltype, name = "cell_count") %>%

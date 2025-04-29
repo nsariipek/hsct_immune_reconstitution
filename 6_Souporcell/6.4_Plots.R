@@ -137,7 +137,8 @@ ggplot(aes(x = celltype, y = patient_id, fill = donor_percentage)) +
   scale_fill_gradientn(
     colors = c("#E4C9B0", "#C9AB8F", "#AA8D6E", "#866A78", "#5F4B5B", "#4B3140"),
     limits = c(0, 100),
-    name = "Percentage"
+    name = "Percentage",
+    na.value = "grey50"
   ) +
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0), limits = rev(unique(t3$patient_id))) +

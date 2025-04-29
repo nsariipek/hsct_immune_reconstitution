@@ -1,5 +1,5 @@
 # Neoantigen score+TCRs
-# Nurefsan Sariipek, 24-07-01, updated at 25-04-21
+# Nurefsan Sariipek, 24-07-01, updated at 25-04-28
 # Load the libraries
 library(scRepertoire)
 library(Seurat)
@@ -17,10 +17,13 @@ rm(list=ls())
 setwd("~/TP53_ImmuneEscape/3_DGE/3.3_Neoantigenscore/")
 
 # Load the seurat object from 6.1 script end of line 163 which has the TCR+ scRNA combined object
-combined <- readRDS("~/250421_Tcells_TCR.rds")
+combined <- readRDS("~/250428_Tcells_TCR.rds")
 
 # Select only 3-6 mo and remission samples
 combined_subset <- subset(x= combined, subset= timepoint %in% c("3","5","6") & sample_status == "remission")
+
+# Normalize the cohort
+combined_subset <- NormalizeData(combined_subset, assay = "RNA")
 
 # Load antigen scores from Rosenberg lab papers https://www.sciencedirect.com/science/article/pii/S1535610823003963?via%3Dihub
 # https://www.science.org/doi/10.1126/science.abl5447?url_ver=Z39.88-2003&rfr_id=ori:rid:crossref.org&rfr_dat=cr_pub%20%200pubmed
@@ -30,18 +33,12 @@ neoA <- read.csv("signatures/neoantigen.csv")
 
 # Optional step for subsetting
 # Subset for different celltypes before adding the antigen score
- cd8cells <- subset(x = combined_subset, subset = celltype %in% c("CD8 Effector","CD8 Memory","CD8 Naive","CD8 Exhausted","Delta-Gamma T"))
-#  cd8ef <- subset(x = combined_subset, subset = celltype == "CD8 Effector")
-#  cd8mem <- subset(x = combined_subset, subset = celltype =="CD8 Memory")
-#  cd8na <- subset(x = combined_subset, subset = celltype=="CD8 Naïve")
-#  cd8ex <- subset(x = combined, subset = celltype=="CD8 Exhausted")
-#  cd4cells <- subset(x = combined, subset = celltype %in% c("CD4 Memory","CD4 Naïve","Treg"))
-#  treg <- subset(x = combined, subset = celltype == "Treg")
-#  cd4mem <- subset(x = combined, subset = celltype == "CD4 Memory")
-#  cd4na <- subset(x = combined, subset = celltype == "CD4 Naïve")
+cd8cells <- subset(x = combined_subset, subset = celltype %in% c("CD8 Naive", "CD8 Central Memory", "CD8 Effector Memory 1", "CD8 Effector Memory 2", "CD8 Tissue Resident Memory"))
+
+# cd8efcells <- subset(x = combined_subset, subset = celltype %in% c("CD8 Effector Memory 1", "CD8 Effector Memory 2"))
 
 # Add this module score to the subsetted dataset
-neoantigen <- AddModuleScore(object = combined_subset,
+neoantigen <- AddModuleScore(object = cd8cells,
                              features = neoA,
                              name = "neoantigen",
                              assay = "RNA",
@@ -65,8 +62,7 @@ neotb <- neoantigen %>%
 
 # For each TCR, calculate relative clonotype size (grouped by sample)
 neotb_grouped <- neotb %>% 
-  filter(cohort=="long-term-remission") %>%
-  group_by(patient_id) %>%
+ group_by(patient_id) %>%
   mutate(n_total = n()) %>%
   ungroup() %>%
   group_by (CTstrict,TP53_status,cohort,patient_id) %>%
@@ -75,6 +71,8 @@ neotb_grouped <- neotb %>%
     prop = n / first(n_total),
     meanScore = mean(neoantigen1)) %>%
     ungroup()
+
+neotb_grouped$Group <- interaction(neotb_grouped$TP53_status, neotb_grouped$cohort)
 
 # There may a difference between the cohorts when taking all clonotypes, but this test is not stringent enough
 mt_meanScores <- filter(neotb_grouped, TP53_status == "MUT")$meanScore
@@ -86,11 +84,37 @@ w_test_result <- wilcox.test(mt_meanScores, wt_meanScores)
 # Fold change
 fc <- median(mt_meanScores)/median(wt_meanScores)
 
+compare_tp53_by_cohort <- function(data, cohort_name) {
+  data %>%
+    filter(cohort == cohort_name) %>%
+    group_by(TP53_status) %>%
+    summarise(med = median(meanScore), .groups = "drop") %>%
+    pivot_wider(names_from = TP53_status, values_from = med) %>%
+    mutate(
+      fc =  MUT/ WT,
+      p = wilcox.test(
+        meanScore ~ TP53_status,
+        data = filter(data, cohort == cohort_name)
+      )$p.value,
+      cohort = cohort_name
+    ) %>%
+    select(cohort, fc, p)
+}
+
+
+compare_tp53_by_cohort(neotb_grouped, "long-term-remission")
+compare_tp53_by_cohort(neotb_grouped, "relapse")
+
+
 # Sina plot, grouped by survival
+
+neotb_grouped <- neotb_grouped %>% 
+  mutate(TP53_status = factor(TP53_status, levels = c("WT", "MUT")))
+  
+
 s <- ggplot(neotb_grouped, aes(x=TP53_status, y=meanScore)) +
-  geom_sina(aes(size = prop, color = patient_id, group = TP53_status), scale = "width")+
-  geom_violin(alpha=0, scale = "width", draw_quantiles = 0.5) +
-  #ggtitle(label = unique(neoantigen$celltype)) + # this should be changed in the final script
+  geom_sina(aes(size = prop, color = patient_id, group = Group), scale = "width")+
+  geom_violin(aes(fill= cohort),alpha=0, scale = "width", draw_quantiles = 0.5) +
   theme_pubr() +
   theme(aspect.ratio = 1)+
   annotate("text", x = 1.5, y = max(neotb_grouped$meanScore)-0.02,
@@ -99,9 +123,15 @@ s <- ggplot(neotb_grouped, aes(x=TP53_status, y=meanScore)) +
 s
 
 
-pdf("Relapse_cohort_Neo_cells_MTvsWT.pdf", width = 20, height = 10)
+pdf("Neo_CD8cells_MTvsWT.pdf", width = 20, height = 10)
 s
 dev.off()
+
+
+
+
+
+
 
 # survival_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
 # # Bar plot showing mean for each patient's score

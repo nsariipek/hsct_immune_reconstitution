@@ -82,7 +82,7 @@ proportions_df$celltype <- factor(proportions_df$celltype, levels = my_levels)
 p2 <- ggplot(proportions_df, aes(x = cohort, y = percent, fill = cohort)) +
   geom_boxplot(width = 0.7, outlier.shape = NA, alpha = 0.9) +
   geom_jitter(shape = 21, size = 2, stroke = 0.2, color = "black", width = 0.15) +
-  facet_wrap(~ celltype, ncol = 9) +
+  facet_wrap(~ celltype, ncol = 12) +
   scale_fill_manual(values = cohort_colors) +
   labs(y = "% of all cells", x = NULL) +
   ggpubr::stat_compare_means(aes(x = cohort, y = percent, group = cohort),
@@ -103,7 +103,7 @@ p2 <- ggplot(proportions_df, aes(x = cohort, y = percent, fill = cohort)) +
 
 p2
 # Save as a pdf
-pdf("5.1_Allcells_per_celltype_proportions_3-6mo_pvalue.pdf", width = 10, height = 8)
+pdf("5.1_Allcells_per_celltype_proportions_3-6mo_pvalue.pdf", width = 12, height = 6)
 p2
 dev.off()
 

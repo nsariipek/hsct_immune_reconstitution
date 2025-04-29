@@ -33,21 +33,26 @@ neoA <- read.csv("signatures/neoantigen.csv")
 
 # Optional step for subsetting
 # Subset for different celltypes before adding the antigen score
+# CD8 T cells
 cd8cells <- subset(x = combined_subset, subset = celltype %in% c("CD8 Naive", "CD8 Central Memory", "CD8 Effector Memory 1", "CD8 Effector Memory 2", "CD8 Tissue Resident Memory"))
 
-# cd8efcells <- subset(x = combined_subset, subset = celltype %in% c("CD8 Effector Memory 1", "CD8 Effector Memory 2"))
+# Effector cells?
+cd8efcells <- subset(x = combined_subset, subset = celltype %in% c("CD8 Effector Memory 1", "CD8 Effector Memory 2"))
+
+# CD4cells
+cd4cells <- subset(x= combined_subset, subset=celltype %in% c("CD4 Naive", "CD4 Central Memory", "CD4 Effector Memory", "CD4 Regulatory"))
 
 # Add this module score to the subsetted dataset
-neoantigen <- AddModuleScore(object = cd8cells,
-                             features = neoA,
+neoantigen <- AddModuleScore(object = cd4cells,
+                             features = cd4neoA,
                              name = "neoantigen",
                              assay = "RNA",
                              search = T)
 
-# Visualize the score per patient
-neoantigen <- SetIdent(neoantigen, value = "patient_id")
-p1 <- VlnPlot(neoantigen, features = "neoantigen1", split.by = "TP53", sort = "increasing")
-p1
+# # Visualize the score per patient, For some reason this does not work nurefsan anymore-250429
+# neoantigen <- SetIdent(neoantigen, value = "patient_id")
+# p1 <- VlnPlot(neoantigen, features = "neoantigen1", split.by = "TP53", sort = "increasing")
+# p1
 
 pdf("Neocd8cells_perpt_all.pdf", width = 20, height = 10)
 p1
@@ -72,6 +77,7 @@ neotb_grouped <- neotb %>%
     meanScore = mean(neoantigen1)) %>%
     ungroup()
 
+# Create a grouping for the plotting reasons
 neotb_grouped$Group <- interaction(neotb_grouped$TP53_status, neotb_grouped$cohort)
 
 # There may a difference between the cohorts when taking all clonotypes, but this test is not stringent enough
@@ -84,6 +90,7 @@ w_test_result <- wilcox.test(mt_meanScores, wt_meanScores)
 # Fold change
 fc <- median(mt_meanScores)/median(wt_meanScores)
 
+# Calculate the p value and FC
 compare_tp53_by_cohort <- function(data, cohort_name) {
   data %>%
     filter(cohort == cohort_name) %>%
@@ -101,17 +108,14 @@ compare_tp53_by_cohort <- function(data, cohort_name) {
     select(cohort, fc, p)
 }
 
-
 compare_tp53_by_cohort(neotb_grouped, "long-term-remission")
 compare_tp53_by_cohort(neotb_grouped, "relapse")
 
-
-# Sina plot, grouped by survival
-
+#Turn TP53 status to factor for reodering
 neotb_grouped <- neotb_grouped %>% 
   mutate(TP53_status = factor(TP53_status, levels = c("WT", "MUT")))
   
-
+# Sina plot, grouped by TP53 status +cohort grouping
 s <- ggplot(neotb_grouped, aes(x=TP53_status, y=meanScore)) +
   geom_sina(aes(size = prop, color = patient_id, group = Group), scale = "width")+
   geom_violin(aes(fill= cohort),alpha=0, scale = "width", draw_quantiles = 0.5) +
@@ -123,14 +127,9 @@ s <- ggplot(neotb_grouped, aes(x=TP53_status, y=meanScore)) +
 s
 
 
-pdf("Neo_CD8cells_MTvsWT.pdf", width = 20, height = 10)
+pdf("CD4Tcells_cd4score_MTvsWT.pdf", width = 20, height = 10)
 s
 dev.off()
-
-
-
-
-
 
 
 # survival_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")

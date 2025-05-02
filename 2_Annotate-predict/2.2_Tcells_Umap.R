@@ -6,7 +6,7 @@ library(BoneMarrowMap)
 library(symphony)
 library(RColorBrewer)
 library(patchwork)
-library(patchwork)
+library(monocle3)
 
 # Start with a clean slate
 rm(list=ls())

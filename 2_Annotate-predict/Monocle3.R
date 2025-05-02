@@ -1,0 +1,209 @@
+# Perform Trajectory Analysis, Nurefsan Sariipek, 250430
+# Load the library
+library(tidyverse)
+library(Seurat)
+library(harmony)
+library(RColorBrewer)
+library(monocle3)
+library(SeuratWrappers)
+
+# Start with a clean slate
+rm(list=ls())
+
+# Set working directory
+setwd("~/TP53_ImmuneEscape/2_Annotate-predict/")
+
+# First load the seurat object and run normalization steps
+
+###### Part 1- Pre-proccessing using seurat ################
+# Load the seurat object that contains the T cells only
+seu <- readRDS("~/250428_Tcells.rds")
+
+# Subset for CD8 T cells
+seu_cd8 <- subset(seu, subset= celltype %in% c("CD8 Naive","CD8 Central Memory","CD8 Effector Memory 1","CD8 Effector Memory 2"))
+#"CD8 Tissue Resident Memory", "T Proliferating"
+
+# Subset for CD4 T cells
+seu_cd8 <- subset(seu, subset= celltype %in% c("CD4 Central Memory", "CD4 Naive" ,"CD4 Effector Memory","CD4 Regulatory" ))
+
+# Normalize
+seu_cd8 <- NormalizeData(seu_cd8)
+seu_cd8 <- FindVariableFeatures(seu_cd8)
+# Scale the data
+seu_cd8 <- ScaleData(seu_cd8)
+seu_cd8 <- RunPCA(seu_cd8)
+# Run Harmony to remove the batch effect
+ElbowPlot(seu_cd8)
+seu_cd8 <- RunHarmony(object = seu_cd8, group.by.vars = c("patient_id"), plot_convergence = T)
+ElbowPlot(seu_cd8, reduction = "harmony")
+
+## Decide on the dimensions by checking different ones
+dims_to_test <- seq(10, 20, by = 2)
+
+# Create output directory if it doesn't exist
+if (!dir.exists("umap_dim_checks")) dir.create("umap_dim_checks")
+
+for (d in dims_to_test) {
+  cat("Running UMAP with dims = 1:", d, "\n")
+
+  # Copy the object
+  seu_temp <- seu_cd8
+
+  # Recalculate neighbors and UMAP
+  seu_temp <- FindNeighbors(seu_temp, dims = 1:d, verbose = FALSE)
+  seu_temp <- RunUMAP(seu_temp, reduction = "harmony", dims = 1:d, return.model = TRUE, verbose = FALSE)
+
+  # Create the plot
+  p <- DimPlot(seu_temp, reduction = "umap", group.by = "celltype", shuffle = TRUE) +
+    ggtitle(paste("Dims: 1-", d)) +
+    theme(aspect.ratio = 1)
+
+  # Save the plot immediately
+  ggsave(
+    filename = paste0("umap_dim_checks/dims_", d, ".pdf"),
+    plot = p,
+    width = 6,
+    height = 6
+  )
+}
+
+# After checking the different dimensions Nurefsan liked the dims 14, so she is going to move forward with that one
+seu_cd8 <- FindNeighbors(seu_cd8, reduction = "harmony", dims = 1:10)
+# Run the clusters since it is needed for the rest of the analysis
+seu_cd8 <- FindClusters(seu_cd8, resolution = 1)
+# RunUMAP
+seu_cd8 <- RunUMAP(seu_cd8, reduction = "harmony", dims = 1:10, return.model = T)
+
+# Visualize the UMAP
+DimPlot(seu_cd8, reduction = "umap", group.by = "celltype", shuffle = T) +
+  theme(aspect.ratio = 1)
+
+######## Part 2- Monocle3 Workflow###############
+# Convert the seurat object to the cell_data_set object for monocle3
+cds <- as.cell_data_set(seu_cd8)
+# see cell metadata
+colData(cds)
+# see gene metadata
+fData(cds)
+rownames(fData(cds))[1:10]
+# Add gene_short_name column
+fData(cds)$gene_short_name <- rownames(fData(cds))
+# see counts
+counts(cds)
+
+######## Part 3- Cluster cells using clustering info from seurat's UMAP ###########
+
+# Assign partitions
+reacreate.partition <- c(rep(1,length(cds@colData@rownames)))
+names(reacreate.partition) <- cds@colData@rownames
+reacreate.partition <- as.factor(reacreate.partition)
+
+cds@clusters$UMAP_BMM$partitions <- reacreate.partition
+
+# Assign the cluster info
+list_cluster <- seu_cd8@active.ident
+cds@clusters$UMAP$clusters <- list_cluster
+
+# Assign UMAP Coordinate -cell embeddings
+cds@int_colData@listData$reducedDims$UMAP <- seu_cd8@reductions$umap@cell.embeddings
+
+# Plot
+cluster.before.trajectory <- plot_cells(cds,
+           color_cells_by = 'cluster',
+           label_groups_by_cluster = FALSE,
+           group_label_size = 5)+
+  theme(legend.position = "right")
+
+cluster.before.trajectory
+
+cluster.names <- plot_cells(cds, color_cells_by = 'celltype',
+                                       label_groups_by_cluster = FALSE,
+                                       group_label_size = 5) +
+  scale_color_manual(values= c("red","blue","green","maroon","yellow","gray","cyan"))+
+  theme(legend.position = "right")
+
+cluster.names
+
+######### Part 4- Learn trajectory #########
+cds_temp <- learn_graph(cds, use_partition= TRUE) # decide if you should use TRUE here , ask Peter, this take time
+
+plot_cells(cds_temp,
+           color_cells_by = "celltype",
+           label_branch_points = FALSE,
+           label_roots = FALSE,
+           label_leaves = FALSE,
+           group_label_size = 5)
+
+######### Part 5- Order the cells in pseudotime #############
+cds_temp <- order_cells(cds_temp, reduction_method = "UMAP", root_cells = colnames(cds_temp[, clusters(cds_temp) %in% c(9, 11)]))
+# cluster 9,11 is CD8 Naive cells
+
+plot_cells(cds_temp,
+            color_cells_by = "pseudotime",
+            label_groups_by_cluster = FALSE,
+            label_branch_points = FALSE,
+            label_roots = FALSE,
+            label_leaves = FALSE,
+            group_label_size = 5)
+
+# cells ordered by monocle4 pseudotime
+ cds_temp$monocle3_pseudotime <- pseudotime(cds_temp)
+ data.pseudo <- as.data.frame(colData(cds_temp))
+ 
+ ggplot(data.pseudo,
+        aes(monocle3_pseudotime, reorder(celltype, monocle3_pseudotime, median),
+            fill= celltype)) +
+   geom_boxplot()
+
+ ############# Part 6- Finding genes that change as a function of pseudotime  ############
+ 
+deg_cd8tcells <- graph_test(cds_temp, neighbor_graph = 'principal_graph', cores=4)
+ 
+ deg_cd8tcells_df <- deg_cd8tcells%>% 
+   arrange(q_value) %>% 
+   filter(status == 'OK') %>% head()
+ 
+ write.csv(deg_cd8tcells_df, "deg_cd8tcells_df.csv")
+ 
+ FeaturePlot(seu_cd8, features = c('TNFRSF18', 'RPL22', 'TNFRSF25'), reduction = "umap")
+ 
+ 
+ # visualizing pseudotime in seurat
+ 
+ seu_cd8$pseudotime <- pseudotime(cds_temp)
+ Idents(seu_cd8) <- seu_cd8$celltype
+ 
+seu_remission <-  seu_cd8 %>%
+subset(sample_status == "remission")
+ 
+FeaturePlot(seu_cd8, reduction= "umap", features = "pseudotime", label = T, split.by = "cohort")
+DimPlot(seu_cd8, reduction= "umap", group.by = "celltype")
+DimPlot(seu_cd8, reduction= "umap", group.by = "patient_id")
+DimPlot(seu_cd8, reduction= "umap", group.by = "seurat_clusters")
+ 
+
+metadata_tib <- as_tibble(seu_cd8@meta.data)
+metadata_tib$umap_1 <- seu_cd8@reductions$umap@cell.embeddings[,1]
+metadata_tib$umap_2 <- seu_cd8@reductions$umap@cell.embeddings[,2]
+
+metadata_tib %>% filter(sample_status == "remission",
+                        TP53_status == "MUT",
+                        timepoint %in% c(3, 5, 6)) %>%
+  ggplot(aes(x = pseudotime, color = cohort)) +
+  geom_density(bw = 1) +
+  theme_bw() +
+  theme(aspect.ratio = 0.5, panel.grid = element_blank())
+  
+metadata_tib %>% filter(sample_status == "remission",
+                        TP53_status == "MUT",
+                        timepoint %in% c(3, 5, 6)) %>%
+  ggplot(aes(x = cohort, y = pseudotime)) +
+  geom_jitter()
+
+
+
+
+
+
+  
+ 

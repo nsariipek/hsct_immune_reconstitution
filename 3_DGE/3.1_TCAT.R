@@ -1,4 +1,4 @@
-# Peter van Galen, 250408
+# Peter van Galen, 250408, updated 250504
 # Run TCAT and evaluate the algorithm's cell type labels
 
 # Load libraries
@@ -17,31 +17,21 @@ rm(list = ls())
 cutf <- function(x, f = 1, d = "/")
       sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
 
-# Load T cell data. This is available on Dropbox but not GitHub
-seu_T <- readRDS("../AuxiliaryFiles/250128_Tcell_subset.rds")
+# Load data
+seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
 
-# Load colors from 2.3_PvG-Colors.R
-celltype_colors_df <- read.table(
-      "../celltype_colors.txt",
-      sep = "\t",
-      header = TRUE,
-      stringsAsFactors = FALSE,
-      comment.char = ""
-)
-celltype_colors <- setNames(
-      celltype_colors_df$color,
-      celltype_colors_df$celltype
-)
+# Subset for T cells
+T_celltypes <- c("CD4 Naive", "CD4 Central Memory", "CD4 Effector Memory", "CD4 Regulatory", "CD8 Naive", "CD8 Central Memory", "CD8 Effector Memory 1", "CD8 Effector Memory 2", "CD8 Tissue Resident Memory", "T Proliferating")
+seu_T <- subset(seu, subset = celltype %in% T_celltypes)
+
+# Load colors
+celltype_colors_df <- read.table("../celltype_colors.txt", sep = "\t", header = T, stringsAsFactors = F, comment.char = "")
+celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltype)
 
 # Check data visually
-seu_T@meta.data %>%
-      sample_frac(1) %>%
-      ggplot(aes(x = UMAP_TNK_1, y = UMAP_TNK_2, color = celltype)) +
-      geom_scattermore(pointsize = 16, pixels = c(4096, 4096)) +
+DimPlot(seu_T, group.by = "celltype") +
       scale_color_manual(values = celltype_colors) +
-      theme_bw() +
-      theme(aspect.ratio = 1, panel.grid = element_blank()) +
-      guides(color = guide_legend(override.aes = list(size = 3)))
+      coord_cartesian(xlim = c(-13, -5), ylim = c(-7, 7))
 
 # Next, save Seurat count matrix to run TCAT (see https://github.com/immunogenomics/starCAT/blob/main/Examples/starCAT_vignette_R.ipynb)
 
@@ -50,18 +40,18 @@ counts <- LayerData(seu_T, assay = "RNA", layer = "counts")
 counts[80:90, 1:10]
 
 # Save counts matrix
-dir.create("AuxiliaryFiles")
-writeMM(counts, file = "AuxiliaryFiles/matrix.mtx")
-gzip("AuxiliaryFiles/matrix.mtx", overwrite = T, remove = T)
+dir.create("../AuxiliaryFiles/starCAT")
+writeMM(counts, file = "../AuxiliaryFiles/starCAT/matrix.mtx")
+gzip("../AuxiliaryFiles/starCAT/matrix.mtx", overwrite = T, remove = T)
 
 # Save cell barcodes
 barcodes <- colnames(counts)
 write_delim(
       as.data.frame(barcodes),
-      file = "AuxiliaryFiles/barcodes.tsv",
+      file = "../AuxiliaryFiles/starCAT/barcodes.tsv",
       col_names = FALSE
 )
-gzip("AuxiliaryFiles/barcodes.tsv", overwrite = T, remove = T)
+gzip("../AuxiliaryFiles/starCAT/barcodes.tsv", overwrite = T, remove = T)
 
 # Save feature names
 gene_names <- rownames(counts)
@@ -73,12 +63,12 @@ features <- data.frame(
 write_delim(
       as.data.frame(features),
       delim = "\t",
-      file = "AuxiliaryFiles/features.tsv",
+      file = "../AuxiliaryFiles/starCAT/features.tsv",
       col_names = FALSE
 )
-gzip("AuxiliaryFiles/features.tsv", overwrite = T, remove = T)
+gzip("../AuxiliaryFiles/starCAT/features.tsv", overwrite = T, remove = T)
 
-# Run 3.2_PvG-TCAT.sh to generate results (this was done on a Google Cloud Platform virtual machine, bash). This will create a folder 3.1_starCAT with the results
+# Run 3.1_PvG-TCAT.sh to generate results (this was done on a Google Cloud Platform virtual machine terminal). This will create a folder 3.1_starCAT with the results
 #cd /home/unix/vangalen/TP53_ImmuneEscape/3_DGE
 #mkdir 3.1_starCAT
 #./3.1_starCAT.sh
@@ -94,6 +84,8 @@ scores_tib <- read_tsv("3.1_starCAT/starCAT.scores.txt.gz") %>%
 
 # Compare cell type annotations with Multinomial_Label from scores
 metadata_tib <- as_tibble(seu_T@meta.data, rownames = "cell")
+metadata_tib$UMAP_1 <- seu_T@reductions$umap_bmm@cell.embeddings[,1]
+metadata_tib$UMAP_2 <- seu_T@reductions$umap_bmm@cell.embeddings[,2]
 metadata_tib <- left_join(metadata_tib, scores_tib)
 
 # Wrangle and assign colors
@@ -101,12 +93,12 @@ metadata_tib$Multinomial_Label <- factor(
       metadata_tib$Multinomial_Label,
       levels = c(
             "CD4_Naive",
-            "CD4_EM",
             "CD4_CM",
+            "CD4_EM",
             "Treg",
             "CD8_Naive",
-            "CD8_EM",
             "CD8_CM",
+            "CD8_EM",
             "CD8_TEMRA",
             "gdT",
             "MAIT"
@@ -114,12 +106,12 @@ metadata_tib$Multinomial_Label <- factor(
 )
 TCAT_Label_colors <- c(
       "CD4_Naive" = "#466983FF",
-      "CD4_EM" = "#D58F5CFF",
       "CD4_CM" = "#C75127FF",
+      "CD4_EM" = "#D58F5CFF",
       "Treg" = "#FFC20AFF",
       "CD8_Naive" = "#33CC00FF",
-      "CD8_EM" = "#612A79FF",
       "CD8_CM" = "#0099CCFF",
+      "CD8_EM" = "#612A79FF",
       "CD8_TEMRA" = "#CE3D32FF",
       "gdT" = "#D595A7FF",
       "MAIT" = "#0A47FFFF"
@@ -128,8 +120,9 @@ TCAT_Label_colors <- c(
 # UMAP
 metadata_tib %>%
       sample_frac(1) %>%
-      ggplot(aes(x = UMAP_TNK_1, y = UMAP_TNK_2, color = Multinomial_Label)) +
+      ggplot(aes(x = UMAP_1, y = UMAP_2, color = Multinomial_Label)) +
       geom_scattermore(pointsize = 16, pixels = c(4096, 4096)) +
+      coord_cartesian(xlim = c(-13, -5), ylim = c(-7, 7)) +
       scale_color_manual(values = TCAT_Label_colors) +
       theme_bw() +
       theme(aspect.ratio = 1, panel.grid = element_blank()) +
@@ -154,13 +147,13 @@ p1 + p2
 
 # Heatmap
 df <- data.frame(
-      celltype = rep(1:9, each = 10),
-      Multinomial_Label = rep(1:9, times = 10)
+      celltype = rep(1:10, each = 10),
+      Multinomial_Label = rep(1:10, times = 10)
 )
 metadata_tib %>%
       select(celltype, Multinomial_Label) %>%
-      group_by(celltype, Multinomial_Label) %>%
-      count() %>%
+      count(celltype, Multinomial_Label) %>%
+      complete(celltype, Multinomial_Label, fill = list(n = 0)) %>%
       #group_by(celltype) %>%
       #mutate(prop = n / sum(n)) %>%
       ggplot(aes(x = Multinomial_Label, y = celltype, fill = n)) +
@@ -176,8 +169,10 @@ metadata_tib %>%
       labs(x = "Multinomial Label", y = "Cell Type", fill = "Count") +
       theme(
             axis.text.x = element_text(angle = 45, hjust = 1),
-            aspect.ratio = 9 / 10
+            aspect.ratio = 10 / 10,
+            panel.grid = element_blank()
       )
+ggsave("3.1_TCAT_confusion.pdf")
 
 # Compare annotations side by side (stacked cells)
 metadata_tib %>%

@@ -80,3 +80,4 @@ for (patient_id in patient_ids) {
   message(paste("Saved UMI counts for", patient_id, "at", save_path))
 }
 
+# The umi counts rds file were deleted during a subsequent commit, and on 250503, also deleted from the history to reduce the size of the repository

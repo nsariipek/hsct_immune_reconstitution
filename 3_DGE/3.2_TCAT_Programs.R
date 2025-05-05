@@ -74,7 +74,7 @@ p1 <- metadata_100d_tib %>%
   #nurefsan's edition
   theme(panel.grid = element_blank())
 # Save the plot cohort# Save the plot 
-pdf("3.2_ASA_tcat.pdf",width= 8, height = 6 )
+pdf("3.2.1_ASA_Score.pdf",width= 8, height = 6 )
 p1
 dev.off()
 
@@ -214,10 +214,10 @@ program_averages_tib %>%
             axis.text.x = element_text(angle = 45, hjust = 1, size = 5)
       )
 
-#ggsave("3.2.1_PerPatient.png", width = 12, height = 8)
+ggsave("3.2.2_PerPatient.png", width = 12, height = 8)
 
 # The significance is hard to see in the plot above. Here's an alternative that shows it more clearly.
-pdf("3.2.2_Test_plots.pdf", width = 10, height = 8)
+pdf("3.2.3_Test_plots.pdf", width = 10, height = 8)
 
 for (ct in unique(program_averages_tib$celltype)) {
       #ct <- "CD8 Effector"
@@ -317,7 +317,7 @@ join_tib %>%
       ) +
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1), aspect.ratio = 2)
-ggsave("3.2.difference.png", width = 12, height = 8)
+ggsave("3.2.4_Difference.png", width = 12, height = 8)
 
 # Now make a heatmap like Figure 4F in Van Galen ... Bernstein 2019
 

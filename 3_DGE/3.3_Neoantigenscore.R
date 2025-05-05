@@ -22,7 +22,7 @@ combined <- readRDS("~/250428_Tcells_TCR.rds")
 # Select only 3-6 mo and remission samples
 combined_subset <- subset(x= combined, subset= timepoint %in% c("3","5","6") & sample_status == "remission")
 
-# If you want to make the same plot for ASA Score
+# # If you want to make the same plot for ASA Score
 # usage_tib <- read_tsv("../3.1_starCAT/starCAT.scores.txt.gz") %>%
 #   rename("cell" = "...1")
 # scores_tib <- read_tsv("../3.1_starCAT/starCAT.rf_usage_normalized.txt.gz") %>%
@@ -72,8 +72,8 @@ dev.off()
 neoantigen <- as_tibble(neoantigen@meta.data, rownames = "cell") 
 
 # Select only needed variables
-neotb <- metadata_tib %>%
-  select(patient_id,CTstrict, neoantigen1,cohort,patient_id,TP53_status) # ASA instead of neoantigen1
+neotb <- neoantigen %>% # metadata_tib
+  select(patient_id,CTstrict, neoantigen1,cohort,patient_id,TP53_status) # ASA instead of neoantigen1  
 
 # For each TCR, calculate relative clonotype size (grouped by sample)
 neotb_grouped <- neotb %>% 
@@ -126,7 +126,8 @@ neotb_grouped <- neotb_grouped %>%
   mutate(TP53_status = factor(TP53_status, levels = c("WT", "MUT")))
   
 # Sina plot, grouped by TP53 status +cohort grouping
-s <- ggplot(neotb_grouped, aes(x=TP53_status, y=meanScore)) +
+s <-  neotb_grouped %>% 
+ggplot(aes(x=TP53_status, y=meanScore)) +
   geom_sina(aes(size = prop, color = patient_id, group = Group), scale = "width")+
   geom_violin(aes(fill= cohort),alpha=0, scale = "width", draw_quantiles = 0.5) +
   theme_pubr() +
@@ -137,7 +138,7 @@ s <- ggplot(neotb_grouped, aes(x=TP53_status, y=meanScore)) +
 s
 
 
-pdf("../3.3_TCAT_ASAscore_MTvsWT.pdf", width = 20, height = 10)
+pdf("../3.3_CD8Tcells_TCAT_ASAscore_MTvsWT.pdf", width = 20, height = 10)
 s
 dev.off()
 

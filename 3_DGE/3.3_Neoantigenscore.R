@@ -22,6 +22,16 @@ combined <- readRDS("~/250428_Tcells_TCR.rds")
 # Select only 3-6 mo and remission samples
 combined_subset <- subset(x= combined, subset= timepoint %in% c("3","5","6") & sample_status == "remission")
 
+# If you want to make the same plot for ASA Score
+# usage_tib <- read_tsv("../3.1_starCAT/starCAT.scores.txt.gz") %>%
+#   rename("cell" = "...1")
+# scores_tib <- read_tsv("../3.1_starCAT/starCAT.rf_usage_normalized.txt.gz") %>%
+#   rename("cell" = "...1")
+# metadata_tib <- as_tibble(combined_subset@meta.data, rownames = "cell")
+# metadata_tib <- left_join(metadata_tib, scores_tib)
+# metadata_tib <- left_join(metadata_tib, usage_tib)
+
+
 # Normalize the cohort
 combined_subset <- NormalizeData(combined_subset, assay = "RNA")
 
@@ -62,8 +72,8 @@ dev.off()
 neoantigen <- as_tibble(neoantigen@meta.data, rownames = "cell") 
 
 # Select only needed variables
-neotb <- neoantigen %>%
-  select(patient_id,CTstrict, neoantigen1,cohort,patient_id,TP53_status)
+neotb <- metadata_tib %>%
+  select(patient_id,CTstrict, neoantigen1,cohort,patient_id,TP53_status) # ASA instead of neoantigen1
 
 # For each TCR, calculate relative clonotype size (grouped by sample)
 neotb_grouped <- neotb %>% 
@@ -74,7 +84,7 @@ neotb_grouped <- neotb %>%
   dplyr::summarize(
     n = n(),
     prop = n / first(n_total),
-    meanScore = mean(neoantigen1)) %>%
+    meanScore = mean(neoantigen1)) %>% # # ASA instead of neoantigen1
     ungroup()
 
 # Create a grouping for the plotting reasons
@@ -127,7 +137,7 @@ s <- ggplot(neotb_grouped, aes(x=TP53_status, y=meanScore)) +
 s
 
 
-pdf("CD4Tcells_cd4score_MTvsWT.pdf", width = 20, height = 10)
+pdf("../3.3_TCAT_ASAscore_MTvsWT.pdf", width = 20, height = 10)
 s
 dev.off()
 

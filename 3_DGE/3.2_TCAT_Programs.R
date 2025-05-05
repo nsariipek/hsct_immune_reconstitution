@@ -1,4 +1,4 @@
-# Peter van Galen, 250408
+# Peter van Galen, 250408, Modified by Nurefsan Sariipek, 250505
 # Assess TCAT programs in T cells
 
 library(Seurat)
@@ -18,13 +18,10 @@ rm(list = ls())
 cutf <- function(x, f = 1, d = "/")
       sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
 
-# Load data. This file is available on Dropbox but not Github.
-#seu_T <- readRDS("../AuxiliaryFiles/250128_Tcell_subset.rds")
-# THIS IS A TEMPORARY FIX
-seu <- readRDS("../AuxiliaryFiles/250418_Seurat_all_cells_annotated.rds")
-tnk_celltypes <- c("CD4 Naive", "CD4 Memory", "CD4 Effector Memory", "Treg",
-"CD8 Naive", "CD8 Memory", "CD8 Effector", "CD8 Exhausted", "Gamma-Delta T", "NK-T",
-"Adaptive NK", "CD56 Bright NK", "CD56 Dim NK")
+# Load data
+seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
+tnk_celltypes <- c("CD4 Naive", "CD4 Central Memory", "CD4 Effector Memory", 
+                   "CD4 Regulatory", "CD8 Naive", "CD8 Central Memory", "CD8 Effector Memory 1", "CD8 Effector Memory 2","CD8 Tissue Resident Memory", "T Proliferating")
 seu_T <- subset(seu, celltype %in% tnk_celltypes)
 
 # Load colors from 2.3_PvG-Colors.R
@@ -35,12 +32,14 @@ celltype_colors_df <- read.table(
       stringsAsFactors = FALSE,
       comment.char = ""
 )
+
+celltype_colors_df <- subset(celltype_colors_df, celltype %in% tnk_celltypes )
 celltype_colors <- setNames(
       celltype_colors_df$color,
       celltype_colors_df$celltype
 )
 
-# Check visually
+# Check visually # This did not work for Nurefsan
 DimPlot(seu_T, reduction = "umapTNK", shuffle = T, cols = celltype_colors) +
       theme_bw() +
       theme(aspect.ratio = 1, panel.grid = element_blank()) +
@@ -55,25 +54,15 @@ metadata_tib <- as_tibble(seu_T@meta.data, rownames = "cell")
 metadata_tib <- left_join(metadata_tib, scores_tib)
 metadata_tib <- left_join(metadata_tib, usage_tib)
 
-#This part is no linger needed since the new object has the mutation info in the metadata
-# # Define TP53 MT and WT patient groups
-# mt_patients <- paste0("P", sprintf("%02d", c(1:12, 14, 17)))
-# wt_patients <- paste0("P", c(13, 15, 16, 18:33))
-# # Optional: subset for TP53 MT patients
-# metadata_tib <- filter(metadata_tib, patient_id %in% mt_patients)
-
 # Filter data for relevant time points etc.
 metadata_100d_tib <- metadata_tib %>%
       filter(
             timepoint %in% c("3", "5", "6"), # 100 days after transplant
-            sample_status == "remission"
-      ) 
-#Nurefsan removed the following line since it did not work for her.
-#%>%mutate(cohort_binary = substr(cohort, 3, nchar(cohort)))
+            sample_status == "remission")
 
 # Quick look at antigen-specific activation (ASA) scores...Is the difference between cohorts driven by TP53?
 p1 <- metadata_100d_tib %>%
-      filter(celltype == "CD8 Effector") %>%
+      filter(celltype == "CD8 Effector Memory 2") %>%
       ggplot(aes(
             x = cohort,
             y = `ASA`,
@@ -84,8 +73,8 @@ p1 <- metadata_100d_tib %>%
       theme_bw()+
   #nurefsan's edition
   theme(panel.grid = element_blank())
-# Save the plot 
-pdf("asa_tcat.pdf",width= 8, height = 6 )
+# Save the plot cohort# Save the plot 
+pdf("3.2_ASA_tcat.pdf",width= 8, height = 6 )
 p1
 dev.off()
 
@@ -155,13 +144,13 @@ setdiff(colnames(scores_tib), all_programs)
 
 # Select relevant columns
 metadata_programs_tib <- metadata_100d_tib %>%
-      select(patient_id, timepoint, celltype, cohort_binary, all_of(activity_programs))
+      select(patient_id, timepoint, celltype, cohort,TP53_status, all_of(activity_programs))
 
 # Summarize to get mean program usage per patient per cell type
 metadata_programs_tib %>%
-      select(patient_id, cohort_binary) %>%
+      select(patient_id, cohort, TP53_status) %>%
       unique %>%
-      count(cohort_binary)
+      count(cohort)
 metadata_programs_tib$celltype %>% unique %>% length
 length(activity_programs)
 # Here we expect a tibble with nrow is the number of patients * cell types & programs
@@ -171,7 +160,7 @@ program_averages_tib <- metadata_programs_tib %>%
             names_to = "program",
             values_to = "usage"
       ) %>%
-      group_by(patient_id, timepoint, cohort_binary, celltype, program) %>%
+      group_by(patient_id, timepoint, cohort, celltype, program, TP53_status) %>%
       summarize(mean_usage = mean(usage), .groups = "drop") %>%
       arrange(celltype) %>%
       mutate(celltype_patient = paste0(celltype, " (", patient_id, ")")) %>%
@@ -184,12 +173,12 @@ program_averages_tib <- metadata_programs_tib %>%
 
 # Plot program usage per patient. The group_sizes is just to add lines in the plot below
 group_sizes <- program_averages_tib %>%
-      group_by(celltype, patient_id, cohort_binary) %>%
+      group_by(celltype, patient_id, cohort,TP53_status) %>%
       summarize(.groups = "drop") %>%
-      group_by(celltype, cohort_binary) %>%
+      group_by(celltype, cohort) %>%
       summarize(size = n(), .groups = "drop")
 group_sizes <- group_sizes %>%
-      group_by(cohort_binary) %>%
+      group_by(cohort) %>%
       mutate(
             x_start = lag(cumsum(size), default = 0) + 1, # Start position for each group
             x_end = cumsum(size), # End position for each group
@@ -208,7 +197,7 @@ program_averages_tib %>%
             inherit.aes = F
       ) +
       geom_hline(yintercept = 1:length(activity_programs) + 0.5, color = "grey") +
-      facet_wrap(~cohort_binary, scales = "free_x") +
+      facet_wrap(~cohort, scales = "free_x") +
       geom_text(
             data = group_sizes,
             aes(x = x_center, y = length(activity_programs)*1.03, label = celltype),
@@ -238,7 +227,7 @@ for (ct in unique(program_averages_tib$celltype)) {
             group_by(program) %>%
             summarize(
                   p_value = wilcox.test(
-                        mean_usage ~ cohort_binary,
+                        mean_usage ~ cohort,
                         data = cur_data()
                   )$p.value
             ) %>%
@@ -251,9 +240,9 @@ for (ct in unique(program_averages_tib$celltype)) {
 
       p1 <- ct_averages_tib %>% #left_join(p_values)
             ggplot(aes(
-                  x = cohort_binary,
+                  x = cohort,
                   y = mean_usage,
-                  color = cohort_binary
+                  color = cohort
             )) +
             geom_jitter(width = 0.2) +
             stat_compare_means(
@@ -288,7 +277,7 @@ dev.off()
 
 # Now show the median across patients. Of note, this is misleading, as visually striking differences may in fact be driven by 1-2 patients
 program_averages_tib %>%
-      group_by(cohort_binary, celltype, program) %>%
+      group_by(cohort, celltype, program) %>%
       summarize(median_p = median(mean_usage), .groups = "drop") %>% # Mean program usage per cohort (3)
       ggplot(aes(x = celltype, y = program, fill = median_p)) +
       geom_tile() +
@@ -298,17 +287,17 @@ program_averages_tib %>%
             axis.text.x = element_text(angle = 45, hjust = 1),
             aspect.ratio = 2
       ) +
-      facet_wrap(~cohort_binary)
+      facet_wrap(~cohort)
 
 # Subtract to identify look at differences
 non_relapsed_tib <- program_averages_tib %>%
-      filter(cohort_binary == "Non-relapsed") %>%
-      group_by(cohort_binary, celltype, program) %>%
+      filter(cohort == "long-term-remission") %>%
+      group_by(cohort, celltype, program) %>%
       summarize(median_p = median(mean_usage), .groups = "drop")
 
 relapsed_tib <- program_averages_tib %>%
-      filter(cohort_binary == "Relapsed") %>%
-      group_by(cohort_binary, celltype, program) %>%
+      filter(cohort == "relapse") %>%
+      group_by(cohort, celltype, program) %>%
       summarize(median_p = median(mean_usage), .groups = "drop")
 
 join_tib <- full_join(
@@ -328,7 +317,7 @@ join_tib %>%
       ) +
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1), aspect.ratio = 2)
-
+ggsave("3.2.difference.png", width = 12, height = 8)
 
 # Now make a heatmap like Figure 4F in Van Galen ... Bernstein 2019
 
@@ -338,7 +327,8 @@ df <- program_averages_tib %>%
       mutate(celltype_program = paste0(celltype, ", ", program)) %>%
       mutate(
             cohort_patient = paste(
-                  cohort_binary,
+                  cohort,
+                  TP53_status,
                   patient_id,
                   ".",
                   timepoint,
@@ -360,31 +350,49 @@ row_anno <- rowAnnotation(
             levels = levels(T_cell_types)
       ),
       program = cutf(rownames(df), d = ", ", f = 2),
-      col = list(celltype = celltype_colors)
-)
-col_anno <- columnAnnotation(
-      mt_patients = grepl(paste(mt_patients, collapse = "|"), colnames(df)),
-      col = list(mt_patients = c(`TRUE` = "#FF1463FF", `FALSE` = "#6BD76BFF"))
+      col = list(celltype = celltype_colors))
+
+# Bottom annotation
+tokens <- strsplit(colnames(df), " ")
+cohort_vec <- sapply(tokens, `[`, 1)
+TP53_vec   <- sapply(tokens, `[`, 2)
+
+# Reorder df by cohort
+cohort_factor <- factor(cohort_vec, levels = c("long-term-remission", "relapse"))
+column_order <- order(cohort_factor)
+df_ordered <- df[, column_order]
+# Apply same order to annotation variables
+cohort_vec_ordered <- cohort_vec[column_order]
+TP53_vec_ordered   <- TP53_vec[column_order]
+
+cohort_colors <- c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35FF")
+TP53_colors   <- c("WT" = "#6BD76BFF", "MUT" = "#FF1463FF")
+col_anno <- HeatmapAnnotation(
+  Cohort = factor(cohort_vec_ordered, levels = c("long-term-remission", "relapse")),
+  TP53_status = factor(TP53_vec_ordered, levels = c("WT", "MUT")),
+  col = list(
+    Cohort = cohort_colors,
+    TP53_status = TP53_colors
+  )
 )
 
 # Generate heatmap with clustering
 h1 <- Heatmap(
-      as.matrix(df),
-      col = colorRamp2(
-            c(
-                  min(as.matrix(df), na.rm = TRUE),
-                  max(as.matrix(df), na.rm = TRUE)
-            ),
-            c("white", "red")
-      ),
-      cluster_rows = FALSE,
-      left_annotation = row_anno,
-      bottom_annotation = col_anno,
-      row_names_gp = gpar(fontsize = 6)
+  as.matrix(df_ordered),
+  col = colorRamp2(
+    c(min(as.matrix(df_ordered), na.rm = TRUE),
+      max(as.matrix(df_ordered), na.rm = TRUE)),
+    c("white", "red")
+  ),
+  cluster_rows = FALSE,
+  cluster_columns = FALSE,
+  left_annotation = row_anno,
+  bottom_annotation = col_anno,
+  row_names_gp = gpar(fontsize = 6)
 )
 
 h1
 
-#png("3.2.5_ClusteredHeatmap.png", height = 1500, width = 800)
-#draw(h1)
-#dev.off()
+png("3.2.5_ClusteredHeatmap.png", height = 1500, width = 800)
+draw(h1)
+dev.off()

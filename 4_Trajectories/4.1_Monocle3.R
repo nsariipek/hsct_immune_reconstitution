@@ -41,35 +41,35 @@ ElbowPlot(seu_cd8)
 seu_cd8 <- RunHarmony(object = seu_cd8, group.by.vars = c("patient_id"), plot_convergence = T)
 ElbowPlot(seu_cd8, reduction = "harmony")
 
-## Decide on the dimensions by checking different ones
-dims_to_test <- seq(10, 20, by = 2)
-
-# Create output directory if it doesn't exist
-if (!dir.exists("umap_dim_checks")) dir.create("umap_dim_checks")
-
-for (d in dims_to_test) {
-  cat("Running UMAP with dims = 1:", d, "\n")
-
-  # Copy the object
-  seu_temp <- seu_cd8
-
-  # Recalculate neighbors and UMAP
-  seu_temp <- FindNeighbors(seu_temp, dims = 1:d, verbose = FALSE)
-  seu_temp <- RunUMAP(seu_temp, reduction = "harmony", dims = 1:d, return.model = TRUE, verbose = FALSE)
-
-  # Create the plot
-  p <- DimPlot(seu_temp, reduction = "umap", group.by = "celltype", shuffle = TRUE) +
-    ggtitle(paste("Dims: 1-", d)) +
-    theme(aspect.ratio = 1)
-
-  # Save the plot immediately
-  ggsave(
-    filename = paste0("umap_dim_checks/dims_", d, ".pdf"),
-    plot = p,
-    width = 6,
-    height = 6
-  )
-}
+# ## Decide on the dimensions by checking different ones
+# dims_to_test <- seq(10, 20, by = 2)
+# 
+# # Create output directory if it doesn't exist
+# if (!dir.exists("umap_dim_checks")) dir.create("umap_dim_checks")
+# 
+# for (d in dims_to_test) {
+#   cat("Running UMAP with dims = 1:", d, "\n")
+# 
+#   # Copy the object
+#   seu_temp <- seu_cd8
+# 
+#   # Recalculate neighbors and UMAP
+#   seu_temp <- FindNeighbors(seu_temp, dims = 1:d, verbose = FALSE)
+#   seu_temp <- RunUMAP(seu_temp, reduction = "harmony", dims = 1:d, return.model = TRUE, verbose = FALSE)
+# 
+#   # Create the plot
+#   p <- DimPlot(seu_temp, reduction = "umap", group.by = "celltype", shuffle = TRUE) +
+#     ggtitle(paste("Dims: 1-", d)) +
+#     theme(aspect.ratio = 1)
+# 
+#   # Save the plot immediately
+#   ggsave(
+#     filename = paste0("umap_dim_checks/dims_", d, ".pdf"),
+#     plot = p,
+#     width = 6,
+#     height = 6
+#   )
+# }
 
 # After checking the different dimensions Nurefsan liked the dims 14, so she is going to move forward with that one
 seu_cd8 <- FindNeighbors(seu_cd8, reduction = "harmony", dims = 1:10)
@@ -141,8 +141,8 @@ plot_cells(cds_temp,
 
 ######## Part 5 - Order the cells in pseudotime ########
 
-# Clusters 8, 10 are CD8 Naive cells
-cds_temp <- order_cells(cds_temp, reduction_method = "UMAP", root_cells = colnames(cds_temp[, clusters(cds_temp) %in% c(8, 10)]))
+# Clusters 9, 11 are CD8 Naive cells
+cds_temp <- order_cells(cds_temp, reduction_method = "UMAP", root_cells = colnames(cds_temp[, clusters(cds_temp) %in% c(9, 11)]))
 
 plot_cells(cds_temp,
             color_cells_by = "pseudotime",
@@ -194,6 +194,7 @@ meta_subset %>% ggplot(aes(x = pseudotime, color = cohort)) +
   geom_density(bw = 1) +
   theme_bw() +
   theme(aspect.ratio = 0.5, panel.grid = element_blank())
+
 meta_subset %>% ggplot(aes(x = pseudotime, color = patient_id)) +
   geom_density(bw = 1) +
   theme_bw() +

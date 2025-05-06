@@ -8,7 +8,7 @@ library(stringr)
 rm(list=ls())
 
 # Set working directory
-setwd("~/TP53_ImmuneEscape/9_Numbat/")
+setwd("~/TP53_ImmuneEscape/8_Numbat/")
 
 # Create output folder if it doesn't exist
 output_dir <- "UMI_counts"

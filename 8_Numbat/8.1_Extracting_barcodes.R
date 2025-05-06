@@ -10,7 +10,7 @@ library(dplyr)
 # Empty environment
 rm(list=ls())
 
-setwd("~/TP53_ImmuneEscape/9_Numbat/")
+setwd("~/TP53_ImmuneEscape/8_Numbat/")
 
 # Load the saved dataframe that contains souporcell information + barcodes
 final_df <- read_csv("~/250428_final_dataset.csv")
@@ -51,5 +51,4 @@ for (patient in patients) {
 }
 
 # On 250502, we deleted the Numbat_Barcodes folder, since the Patient IDs are now outdated and we would need to regenerate the barcode files to rerun Numbat, which are not planning to do
-  
   

@@ -15,9 +15,7 @@ setwd("~/TP53_ImmuneEscape/8_Numbat/")
 #setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/8_Numbat")
 
 # Load the saved Seurat objects
-seu <- readRDS("~/250128_seurat_annotated_final.rds")
-# For Peter (local)
-#seu <- readRDS("../AuxiliaryFiles/250128_seurat_annotated_final.rds")
+seu_combined <- readRDS("~/250505_numbat_combined_seurat.rds")
 
 # Get the numbat clone files
 tsv_files <- list.files("Numbat_Calls/", pattern = "*.tsv", full.names = TRUE)
@@ -44,6 +42,8 @@ ggplot(all_pcnv, aes(x = p_cnv_x, fill = patient_id)) +
        y = "Density") +
   facet_wrap(~patient_id, scales = "free_y") +
   theme_minimal()
+ggsave("8.6_expression_pcnv.png", width = 12, height = 8)
+
 # p_cnv_y
 ggplot(all_pcnv, aes(x = p_cnv_y, fill = patient_id)) +
   geom_density(alpha = 0.5) +
@@ -52,6 +52,8 @@ ggplot(all_pcnv, aes(x = p_cnv_y, fill = patient_id)) +
        y = "Density") +
   facet_wrap(~patient_id, scales = "free_y") +
   theme_minimal()
+ggsave("8.6_allele_pcnv.png", width = 12, height = 8)
+
 # p_cnv
 ggplot(all_pcnv, aes(x = p_cnv, fill = patient_id)) +
   geom_density(alpha = 0.5) +
@@ -60,6 +62,8 @@ ggplot(all_pcnv, aes(x = p_cnv, fill = patient_id)) +
        y = "Density") +
   facet_wrap(~patient_id, scales = "free_y") +
   theme_minimal()
+
+ggsave("8.6_posterior_pcnv.png", width = 12, height = 8)
 
 # Merge with Seurat data
 # Ensure barcodes are standardized
@@ -70,24 +74,27 @@ ggplot(all_pcnv, aes(x = p_cnv, fill = patient_id)) +
    make.unique(x, sep = "__")
  }
 # Ensure barcodes are standardized in seurat metadata
-barcode_df <- as.data.frame(seu@meta.data)
+barcode_df <- as.data.frame(seu_combined@meta.data)
 barcode_df$old_barcode <- rownames(barcode_df)
 barcode_df$patient_id <- barcode_df$patient_id %||% barcode_df$Sample %||% NA
 new_barcodes <- paste0(barcode_df$patient_id, "_", sub(".*_", "", barcode_df$old_barcode))
 new_barcodes <- make_unique(new_barcodes)
-colnames(seu) <- new_barcodes
-rownames(seu@meta.data) <- new_barcodes
-seu$barcode <- rownames(seu@meta.data)
+colnames(seu_combined) <- new_barcodes
+rownames(seu_combined@meta.data) <- new_barcodes
+seu_combined$barcode <- rownames(seu_combined@meta.data)
 
 # Filter Seurat to only cells with matching barcodes
-matching_barcodes <- intersect(rownames(seu@meta.data), all_pcnv$barcode)
-seu <- subset(seu, cells = matching_barcodes)
+matching_barcodes <- intersect(rownames(seu_combined@meta.data), all_pcnv$barcode)
+seu_combined <- subset(seu_combined, cells = matching_barcodes)
 
 # Merge metadata
-seu@meta.data <- left_join(seu@meta.data, all_pcnv, by = c("barcode" = "barcode"))
+seu_combined@meta.data <- left_join(seu_combined@meta.data, all_pcnv, by = c("barcode" = "barcode"))
+
+
+
 
 #Plot the UMAP with probability
-p1 <- ggplot(seu@meta.data, aes(x = UMAP_1, y = UMAP_2, color = p_cnv_y)) +
+p1 <- ggplot(seu_combined@meta.data, aes(x = UMAP_1, y = UMAP_2, color = p_cnv_y)) +
   geom_point(size = 0.4, alpha = 0.8) +
   scale_color_gradient(low = "lightgrey", high = "firebrick") +
   labs(title = "Posterior CNV Probability (p_cnv_y)", color = "CNV\nProbability") +
@@ -101,14 +108,14 @@ p1 <- ggplot(seu@meta.data, aes(x = UMAP_1, y = UMAP_2, color = p_cnv_y)) +
     legend.position = "right",
     plot.title = element_text(hjust = 0.5))
 
-pdf("UMAP_cnvprob.pdf", width = 7, height = 7)  
+pdf("8.6_UMAP_cnvprob.pdf", width = 7, height = 7)  
 p1
 dev.off()
 
 # Set a confidence treshold
-seu@meta.data$cnv_confidence <- ifelse(seu@meta.data$p_cnv_y > 0.9, "High", "Low")
+seu_combined@meta.data$cnv_confidence <- ifelse(seu_combined@meta.data$p_cnv_y > 0.9, "High", "Low")
 
-p2 <- ggplot(seu@meta.data, aes(x = UMAP_1, y = UMAP_2, color = cnv_confidence)) +
+p2 <- ggplot(seu_combined@meta.data, aes(x = UMAP_1, y = UMAP_2, color = cnv_confidence)) +
   geom_point(size = 0.4, alpha = 0.8) +
   scale_color_manual(values = c("Low" = "grey", "High" = "darkred")) +
   labs(title = "UMAP by CNV Call Confidence", color = "Confidence>0.9") +
@@ -122,14 +129,14 @@ p2 <- ggplot(seu@meta.data, aes(x = UMAP_1, y = UMAP_2, color = cnv_confidence))
     plot.title = element_text(hjust = 0.5))
 p2
 
-pdf("UMAP_cnvconfidence1.pdf", width = 7, height = 7)  
+pdf("8.6_UMAP_cnvconfidence1.pdf", width = 7, height = 7)  
 p2
 dev.off()
 
-# Same plot with only tumor cells (it would be good to show that T cell taht were identified as tumor cells has low confidence level)
+# Same plot with only tumor cells (it would be good to show that T cell that were identified as tumor cells has low confidence level)
 
-p3 <- seu@meta.data  %>% 
-  filter(compartment_opt=="tumor") %>% 
+p3 <- seu_combined@meta.data  %>% 
+  filter(compartment_opt.x=="tumor") %>% 
   ggplot(aes(x = UMAP_1, y = UMAP_2, color = cnv_confidence)) +
   geom_point(size = 0.4, alpha = 0.8) +
   scale_color_manual(values = c("Low" = "grey", "High" = "darkred")) +
@@ -144,6 +151,6 @@ p3 <- seu@meta.data  %>%
     plot.title = element_text(hjust = 0.5))
 p3
 
-pdf("UMAP_tumor_cells_cnvconfidence.pdf", width = 7, height = 7)  
+pdf("8.6_UMAP_tumor_cells_cnvconfidence.pdf", width = 7, height = 7)  
 p3
 dev.off()

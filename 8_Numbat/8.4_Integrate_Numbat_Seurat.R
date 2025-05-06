@@ -11,13 +11,22 @@ library(ggsci)
 rm(list=ls())
 
 # Set working directory
-setwd("~/TP53_ImmuneEscape/9_Numbat/")
+setwd("~/TP53_ImmuneEscape/8_Numbat/")
 
 # Load the saved Seurat objects
-seu <- readRDS("~/250128_seurat_annotated_final.rds")
+seu <- readRDS("~/250426_Seurat_annotated.rds")
+
+# Extract UMAP coordinates from the Seurat object
+umap_coords <- Embeddings(seu, reduction = "umap_bmm")
+
+# Rename the columns for clarity
+colnames(umap_coords) <- c("UMAP_1", "UMAP_2")
+
+# Add them to metadata
+seu@meta.data <- cbind(seu@meta.data, umap_coords)
 
 # Load the saved dataframe that contains souporcell information
-final_Df <- read_csv("~/final_dataset.csv")
+final_Df <- read_csv("~/250428_final_dataset.csv")
 
 # Helper function
 
@@ -28,21 +37,12 @@ make_unique <- function(x) {
 # Define Numbat clone paths
 
 patient_info <- list(
-  P01 = "Numbat_Calls/P01_clone_post_2.tsv",
-  P05 = "Numbat_Calls/P05_clone_post_2.tsv",
-  P07 = "Numbat_Calls/P07_clone_post_2.tsv",
-  P08 = "Numbat_Calls/P08_clone_post_2.tsv",
-  P09 = "Numbat_Calls/P09_clone_post_2.tsv",
-  P10 = "Numbat_Calls/P10_clone_post_2.tsv",
-  P12 = "Numbat_Calls/P12_clone_post_2.tsv",
-  P13 = "Numbat_Calls/P13_clone_post_2.tsv",
-  P14 = "Numbat_Calls/P14_clone_post_2.tsv",
-  P17 = "Numbat_Calls/P17_clone_post_2.tsv",
-  P18 = "Numbat_Calls/P18_clone_post_2.tsv",
+  P20 = "Numbat_Calls/P20_clone_post_2.tsv",
+  P22 = "Numbat_Calls/P22_clone_post_2.tsv",
   P23 = "Numbat_Calls/P23_clone_post_2.tsv",
-  P24 = "Numbat_Calls/P24_clone_post_2.tsv",
-  P25 = "Numbat_Calls/P25_clone_post_2.tsv",
-  P30 = "Numbat_Calls/P30_clone_post_2.tsv"
+  P30 = "Numbat_Calls/P30_clone_post_2.tsv",
+  P31 = "Numbat_Calls/P31_clone_post_2.tsv",
+  P33 = "Numbat_Calls/P33_clone_post_2.tsv"
 )
 
 # Step 1 — Patch final_Df barcodes
@@ -135,7 +135,7 @@ if (length(seu_list) == 0) {
 # --------------------------
 # Step 5 — Save
 # --------------------------
-saveRDS(seu_combined, "~/numbat_combined_seurat.rds")
+saveRDS(seu_combined, "~/250505_numbat_combined_seurat.rds")
 cat("\n🎉 All done! Saved as 'combined_patients_seurat.rds'\n")
 
 

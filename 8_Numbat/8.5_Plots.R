@@ -57,8 +57,6 @@ UMAP_genotype
 dev.off()
 
 # Plot 2
-
-
 UMAP_status <- seu_combined_subset@meta.data %>%
   drop_na(UMAP_1, UMAP_2, compartment_opt, sample_status) %>%
   sample_frac(1) %>%
@@ -157,4 +155,46 @@ p5 <- ggplot(df_prop, aes(x = compartment_opt, y = prop, fill = celltype)) +
 pdf("8.5_Celltype_Barplots.pdf", width = 16, height = 12)  
 p5
 dev.off()
+
+
+
+# Plot 6
+# Pseudotime of tumor cells
+
+# Extract metadata to facilitate histogram
+metadata_tib <- tibble(seu_combined@meta.data, rownames = "cell")
+# Subset for time point and mutation status of interest
+meta_subset <- metadata_tib %>% filter(celltype %in% c("HSC MPP", "MEP","LMPP","Early GMP","Late GMP"), compartment_opt =="tumor")
+
+# Consider subsetting for the same number of cells per patient
+meta_subset$patient_id %>% table %>% sort
+meta_subset <- meta_subset %>%
+  mutate(patient_id = as.character(patient_id)) %>%
+  group_by(patient_id) %>%
+  slice_sample(n = 65)
+
+p6 <- meta_subset %>% ggplot(aes(x = predicted_Pseudotime, color = sample_status)) +
+  geom_density(bw = 1.5) +
+  theme_bw() +
+  theme(aspect.ratio = 0.5, panel.grid = element_blank())
+
+
+pdf("8.5_pseudotime_tumorcells.pdf", width = 16, height = 12)  
+p6
+dev.off()
+
+# Statistical test
+group1 <- meta_subset %>% filter(cohort == "long-term-remission") %>%
+  pull(predicted_Pseudotime)
+group2 <- meta_subset %>% filter(cohort == "relapse") %>%
+  pull(predicted_Pseudotime)
+ks.test(group1, group2)
+
+meta_subset %>%
+  ggplot(aes(x = cohort, y = predicted_Pseudotime)) +
+  geom_jitter()
+
+meta_subset %>%
+  ggplot(aes(x = cohort, y = predicted_Pseudotime)) +
+  geom_violin()
 

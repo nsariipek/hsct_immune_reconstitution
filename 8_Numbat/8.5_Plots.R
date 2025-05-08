@@ -21,43 +21,42 @@ setwd("~/TP53_ImmuneEscape/8_Numbat/")
 seu_combined <- readRDS("~/250505_numbat_combined_seurat.rds")
 
 # Set sample status order
-seu_combined$sample_status <- factor(
+  seu_combined$sample_status <- factor(
   seu_combined$sample_status,
   levels = c("pre-transplant", "remission", "relapse"))
 
 seu_combined$compartment_opt <- factor(seu_combined$compartment_opt,levels = c("normal", "tumor"))
 
-
-# Remove the early relapse patients
-seu_combined_subset <- subset(seu_combined, subset=cohort_detail=="1-Relapse")
+# # Remove the early relapse patients
+# seu_combined_subset <- subset(seu_combined, subset=cohort_detail=="1-Relapse")
 
 # Define colors to use in plots
 celltype_colors_df <- read.table("../celltype_colors.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE, comment.char = "")
 celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltype)
-compartment_colors <- c("tumor" = "#4D4D4D", "normal" = "#FFECB3")
+compartment_colors <- c("tumor" = "#4D4D4D", "normal" = "#D9B88C")
 survival_strip_colors <-c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
 
 # Plot 1
 #Visualize the UMAP
-UMAP_genotype <- seu_combined_subset@meta.data %>%
+UMAP_genotype <- seu_combined@meta.data %>%
   sample_frac(1) %>%
   ggplot(aes(x = UMAP_1, y = UMAP_2, color = compartment_opt)) +
   geom_scattermore(pointsize = 8, pixels = c(4096, 4096)) +
   scale_color_manual(values = compartment_colors)+
   theme_bw() +
-  theme(
+  theme(panel.grid = element_blank(),
     aspect.ratio = 1,
     legend.title = element_blank(),
     legend.position = "right") +
   ggtitle("Tumor vs Normal Cells")  
 
 # Save
-pdf("UMAP_genotype.pdf", width = 7, height = 7)  
+pdf("8.5.1_UMAP_genotype.pdf", width = 7, height = 7)  
 UMAP_genotype
 dev.off()
 
 # Plot 2
-UMAP_status <- seu_combined_subset@meta.data %>%
+UMAP_status <- seu_combined@meta.data %>%
   drop_na(UMAP_1, UMAP_2, compartment_opt, sample_status) %>%
   sample_frac(1) %>%
   ggplot(aes(x = UMAP_1, y = UMAP_2, color = compartment_opt)) +
@@ -78,12 +77,12 @@ UMAP_status <- seu_combined_subset@meta.data %>%
   ggtitle("Tumor vs Normal Cells Across Sample Status")
 
 # Save
-pdf("8.5_Relapse_cohort_only_UMAP_status.pdf", width = 7, height = 7)  
+pdf("8.5.2_UMAP_status.pdf", width = 7, height = 7)  
 UMAP_status
 dev.off()
 
 # Plot 3
-UMAP_celltype <- seu_combined_subset@meta.data %>%
+UMAP_celltype <- seu_combined@meta.data %>%
   drop_na(UMAP_1, UMAP_2, celltype, compartment_opt) %>%
   sample_frac(1) %>%
   ggplot(aes(x = UMAP_1, y = UMAP_2, color = celltype)) +
@@ -101,12 +100,12 @@ UMAP_celltype <- seu_combined_subset@meta.data %>%
     legend.title = element_blank(),
     legend.position = "none"
   ) 
-pdf("UMAP_celltype.pdf", width = 7, height = 7)  
+pdf("8.5.3_UMAP_celltype.pdf", width = 7, height = 7)  
 UMAP_celltype
 dev.off()
 
 # Plot 4
-p4 <- seu_combined_subset@meta.data %>%
+p4 <- seu_combined@meta.data %>%
   count(patient_id, compartment_opt, sample_status) %>%  # include sample_status
   ggplot(aes(x = patient_id, y = n, fill = compartment_opt)) +
   geom_bar(stat = "identity", position = "fill") +
@@ -117,14 +116,12 @@ p4 <- seu_combined_subset@meta.data %>%
   theme_bw(base_size = 14) +
   ggtitle("Tumor vs Normal Composition per Patient")
 
-pdf("8.5_Relapse_cohort_Numbat_celltype.pdf", width = 8, height = 4)  
+pdf("8.5.4_Relapse_cohort_Numbat_celltype.pdf", width = 8, height = 4)  
 p4
 dev.off()
 
-
-
 # Plot 5
-df_prop <- seu_combined_subset@meta.data %>%
+df_prop <- seu_combined@meta.data %>%
   count(cohort, patient_id, compartment_opt, celltype) %>%
   group_by(cohort, patient_id, compartment_opt) %>%
   mutate(prop = n / sum(n))
@@ -152,18 +149,15 @@ p5 <- ggplot(df_prop, aes(x = compartment_opt, y = prop, fill = celltype)) +
     panel.spacing = unit(1, "lines")
   )
 
-pdf("8.5_Celltype_Barplots.pdf", width = 16, height = 12)  
+pdf("8.5.5_Celltype_Barplots.pdf", width = 16, height = 12)  
 p5
 dev.off()
 
-
-
 # Plot 6
 # Pseudotime of tumor cells
-
 # Extract metadata to facilitate histogram
 metadata_tib <- tibble(seu_combined@meta.data, rownames = "cell")
-# Subset for time point and mutation status of interest
+# Subset for time point and celltype of interest
 meta_subset <- metadata_tib %>% filter(celltype %in% c("HSC MPP", "MEP","LMPP","Early GMP","Late GMP"), compartment_opt =="tumor")
 
 # Consider subsetting for the same number of cells per patient
@@ -178,23 +172,22 @@ p6 <- meta_subset %>% ggplot(aes(x = predicted_Pseudotime, color = sample_status
   theme_bw() +
   theme(aspect.ratio = 0.5, panel.grid = element_blank())
 
-
-pdf("8.5_pseudotime_tumorcells.pdf", width = 16, height = 12)  
+pdf("8.5.6_pseudotime_tumorcells.pdf", width = 16, height = 12)  
 p6
 dev.off()
 
-# Statistical test
-group1 <- meta_subset %>% filter(cohort == "long-term-remission") %>%
-  pull(predicted_Pseudotime)
-group2 <- meta_subset %>% filter(cohort == "relapse") %>%
-  pull(predicted_Pseudotime)
-ks.test(group1, group2)
-
-meta_subset %>%
-  ggplot(aes(x = cohort, y = predicted_Pseudotime)) +
-  geom_jitter()
-
-meta_subset %>%
-  ggplot(aes(x = cohort, y = predicted_Pseudotime)) +
-  geom_violin()
+# # Statistical test
+# group1 <- meta_subset %>% filter(cohort == "long-term-remission") %>%
+#   pull(predicted_Pseudotime)
+# group2 <- meta_subset %>% filter(cohort == "relapse") %>%
+#   pull(predicted_Pseudotime)
+# ks.test(group1, group2)
+# 
+# meta_subset %>%
+#   ggplot(aes(x = cohort, y = predicted_Pseudotime)) +
+#   geom_jitter()
+# 
+# meta_subset %>%
+#   ggplot(aes(x = cohort, y = predicted_Pseudotime)) +
+#   geom_violin()
 

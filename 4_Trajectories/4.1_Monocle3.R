@@ -21,14 +21,28 @@ seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
 
 
 ######## Part 1 - Proccessing using Seurat ########
-# Load the seurat object that contains the T cells only
 
-# Subset for CD8 T cells
-seu_cd8 <- subset(seu, subset = celltype %in% c("CD8 Naive","CD8 Central Memory","CD8 Effector Memory 1","CD8 Effector Memory 2"))
-#"CD8 Tissue Resident Memory", "T Proliferating"
+######## APPROACH 1 (NEW)
+    # Add TCAT annotations
+    usage_tib <- read_tsv("../3_DGE/3.1_starCAT/starCAT.scores.txt.gz") %>% rename("...1" = "cell")
+    tcat_celltypes_df <- data.frame(select(usage_tib, Multinomial_Label), row.names = usage_tib$cell)
+    seu <- AddMetaData(seu, tcat_celltypes_df)
+    seu$Multinomial_Label <- factor(seu$Multinomial_Label, levels = c("CD4_Naive", "CD4_CM", "CD4_EM", "Treg", "CD8_Naive", "CD8_CM", "CD8_EM",  "CD8_TEMRA", "MAIT", "gdT"))
 
-# Subset for CD4 T cells (should also change cd8 to cd4 below)
-seu_cd4 <- subset(seu, subset = celltype %in% c("CD4 Central Memory", "CD4 Naive" ,"CD4 Effector Memory","CD4 Regulatory" ))
+    # Subset for CD8 T cells
+    seu_cd8 <- subset(seu, subset = Multinomial_Label %in% c("CD8_Naive", "CD8_CM", "CD8_EM",  "CD8_TEMRA"))
+
+
+######## APPROACH 2 (OLD)
+
+    # Load the seurat object that contains the T cells only
+
+    # Subset for CD8 T cells
+    seu_cd8 <- subset(seu, subset = celltype %in% c("CD8 Naive","CD8 Central Memory","CD8 Effector Memory 1","CD8 Effector Memory 2"))
+    #"CD8 Tissue Resident Memory", "T Proliferating"
+
+    # Subset for CD4 T cells (should also change cd8 to cd4 below)
+    seu_cd4 <- subset(seu, subset = celltype %in% c("CD4 Central Memory", "CD4 Naive" ,"CD4 Effector Memory","CD4 Regulatory" ))
 
 # Normalize
 seu_cd8 <- NormalizeData(seu_cd8)
@@ -71,14 +85,14 @@ ElbowPlot(seu_cd8, reduction = "harmony")
 #   )
 # }
 
-# After checking the different dimensions Nurefsan liked the dims 14, so she is going to move forward with that one
+# Move forward with manually selected number of dimensions
 seu_cd8 <- FindNeighbors(seu_cd8, reduction = "harmony", dims = 1:10)
-seu_cd8 <- FindClusters(seu_cd8, resolution = 1) # not sure this is needed
 seu_cd8 <- RunUMAP(seu_cd8, reduction = "harmony", dims = 1:10, return.model = T)
 
 # Visualize the UMAP
-DimPlot(seu_cd8, reduction = "umap", group.by = "celltype", shuffle = T) +
+DimPlot(seu_cd8, reduction = "umap", group.by = "Multinomial_Label", shuffle = T) +
   theme(aspect.ratio = 1)
+
 
 ######## Part 2 - Monocle3 Workflow ########
 
@@ -104,13 +118,14 @@ reacreate.partition <- as.factor(reacreate.partition)
 cds@clusters$UMAP_BMM$partitions <- reacreate.partition
 
 # Assign the cluster info
-list_cluster <- seu_cd8@active.ident
+#list_cluster <- seu_cd8@active.ident
+list_cluster <- seu_cd8$Multinomial_Label
 cds@clusters$UMAP$clusters <- list_cluster
 
-# Assign UMAP Coordinate -cell embeddings
+# Assign UMAP coordinate - cell embeddings
 cds@int_colData@listData$reducedDims$UMAP <- seu_cd8@reductions$umap@cell.embeddings
 
-# Plot
+# Plot clusters
 cluster.before.trajectory <- plot_cells(cds,
            color_cells_by = 'cluster',
            label_groups_by_cluster = FALSE,
@@ -119,13 +134,14 @@ cluster.before.trajectory <- plot_cells(cds,
 
 cluster.before.trajectory
 
-cluster.names <- plot_cells(cds, color_cells_by = 'celltype',
+cluster.names <- plot_cells(cds, color_cells_by = 'Multinomial_Label',
                                        label_groups_by_cluster = FALSE,
                                        group_label_size = 5) +
-  scale_color_manual(values= c("red","blue","green","maroon","yellow","gray","cyan"))+
+  #scale_color_manual(values= c("red","blue","green","maroon","yellow","gray","cyan"))+
   theme(legend.position = "right")
 
 cluster.names
+
 
 ######## Part 4 - Learn trajectory ########
 
@@ -141,8 +157,8 @@ plot_cells(cds_temp,
 
 ######## Part 5 - Order the cells in pseudotime ########
 
-# Clusters 9, 11 are CD8 Naive cells
-cds_temp <- order_cells(cds_temp, reduction_method = "UMAP", root_cells = colnames(cds_temp[, clusters(cds_temp) %in% c(9, 11)]))
+# Select CD8 Naive cells in the last part (clusters 9 and 11 for Nurefsan, 8 and 10 for Peter)
+cds_temp <- order_cells(cds_temp, reduction_method = "UMAP", root_cells = colnames(cds_temp[, clusters(cds_temp) %in% c("CD8_Naive")]))
 
 plot_cells(cds_temp,
             color_cells_by = "pseudotime",
@@ -172,7 +188,7 @@ Idents(seu_cd8) <- seu_cd8$celltype
 FeaturePlot(seu_cd8, reduction= "umap", features = "pseudotime", label = T, split.by = "cohort")
 DimPlot(seu_cd8, reduction= "umap", group.by = "celltype")
 DimPlot(seu_cd8, reduction= "umap", group.by = "patient_id")
-DimPlot(seu_cd8, reduction= "umap", group.by = "seurat_clusters")
+DimPlot(seu_cd8, reduction= "umap", group.by = "Multinomial_Label")
  
 # Extract metadata to facilitate histogram
 metadata_tib <- tibble(seu_cd8@meta.data, rownames = "cell")
@@ -181,22 +197,28 @@ metadata_tib$umap_2 <- seu_cd8@reductions$umap@cell.embeddings[,2]
 
 # Subset for time point and mutation status of interest
 meta_subset <- metadata_tib %>% filter(sample_status == "remission",
-  TP53_status == "MUT", timepoint %in% c(3, 5, 6))
+  TP53_status == "MUT", timepoint %in% c(3, 5, 6),
+  patient_id != "P21") # TEST/TMP
 
-# Consider subsetting for the same number of cells per patient
-meta_subset$patient_id %>% table %>% sort
+# What is the number of cells per patient?
+meta_subset$patient_id %>% table %>% sort %>% rev
+
+# Subset meta_subset for the same number of cells per patient
+n_cells <- min(table(meta_subset$patient_id)[table(meta_subset$patient_id) != 0])
 meta_subset <- meta_subset %>%
   mutate(patient_id = as.character(patient_id)) %>%
   group_by(patient_id) %>%
-  slice_sample(n = 258)
+  slice_sample(n = n_cells)
 
+# Plot histogram per cohort
 meta_subset %>% ggplot(aes(x = pseudotime, color = cohort)) +
-  geom_density(bw = 1) +
+  geom_density(bw = 0.5) +
   theme_bw() +
   theme(aspect.ratio = 0.5, panel.grid = element_blank())
 
+# Plot histogram per patient
 meta_subset %>% ggplot(aes(x = pseudotime, color = patient_id)) +
-  geom_density(bw = 1) +
+  geom_density() +
   theme_bw() +
   theme(aspect.ratio = 0.5, panel.grid = element_blank())
 
@@ -207,14 +229,11 @@ group2 <- meta_subset %>% filter(cohort == "relapse") %>%
   pull(pseudotime)
 ks.test(group1, group2)
 
+# Violin plot with transparent grey symbols for cells on top
 meta_subset %>%
   ggplot(aes(x = cohort, y = pseudotime)) +
-  geom_jitter()
-
-meta_subset %>%
-  ggplot(aes(x = cohort, y = pseudotime)) +
-  geom_violin()
-
+  geom_violin() +
+  geom_jitter(color = "#80808080")
 
 
 ######## Part 7 - Finding genes that change as a function of pseudotime  ########

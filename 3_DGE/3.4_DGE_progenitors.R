@@ -242,7 +242,7 @@ top_10_recipient <- res_tbl %>%
           axis.text.x = element_text(angle = 0))
 
   
-ggsave(paste0("top10_recipient_DE_genes_try2", gsub(" ", "_", ct), ".pdf"),
+ggsave(paste0("top10_recipient_DE_genes", gsub(" ", "_", ct), ".pdf"),
          plot = top_10_plot, width = 14, height = 10)
   
 # Heatmap matrix

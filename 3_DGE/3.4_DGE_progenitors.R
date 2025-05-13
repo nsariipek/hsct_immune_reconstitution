@@ -80,10 +80,11 @@ meta_bulk_ct <- left_join(bulk_ct@meta.data, n_cells, by = "orig.ident")
 rownames(meta_bulk_ct) <- meta_bulk_ct$orig.ident
 bulk_ct@meta.data <- meta_bulk_ct
 
-# DESeq2 analysis
+# Exclude unpaired samples
 bulk_ct@meta.data$origin <- factor(bulk_ct@meta.data$origin)
 if (length(unique(bulk_ct@meta.data$origin)) < 2) stop("Not enough groups to compare.")
 
+# Check the cell counts per group
 barplot <- ggplot(bulk_ct@meta.data, aes(x = sample_id, y = n_cells, fill = origin)) +
   geom_bar(stat = "identity", color = "black") +
   theme_classic() +
@@ -92,8 +93,43 @@ barplot <- ggplot(bulk_ct@meta.data, aes(x = sample_id, y = n_cells, fill = orig
   geom_text(aes(label = n_cells), vjust = -0.5)
 ggsave(paste0("cell_counts_", gsub(" ", "_", ct), ".pdf"), barplot, width = 8, height = 5)
 
+# ## UNNECCESARRY Checking###
+# # Count number of cells per sample and celltype
+# cell_fraction_df <- ex@meta.data %>%
+#   group_by(sample_id, origin, celltype) %>%
+#   summarize(n_cells = n(), .groups = "drop")
+# 
+# # Calculate total cells per sample
+# cell_fraction_df <- cell_fraction_df %>%
+#   group_by(sample_id) %>%
+#   mutate(total_cells = sum(n_cells)) %>%
+#   ungroup() %>%
+#   mutate(fraction = n_cells / total_cells)
+# 
+# # Plot stacked barplot of fractions
+# barplot <- ggplot(cell_fraction_df, aes(x = sample_id, y = fraction, fill = celltype)) +
+#   geom_bar(stat = "identity") +
+#  # facet_wrap(~origin, scales = "free_x") +
+#   labs(
+#     title = "Cell Type Composition per Sample",
+#     x = "Sample ID",
+#     y = "Fraction of Cells",
+#     fill = "Cell Type"
+#   ) +
+#   theme_minimal(base_size = 12) +
+#   theme(
+#     axis.text.x = element_text(angle = 45, hjust = 1),
+#     legend.position = "right"
+#   )
+# 
+# # Save the plot
+# ggsave("celltype_stacked_barplot.pdf", barplot, width = 12, height = 6)
+
+#Run DESeq 
 cluster_counts <- FetchData(bulk_ct, layer = "counts", vars = rownames(bulk_ct))
-dds <- DESeqDataSetFromMatrix(t(cluster_counts), colData = bulk_ct@meta.data, design = ~ origin)
+
+dds <- DESeqDataSetFromMatrix(t(cluster_counts), colData = bulk_ct@meta.data, design = ~ sample_id + origin) # we decided ~ smaple_id +origin is better 
+# This line put donor as a reference, but check line 136
 dds$origin <- relevel(dds$origin, ref = "donor")
 dds <- DESeq(dds)
 #Check this 
@@ -115,6 +151,16 @@ res_tbl <- res %>%
 write.table(res_tbl,
             file = paste0("DESeq2_results_", gsub(" ", "_", ct), ".csv"),
             sep = ",", quote = FALSE, col.names = TRUE, row.names = FALSE)
+
+# Add significance classification
+res_tbl <- res_tbl %>%
+  mutate(
+    significance = case_when(
+      padj < 0.05 & log2FoldChange > 1  ~ "Up in recipient",
+      padj < 0.05 & log2FoldChange < -1 ~ "Up in donor",
+      TRUE                              ~ "Not significant"
+    )
+  )
 
 
 # Select top 20 genes for labeling
@@ -194,8 +240,9 @@ top_10_recipient <- res_tbl %>%
     theme_minimal(base_size = 12) +
     theme(plot.title = element_text(hjust = 0.5),
           axis.text.x = element_text(angle = 0))
+
   
-ggsave(paste0("top10_recipient_DE_genes_", gsub(" ", "_", ct), ".pdf"),
+ggsave(paste0("top10_recipient_DE_genes_try2", gsub(" ", "_", ct), ".pdf"),
          plot = top_10_plot, width = 14, height = 10)
   
 # Heatmap matrix
@@ -205,7 +252,7 @@ ggsave(paste0("top10_recipient_DE_genes_", gsub(" ", "_", ct), ".pdf"),
   mat <- mat[top_10_recipient, ]
   mat_scaled <- t(scale(t(mat)))  # z-score by gene
   
-  # Step 8: Plot heatmap
+  # Plot heatmap
   pdf(paste0("heatmap_top10_", gsub(" ", "_", ct), ".pdf"), width = 8, height = 6)
   pheatmap::pheatmap(
     mat_scaled,
@@ -219,7 +266,6 @@ ggsave(paste0("top10_recipient_DE_genes_", gsub(" ", "_", ct), ".pdf"),
   dev.off()
   
 
- 
 
 # ##### Loop version for all celltypes #####
 # celltypes <- sort(unique(ex@meta.data$celltype))

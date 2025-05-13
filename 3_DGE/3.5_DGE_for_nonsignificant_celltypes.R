@@ -1,6 +1,6 @@
 # Nurefsan Sariipek
 # 240102
-# This is a replica of 3.DGE only difference removing padj treshold which is located in the second part of this script
+# This is a replica of 3.4 DGE only difference removing padj treshold which is located in the second part of this script
 
 # Load the needed libraries
 library(tidyverse)

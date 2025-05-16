@@ -93,38 +93,6 @@ barplot <- ggplot(bulk_ct@meta.data, aes(x = sample_id, y = n_cells, fill = orig
   geom_text(aes(label = n_cells), vjust = -0.5)
 ggsave(paste0("cell_counts_", gsub(" ", "_", ct), ".pdf"), barplot, width = 8, height = 5)
 
-# ## UNNECCESARRY Checking###
-# # Count number of cells per sample and celltype
-# cell_fraction_df <- ex@meta.data %>%
-#   group_by(sample_id, origin, celltype) %>%
-#   summarize(n_cells = n(), .groups = "drop")
-# 
-# # Calculate total cells per sample
-# cell_fraction_df <- cell_fraction_df %>%
-#   group_by(sample_id) %>%
-#   mutate(total_cells = sum(n_cells)) %>%
-#   ungroup() %>%
-#   mutate(fraction = n_cells / total_cells)
-# 
-# # Plot stacked barplot of fractions
-# barplot <- ggplot(cell_fraction_df, aes(x = sample_id, y = fraction, fill = celltype)) +
-#   geom_bar(stat = "identity") +
-#  # facet_wrap(~origin, scales = "free_x") +
-#   labs(
-#     title = "Cell Type Composition per Sample",
-#     x = "Sample ID",
-#     y = "Fraction of Cells",
-#     fill = "Cell Type"
-#   ) +
-#   theme_minimal(base_size = 12) +
-#   theme(
-#     axis.text.x = element_text(angle = 45, hjust = 1),
-#     legend.position = "right"
-#   )
-# 
-# # Save the plot
-# ggsave("celltype_stacked_barplot.pdf", barplot, width = 12, height = 6)
-
 #Run DESeq 
 cluster_counts <- FetchData(bulk_ct, layer = "counts", vars = rownames(bulk_ct))
 
@@ -135,13 +103,13 @@ dds <- DESeq(dds)
 #Check this 
 resultsNames(dds)
 res <- results(dds, name = "origin_recipient_vs_donor", alpha = 0.05)
-pdf("MA_plot_before.pdf", width = 6, height = 6)
-plotMA(res)
-dev.off()
+# pdf("MA_plot_before.pdf", width = 6, height = 6)
+# plotMA(res)
+# dev.off()
 res <- lfcShrink(dds, coef = "origin_recipient_vs_donor", res = res, type = "apeglm")
-pdf("MA_plot_after.pdf", width = 6, height = 6)
-plotMA(res)
-dev.off()
+# pdf("MA_plot_after.pdf", width = 6, height = 6)
+# plotMA(res)
+# dev.off()
 res_tbl <- res %>%
   as.data.frame() %>%
   rownames_to_column("gene") %>%
@@ -186,21 +154,25 @@ volcano <- ggplot(res_tbl, aes(x = log2FoldChange, y = -log10(padj), color = sig
     show.legend = FALSE
   ) +
   scale_color_manual(values = c(
-    "Up in recipient" = "red",
-    "Up in donor" = "blue",
+    "Up in recipient" = "#8B6A4F",  # Darker brown
+    "Up in donor" = "#331F2C",
     "Not significant" = "gray"
   )) +
   labs(
-    title = paste("Volcano plot -", ct),
     x = "Log2 Fold Change (recipient vs donor)",
     y = "-log10(padj)",
     color = "Direction"
   ) +
-  theme_minimal()
+  theme_classic(base_size = 12) +
+  theme(
+    axis.ticks = element_line(color = "black"),
+    axis.line = element_line(color = "black")
+  )
+
 
 volcano
 
-ggsave(paste0("Volcano_plot_", gsub(" ", "_", ct), ".pdf"), volcano, width = 8, height = 5)
+ggsave(paste0("Volcano_plot_", gsub(" ", "_", ct), ".pdf"), volcano, width = 6, height = 4)
 
 # Select top 10 genes up in recipient
 top_10_recipient <- res_tbl %>%

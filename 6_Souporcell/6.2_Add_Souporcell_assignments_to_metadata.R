@@ -1,5 +1,5 @@
-# Nurefsan Sariipek, 250220-- updated at 250418
-# Adding souporcell results to seurat metadat 
+# Nurefsan Sariipek and Peter van Galen, 250518
+# Adding Souporcell results to Seurat metadata and save as Gzipped csv file
 
 library(tidyverse)
 library(Seurat)
@@ -12,9 +12,11 @@ rm(list=ls())
 
 # For Nurefsan:
 setwd("~/TP53_ImmuneEscape/6_Souporcell/")
+# For Peter:
+#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_Souporcell/")
 
-# Load the metadata
-seu <- readRDS("~/250426_Seurat_annotated.rds")
+# Load Seurat data
+seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
 
 # List of patients
 patient_list <- unique(seu$patient_id) %>% sort()
@@ -23,7 +25,7 @@ patient_list <- unique(seu$patient_id) %>% sort()
 results <- list()
 
 # Initialize a final data frame to store all patients together
-final_dataset <- tibble()  # Empty tibble to store merged data
+souporcell_calls <- tibble()  # Empty tibble to store merged data
 
 # Loop through each patient
 for (patient_id in patient_list) {
@@ -151,7 +153,7 @@ for (patient_id in patient_list) {
     results[[patient_id]] <- df_merged
     
     # Append to final dataset
-    final_dataset <- bind_rows(final_dataset, df_merged)
+    souporcell_calls <- bind_rows(souporcell_calls, df_merged)
     
     message(paste("✅ Assigned donor using", assignment_source, "for", patient_id, "- Donor Genotype:", donor_assignment, "(", round(donor_percentage, 2), "% )"))
   } else {
@@ -159,11 +161,7 @@ for (patient_id in patient_list) {
   }
 }
 
-# Save final dataset as CSV, saved this to auxillary file on the dropbox since it is too big to snyc at github
-if (nrow(final_dataset) > 0) {
-  write_csv(final_dataset, "~/250428_final_dataset.csv")
-  message("📁 Final dataset saved as final_dataset.csv")
-} else {
-  message("⚠️ No valid patient data processed.")
-}
-
+# Save final dataset as a csv file (Gzipped to save space)
+souporcell_calls$cell <- paste0(souporcell_calls$orig.ident, "_", souporcell_calls$barcode)
+souporcell_calls_select <- souporcell_calls %>% select(cell, cohort, sample_status, patient_id, sample_id, TP53_status, timepoint, celltype, assignment, origin)
+write_csv(souporcell_calls_select, "250518_Souporcell_calls.csv.gz")

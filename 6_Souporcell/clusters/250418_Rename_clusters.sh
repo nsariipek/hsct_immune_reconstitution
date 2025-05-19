@@ -1,4 +1,4 @@
-# On 250418, we renamed each file:
+# On 250418, we renamed each file, because Souporcell was run with old IDs:
 mv P01_clusters.tsv $(echo P01_clusters.tsv | sed 's/P01/PATIENTP01/')
 mv P02_clusters.tsv $(echo P02_clusters.tsv | sed 's/P02/PATIENTP02/')
 mv P03_clusters.tsv $(echo P03_clusters.tsv | sed 's/P03/PATIENTP03/')

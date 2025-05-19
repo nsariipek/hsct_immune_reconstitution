@@ -17,18 +17,18 @@ library(grid)
 rm(list = ls())
 
 # Favorite function
-cutf <- function(x, f = 1, d = "/")
-  sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
+cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))
 
 # Set working directory (local). For Nurefsan:
-setwd(
-  "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/TP53_ImmuneEscape/5_Souporcell/"
-)
+setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/TP53_ImmuneEscape/5_Souporcell/")
 # For Peter:
-#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/5_Souporcell/")
+#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_Souporcell/")
 
 # Load Seurat data
-seu <- readRDS("../AuxiliaryFiles/250128_seurat_annotated_final.rds")
+seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
+
+# Load Souporcell calls
+souporcell_calls <- read_csv("250518_Souporcell_calls.csv.gz")
 
 # Load cell type colors from 2.3_PvG-Colors.R
 celltype_colors_df <- read.table(
@@ -45,12 +45,11 @@ celltype_colors <- setNames(
 
 # Current patient(s) to analyze
 pts <- sprintf("P%02d", 1:33)
-#pt <- "P01"
-#pt <- "P10"
-#pts <- "P13"
+#pt <- "P20" # for paper figure
+#pt <- "P33" # faster example
 
 # Open a connection to a stats file
-file_conn <- file("5.2_stats_output.txt", open = "wt")
+file_conn <- file("6.3_stats_output.txt", open = "wt")
 writeLines(
   paste(
     "Patient",
@@ -72,11 +71,7 @@ for (pt in pts) {
 
   # For each patient, we made a file that combines reference and alternative matrices output of the souporcell in bash on Broad cluster in bash: `paste ref.mtx alt.mtx | sed 's/ /\t/g' > ${PT}.combined.tsv`
   # These files are saved in "5_Souporcell/AuxiliaryFiles" and not synced to GitHub due to their large size (see .gitignore). They are available upon request.
-  variants_df <- read.table(
-    paste0("AuxiliaryFiles/", pt, ".combined.tsv"),
-    skip = 3,
-    sep = "\t"
-  )
+  variants_df <- read.table(paste0("AuxiliaryFiles/", pt, ".combined.tsv"), skip = 3, sep = "\t")
 
   # Name columns, remove variants without coverage, add genotype specifying if a variant is WT or MT
   variants_df <- variants_df %>%
@@ -101,7 +96,16 @@ for (pt in pts) {
   unambiguous_cells <- cells %>%
     filter(assignment %in% c(0, 1))
 
-  # Barplot of souporcell assignments (0, 1)
+  # Now, change Souporcell assignment (0 or 1) to origin (recipient or donor), or vice versa, as determined in 6.2_Genotype_donor-host_assignments.R
+  zero_origin <- filter(souporcell_calls, patient_id == pt, assignment == 0) %>% pull(origin) %>% unique
+  one_origin <- filter(souporcell_calls, patient_id == pt, assignment == 1) %>% pull(origin) %>% unique
+  cells <- cells %>% mutate(assignment = gsub("0", substr(zero_origin, 1, 1), gsub("1", substr(one_origin, 1, 1), assignment))) %>%
+    mutate(assignment = factor(assignment, levels = c("r", "r/d", "d", "d/r")))
+  unambiguous_cells <- unambiguous_cells %>%
+    mutate(assignment = gsub("0", zero_origin, gsub("1", one_origin, assignment))) %>%
+    mutate(assignment = factor(assignment, levels = c("recipient", "donor")))
+
+  # Barplot of souporcell assignments
   p1 <- cells$assignment %>%
     tabyl() %>%
     rename("Number of cells" = n) %>%
@@ -110,9 +114,9 @@ for (pt in pts) {
     geom_text(aes(label = `Number of cells`), vjust = -0.3) +
     ylim(0, max(cells$assignment %>% tabyl() %>% pull(n)) * 1.1) +
     labs(
-      x = "Souporcell call",
+      x = "Souporcell assignment",
       title = paste0(
-        "Genotype calls (",
+        "Cell assignments (",
         round(nrow(unambiguous_cells) / nrow(cells) * 100),
         "% unambiguous)"
       )
@@ -178,8 +182,10 @@ for (pt in pts) {
       pull(genotype)
     assignments <- high_coverage_variants_df %>%
       filter(var == i) %>%
-      pull(assignment) %>%
-      as.numeric()
+      mutate(assignment = case_when(
+        assignment == "donor" ~ 1,
+        assignment == "recipient" ~ 0)) %>%
+      pull(assignment)
     r <- rand.index(genotypes, assignments)
     rand_indices <- rbind(
       rand_indices,
@@ -310,7 +316,7 @@ for (pt in pts) {
     mutate(
       sample_status = factor(
         sample_status,
-        levels = c("pre_transplant", "remission", "relapse")
+        levels = c("pre-transplant", "remission", "relapse")
       )
     ) %>%
     sample_frac(1) %>%
@@ -318,7 +324,7 @@ for (pt in pts) {
 
   # Heatmap annotation
   celltype_colors_current <- celltype_colors[factor(
-    unique(heatmap_wide_df$celltype),
+    na.omit(unique(heatmap_wide_df$celltype)),
     levels = names(celltype_colors)
   )]
   col_anno <- columnAnnotation(
@@ -327,11 +333,11 @@ for (pt in pts) {
     celltype = heatmap_wide_df$celltype,
     col = list(
       sample_status = c(
-        "pre_transplant" = "#4775FFFF",
-        "remission" = "#99CC00",
-        "relapse" = "#BA6338"
+        "pre-transplant" = "#A3BFD9",
+        "remission" = "#F6E06E",
+        "relapse" = "#8B0000"
       ),
-      souporcell_assignment = c("0" = "#3B1B53", "1" = "#F0E685"),
+      souporcell_assignment = c("donor" = "#4B3140", recipient = "#E4C9B0"),
       celltype = celltype_colors_current
     ),
     annotation_legend_param = list(

@@ -1,5 +1,6 @@
 # Nurefsan Sariipek, 241219, updated at 250331
 # Integrating Numbat Results
+
 # Load Libraries
 library(readr)
 library(Seurat)
@@ -12,9 +13,14 @@ rm(list=ls())
 
 # Set working directory
 setwd("~/TP53_ImmuneEscape/8_Numbat/")
+# For Peter:
+#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/8_Numbat/")
+
+# Favorite function
+cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))
 
 # Load the saved Seurat objects
-seu <- readRDS("~/250426_Seurat_annotated.rds")
+seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
 
 # Extract UMAP coordinates from the Seurat object
 umap_coords <- Embeddings(seu, reduction = "umap_bmm")
@@ -26,16 +32,14 @@ colnames(umap_coords) <- c("UMAP_1", "UMAP_2")
 seu@meta.data <- cbind(seu@meta.data, umap_coords)
 
 # Load the saved dataframe that contains souporcell information
-final_Df <- read_csv("~/250428_final_dataset.csv")
+souporcell_assignments <- read_csv("../6_Souporcell/6.2_Souporcell_assignments.csv.gz")
 
 # Helper function
-
 make_unique <- function(x) {
   make.unique(x, sep = "__")
 }
 
 # Define Numbat clone paths
-
 patient_info <- list(
   P20 = "Numbat_Calls/P20_clone_post_2.tsv",
   P22 = "Numbat_Calls/P22_clone_post_2.tsv",
@@ -45,10 +49,11 @@ patient_info <- list(
   P33 = "Numbat_Calls/P33_clone_post_2.tsv"
 )
 
-# Step 1 — Patch final_Df barcodes
+# Step 1 — Patch souporcell_assignments barcodes
 # --------------------------
-final_Df$barcode <- paste0(final_Df$patient_id, "_", final_Df$barcode)
-final_Df$barcode <- make_unique(final_Df$barcode)
+souporcell_assignments$barcode <- paste0(souporcell_assignments$patient_id, "_",
+                                         cutf(souporcell_assignments$cell, d = "_", f = 3))
+souporcell_assignments$barcode <- make_unique(souporcell_assignments$barcode)
 
 # --------------------------
 # Step 2 — Patch Seurat colnames
@@ -82,7 +87,7 @@ for (patient_id in names(patient_info)) {
   }
   
   # Subset souporcell
-  soc_subset <- final_Df %>%
+  soc_subset <- souporcell_assignments %>%
     filter(patient_id == !!patient_id, origin == "recipient")
   
   matching_cells <- soc_subset$barcode

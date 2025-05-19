@@ -28,7 +28,7 @@ setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/TP53_ImmuneEs
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
 
 # Load Souporcell calls
-souporcell_calls <- read_csv("250518_Souporcell_calls.csv.gz")
+souporcell_assignments <- read_csv("6.2_Souporcell_assignments.csv.gz")
 
 # Load cell type colors from 2.3_PvG-Colors.R
 celltype_colors_df <- read.table(
@@ -97,13 +97,15 @@ for (pt in pts) {
     filter(assignment %in% c(0, 1))
 
   # Now, change Souporcell assignment (0 or 1) to origin (recipient or donor), or vice versa, as determined in 6.2_Genotype_donor-host_assignments.R
-  zero_origin <- filter(souporcell_calls, patient_id == pt, assignment == 0) %>% pull(origin) %>% unique
-  one_origin <- filter(souporcell_calls, patient_id == pt, assignment == 1) %>% pull(origin) %>% unique
-  cells <- cells %>% mutate(assignment = gsub("0", substr(zero_origin, 1, 1), gsub("1", substr(one_origin, 1, 1), assignment))) %>%
-    mutate(assignment = factor(assignment, levels = c("r", "r/d", "d", "d/r")))
-  unambiguous_cells <- unambiguous_cells %>%
-    mutate(assignment = gsub("0", zero_origin, gsub("1", one_origin, assignment))) %>%
-    mutate(assignment = factor(assignment, levels = c("recipient", "donor")))
+  zero_origin <- filter(souporcell_assignments, patient_id == pt, assignment == 0) %>% pull(origin) %>% unique
+  one_origin <- filter(souporcell_assignments, patient_id == pt, assignment == 1) %>% pull(origin) %>% unique
+  if(! "unknown" %in% c(zero_origin, one_origin)) {
+    cells <- cells %>% mutate(assignment = gsub("0", substr(zero_origin, 1, 1), gsub("1", substr(one_origin, 1, 1), assignment))) %>%
+      mutate(assignment = factor(assignment, levels = c("r", "r/d", "d", "d/r")))
+    unambiguous_cells <- unambiguous_cells %>%
+      mutate(assignment = gsub("0", zero_origin, gsub("1", one_origin, assignment))) %>%
+      mutate(assignment = factor(assignment, levels = c("recipient", "donor")))
+  }
 
   # Barplot of souporcell assignments
   p1 <- cells$assignment %>%
@@ -147,16 +149,16 @@ for (pt in pts) {
   p2 <- bind_rows(
     variants_df %>%
       count(var) %>%
-      rename(`number of cells` = n) %>%
+      rename(`Number of cells` = n) %>%
       mutate(Variants = "All"),
     high_coverage_variants_df %>%
       count(var) %>%
-      rename(`number of cells` = n) %>%
-      mutate(Variants = "High coverage")
-  ) %>%
-    ggplot(aes(x = `number of cells`, fill = Variants)) +
+      rename(`Number of cells` = n) %>%
+      mutate(Variants = "High coverage")) %>%
+    ggplot(aes(x = `Number of cells`, fill = Variants)) +
     geom_histogram(position = "identity") +
     scale_x_log10() +
+    labs(y = "Number of variants") +
     ggtitle(paste0(
       "Cells per variant (total = ",
       comma(length(unique(variants_df$cell))),
@@ -183,8 +185,8 @@ for (pt in pts) {
     assignments <- high_coverage_variants_df %>%
       filter(var == i) %>%
       mutate(assignment = case_when(
-        assignment == "donor" ~ 1,
-        assignment == "recipient" ~ 0)) %>%
+        assignment %in% c("0", "donor") ~ 0,
+        assignment %in% c("1", "recipient") ~ 1)) %>%
       pull(assignment)
     r <- rand.index(genotypes, assignments)
     rand_indices <- rbind(
@@ -337,7 +339,8 @@ for (pt in pts) {
         "remission" = "#F6E06E",
         "relapse" = "#8B0000"
       ),
-      souporcell_assignment = c("donor" = "#4B3140", recipient = "#E4C9B0"),
+      souporcell_assignment = c("0" = "#3B1B53", "1" = "#F0E685",
+        "donor" = "#4B3140", recipient = "#E4C9B0"),
       celltype = celltype_colors_current
     ),
     annotation_legend_param = list(
@@ -424,5 +427,7 @@ for (pt in pts) {
 
 }
 
+# Close the file connection
+close(file_conn)
 
-# Looking at the heatmaps, there's a population of cells in Patient 28 that was likely misassigned by Souporcell. Patient 5 and 9 look particularly good.
+# Looking at the heatmaps, there's a population of cells in Patient 24 that was likely misassigned by Souporcell. Patient 20 and 30 look particularly good.

@@ -7,35 +7,37 @@ library(janitor)
 library(readr)
 library(dplyr)
 
+setwd("~/TP53_ImmuneEscape/8_Numbat/")
+
 # Empty environment
 rm(list=ls())
 
-setwd("~/TP53_ImmuneEscape/8_Numbat/")
+# Favorite function
+cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))
 
 # Load the saved dataframe that contains souporcell information + barcodes
-final_df <- read_csv("~/250428_final_dataset.csv")
+souporcell_assignments <- read_csv("../6_Souporcell/6.2_Souporcell_assignments.csv.gz")
 
 # Get unique patient identifiers
-patients <- unique(final_df$patient_id)  
+patients <- unique(souporcell_assignments$patient_id)
 
 # Define output directory
-output_dir <- "Numbat_Barcodes/"
-if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
+dir.create("Numbat_Barcodes/")
 
 # Loop through each patient and process their samples
 for (patient in patients) {
   # Filter data for the current patient
-  patient_df <- final_df %>% filter(patient_id == patient)
+  patient_df <- souporcell_assignments %>% filter(patient_id == patient)
   
   # Extract samples by their status
-  pre_transplant <- patient_df %>% filter(sample_status == "pre_transplant" & origin == "recipient")
+  pre_transplant <- patient_df %>% filter(sample_status == "pre-transplant" & origin == "recipient")
   remission <- patient_df %>% filter(sample_status == "remission" & origin == "recipient")
   relapse <- patient_df %>% filter(sample_status == "relapse" & origin == "recipient")
   
   # Extract barcodes 
-  barcode_pre <-pre_transplant$barcode
-  barcode_rem <- remission$barcode
-  barcode_rel <- relapse$barcode
+  barcode_pre <- cutf(pre_transplant$cell, d = "_", f = 3)
+  barcode_rem <- cutf(remission$cell, d = "_", f = 3)
+  barcode_rel <- cutf(relapse$cell, d = "_", f = 3)
   
   # Convert to tibble
   barcode_pre <- as_tibble(barcode_pre)
@@ -51,4 +53,3 @@ for (patient in patients) {
 }
 
 # On 250502, we deleted the Numbat_Barcodes folder, since the Patient IDs are now outdated and we would need to regenerate the barcode files to rerun Numbat, which are not planning to do
-  

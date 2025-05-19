@@ -3,6 +3,7 @@
 # Updated April 28, 2025
 # Analyze post 3-6 months remission samples and subset donor/host CD4/CD8 compartments using subsampling based on cell numbers which is different than scRepertoire built in subsampling which can be found on 6.1 script
 # Load the libraries
+
 library(scRepertoire)
 library(Seurat)
 library(ggpubr)
@@ -21,7 +22,7 @@ rm(list=ls())
 setwd("~/TP53_ImmuneEscape/7_TCR_Diversity/")
 
 # Setup for Peter: local. Then run line 89-117 and continue at 178
-#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_TCR_Diversity")
+#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/7_TCR_Diversity")
 #combined.sc <- readRDS("AuxiliaryFiles/combined.RDS")
 #seu_merge <- readRDS("../AuxiliaryFiles/250128_seurat_annotated_final.rds")
 
@@ -30,14 +31,13 @@ gcs_global_bucket("fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b")
 # Check if you can list the objects. In Terra, you may need to authenticate using gcs_auth(). In VM, this did not work - hence the alternative function on line 65.
 gcs_list_objects()
 
-# Define samples(only the 3-6 mo remission samples)
+# Define samples (only the 3-6 mo remission samples)
 Samples <- c("P1665_MIX", "P1671_MIX", "P1745_MNC", "P1762_MIX", "P1764_MIX", 
              "P1804_MNC", "P1817_MIX", "P2220_MNC", "P2332_MNC", "P2408_MNC", 
              "P2434_MNC", "P2517_MIX", "P2518_CD3", "P2518_MNC", "P2599_CD3", 
              "P2599_MNC", "P2698_MIX", "P2745_MNC", "P2791_MNC", "P2820_MIX", 
              "P2961_MNC", "P2977_MIX", "P2986_MNC", "P2988_MNC", "P3000_MIX", 
              "P6174_CD3", "P6174_MNC", "P25802_CD3", "P25802_MNC","P25809_MNC")
-
 
 # Temporary directory to save downloaded files
 tmp_dir <- "/home/rstudio/tmp"
@@ -115,16 +115,15 @@ meta = meta %>% drop_na()
 ### Add Souporcell information ####
 
 # Load the metadata that contains souporcell information
-souporcell_df <- read_csv("~/250428_final_dataset.csv")
+souporcell_assignments <- read_csv("../6_Souporcell/6.2_Souporcell_assignments.csv.gz")
 
-# Wrangle the df
-souporcell_df <- souporcell_df %>%
-  mutate(modified_barcode = paste(orig.ident, barcode, sep = "_")) %>%
-  select(modified_barcode, origin)
+# Select necessary data
+souporcell_assignments <- souporcell_assignments %>%
+  select(cell, origin)
 
-# Join 2 dataframe
-meta_merged <- souporcell_df %>%
-  inner_join(meta, by = c("modified_barcode" = "barcode")) %>% drop_na()
+# Join two dataframes
+meta_merged <- souporcell_assignments %>%
+  inner_join(meta, by = c("cell" = "barcode")) %>% drop_na()
 
 # Select only recipient cells
 meta <- meta_merged %>% rename(barcode=modified_barcode) %>% filter(origin == "recipient")
@@ -145,7 +144,7 @@ for (i in names(combined)) {
 
 View(combined.sc)
 
-# Remove samples P12, P18  from the list since they had less than <500 TCR calls and remove the ones are empty( more for souporcell)
+# Remove samples P12, P18  from the list since they had less than <500 TCR calls and remove the ones are empty (more for souporcell)
 combined.sc <- combined.sc[sapply(combined.sc, function(x) nrow(x) > 0)]
 
 samples_to_remove <- c("P09","P12","P18","P26")
@@ -277,7 +276,7 @@ View(m)
 
 # Add more information to table to make more annotated plots
 joined_tibble <- as_tibble(meta) %>% 
-  select(sample_id, cohort, timepoint, sample_status, patient_id,TP53_status ,celltype) %>% unique() %>%
+  select(sample_id, cohort, timepoint, sample_status, patient_id, TP53_status, celltype) %>% unique() %>%
   right_join(m, by = "patient_id")
 
 # Determine y axis for visualization purposes

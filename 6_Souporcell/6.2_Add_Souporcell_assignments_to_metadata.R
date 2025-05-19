@@ -25,7 +25,7 @@ patient_list <- unique(seu$patient_id) %>% sort()
 results <- list()
 
 # Initialize a final data frame to store all patients together
-souporcell_calls <- tibble()  # Empty tibble to store merged data
+souporcell_assignments <- tibble()  # Empty tibble to store merged data
 
 # Loop through each patient
 for (patient_id in patient_list) {
@@ -153,7 +153,7 @@ for (patient_id in patient_list) {
     results[[patient_id]] <- df_merged
     
     # Append to final dataset
-    souporcell_calls <- bind_rows(souporcell_calls, df_merged)
+    souporcell_assignments <- bind_rows(souporcell_assignments, df_merged)
     
     message(paste("✅ Assigned donor using", assignment_source, "for", patient_id, "- Donor Genotype:", donor_assignment, "(", round(donor_percentage, 2), "% )"))
   } else {
@@ -162,6 +162,6 @@ for (patient_id in patient_list) {
 }
 
 # Save final dataset as a csv file (Gzipped to save space)
-souporcell_calls$cell <- paste0(souporcell_calls$orig.ident, "_", souporcell_calls$barcode)
-souporcell_calls_select <- souporcell_calls %>% select(cell, cohort, sample_status, patient_id, sample_id, TP53_status, timepoint, celltype, assignment, origin)
-write_csv(souporcell_calls_select, "250518_Souporcell_calls.csv.gz")
+souporcell_assignments$cell <- paste0(souporcell_assignments$orig.ident, "_", souporcell_assignments$barcode)
+souporcell_assignments_select <- souporcell_assignments %>% select(cell, cohort, sample_status, patient_id, sample_id, TP53_status, timepoint, celltype, assignment, origin)
+write_csv(souporcell_assignments_select, "6.2_Souporcell_assignments.csv.gz")

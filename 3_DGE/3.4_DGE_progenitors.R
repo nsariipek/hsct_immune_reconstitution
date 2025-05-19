@@ -1,4 +1,5 @@
 # Nurefsan Sariipek, 250509
+
 # Load the needed libraries
 library(Seurat)
 library(dplyr)
@@ -14,20 +15,18 @@ library(pheatmap)
 # Empty environment
 rm(list=ls())
 
-# Set working directory
+# Set working directory (Nurefsan)
 setwd("~/TP53_ImmuneEscape/3_DGE/")
+# For Peter:
+#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/3_DGE/")
 
 # Load the saved seurat objects
-seu <- readRDS("~/250426_Seurat_annotated.rds")
+seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
 
-#Load the souporcellresult and add as a metadata
-souporcell_df <- read_csv("~/250428_final_dataset.csv")
+# Load the souporcellresult and add as a metadata
+souporcell_assignments <- read_csv("../6_Souporcell/6.2_Souporcell_assignments.csv.gz")
 
-# Wrangle the df
-souporcell_df <- souporcell_df %>%
-  mutate(cell = paste(orig.ident, barcode, sep = "_")) 
-
-df_meta <- souporcell_df %>%
+df_meta <- souporcell_assignments %>%
   select(cell, origin) %>%
   filter(cell %in% Cells(seu)) %>%            
   distinct(cell, .keep_all = TRUE) %>%        
@@ -42,20 +41,20 @@ seu <- FindVariableFeatures(seu)
 seu <- ScaleData(seu)
 
 # Select the group you want to run analysis
-ex <- seu %>% subset(cohort=="relapse" & timepoint %in% c("3","5","6") & celltype %in% c("HSC MPP","MEP", "LMPP","Cycling Progenitor", "Early GMP") & sample_status== "remission"& origin %in% c("donor", "recipient"))
+seu_subset <- seu %>% subset(cohort == "relapse" & timepoint %in% c("3","5","6") & celltype %in% c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP") & sample_status == "remission" & origin %in% c("donor", "recipient"))
 
 # Combine these cell types into one label
-ex$celltype_merged <- "Merged_Progenitors"
+seu_subset$celltype_merged <- "Merged_Progenitors"
 
 # Check that how many cells are per pseudo-sample
-ex@meta.data %>%
+seu_subset@meta.data %>%
   group_by(sample_id, origin, celltype_merged) %>%
   summarize(n=n()) %>%
   pivot_wider(names_from = "celltype_merged", values_from = "n") %>% View()
 
 
-# Use all cells in 'ex' (which are now labeled Merged_Progenitors)
-seurat_ct <- ex
+# Use all cells in seu_subset (which are now labeled Merged_Progenitors)
+seurat_ct <- seu_subset
 ct <- "Merged_Progenitors"
 
 # Aggregate to get pseudobulk

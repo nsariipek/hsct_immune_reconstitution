@@ -1,4 +1,5 @@
 # Nurefsan Sariipek, 250509
+# Run the DGE analysis on progenitor cells
 
 # Load the needed libraries
 library(Seurat)
@@ -41,7 +42,7 @@ seu <- FindVariableFeatures(seu)
 seu <- ScaleData(seu)
 
 # Select the group you want to run analysis
-seu_subset <- seu %>% subset(cohort == "relapse" & timepoint %in% c("3","5","6") & celltype %in% c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP") & sample_status == "remission" & origin %in% c("donor", "recipient"))
+seu_subset <- seu %>% subset(cohort == "relapse" & timepoint %in% c("3","5","6") & celltype %in% c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP") & sample_status == "remission" & origin %in% c("donor", "recipient")) 
 
 # Combine these cell types into one label
 seu_subset$celltype_merged <- "Merged_Progenitors"

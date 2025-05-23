@@ -1,6 +1,6 @@
-# Nurefsan Sariipek, 241219
+# Nurefsan Sariipek, 241219, updated at 250401
 # Combine Numbat seurat object for UMAP visulazation
-# Visualize the Numbat Results, 250401, NS
+# Visualize the Numbat Results,
 
 # Load Libraries
 library(readr)

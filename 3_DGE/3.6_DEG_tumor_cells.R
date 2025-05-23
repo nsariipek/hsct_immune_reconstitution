@@ -37,7 +37,7 @@ seu_combined <- ScaleData(seu_combined)
 # Select the group you want to run analysis
 seu_subset <- seu_combined %>% subset(compartment_opt == "tumor" & sample_status %in% c("pre-transplant","relapse")
                                   
-& celltype %in% c("Late Erythroid", "Early Erythroid", "MEP","CD14 Mono", "CD16 Mono", "Pro-Monocyte", "Early GMP", "Late GMP","HSC MPP", "LMPP", "Cycling Progenitor", "Early GMP", "Late GMP", "MEP", "EoBasoMast Precursor", "Megakaryocyte Precursor","cDC", "pDC")
+& celltype %in% c("Late Erythroid", "Early Erythroid", "MEP","CD14 Mono", "CD16 Mono", "Pro-Monocyte", "Early GMP", "Late GMP","HSC MPP", "LMPP", "Cycling Progenitor","EoBasoMast Precursor", "Megakaryocyte Precursor","cDC", "pDC")
                             #      & !sample_id %in% c("P23_Rem2","P31_Rem")
 )
                                     

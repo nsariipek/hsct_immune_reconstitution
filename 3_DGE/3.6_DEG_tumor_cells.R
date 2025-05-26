@@ -37,7 +37,7 @@ seu_combined <- ScaleData(seu_combined)
 # Select the group you want to run analysis
 seu_subset <- seu_combined %>% subset(compartment_opt == "tumor" & sample_status %in% c("pre-transplant","relapse")
                                   
-& celltype %in% c("Late Erythroid", "Early Erythroid", "MEP","CD14 Mono", "CD16 Mono", "Pro-Monocyte", "Early GMP", "Late GMP","HSC MPP", "LMPP", "Cycling Progenitor", "Early GMP", "Late GMP", "MEP", "EoBasoMast Precursor", "Megakaryocyte Precursor","cDC", "pDC")
+# & celltype %in% c("Late Erythroid", "Early Erythroid", "MEP","CD14 Mono", "CD16 Mono", "Pro-Monocyte", "Early GMP", "Late GMP","HSC MPP", "LMPP", "Cycling Progenitor", "Early GMP", "Late GMP", "MEP", "EoBasoMast Precursor", "Megakaryocyte Precursor","cDC", "pDC")
                             #      & !sample_id %in% c("P23_Rem2","P31_Rem")
 )
                                     
@@ -46,11 +46,11 @@ seu_subset$celltype_merged <- "Merged_cells"
 
 # Check that how many cells are per pseudo-sample
 seu_subset@meta.data %>%
-  group_by(sample_id, celltype_merged) %>%
+  group_by(sample_id, celltype) %>%
   summarize(n=n()) %>% 
-  pivot_wider(names_from = "celltype_merged", values_from = "n") %>% View()
+  pivot_wider(names_from = "celltype", values_from = "n") %>% View()
 
-# Use all cells in seu_subset (which are now labeled Merged_Progenitors)
+# Use all cells in seu_subset (which are now labeled Merged_Cells)
 seurat_ct <- seu_subset
 ct <- "Merged_cells"
 

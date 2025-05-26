@@ -1,6 +1,5 @@
 # Nurefsan Sariipek, 250430
 # Perform trajectory analysis
-
 # Load the library
 library(tidyverse)
 library(Seurat)
@@ -13,11 +12,11 @@ library(SeuratWrappers)
 rm(list=ls())
 
 # Set working directory and load Seurat object (Nurefsan, Terra)
-setwd("~/TP53_ImmuneEscape/2_Annotate-predict/")
+setwd("~/TP53_ImmuneEscape/4_Trajectories/")
 seu <- readRDS("~/250428_Tcells.rds")
-# Set working directory and load Seurat object (Peter, local)
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/2_Annotate-predict/")
-seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
+# # Set working directory and load Seurat object (Peter, local)
+# setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/2_Annotate-predict/")
+# seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
 
 
 ######## Part 1 - Proccessing using Seurat ########
@@ -95,10 +94,10 @@ for (d in dims_to_test) {
   )
 }
 
-# Move forward with manually selected number of dimensions
-seu_subset <- FindNeighbors(seu_subset, reduction = "harmony", dims = 1:11)
+# Move forward with manually selected number of dimensions, for CD4 12 looks the best
+seu_subset <- FindNeighbors(seu_subset, reduction = "harmony", dims = 1:12)
 seu_subset <- FindClusters(seu_subset, resolution = 1)
-seu_subset <- RunUMAP(seu_subset, reduction = "harmony", dims = 1:11, return.model = T)
+seu_subset <- RunUMAP(seu_subset, reduction = "harmony", dims = 1:12, return.model = T)
 
 # Visualize the UMAP
 DimPlot(seu_subset, reduction = "umap", group.by = "Multinomial_Label", shuffle = T) +
@@ -167,9 +166,11 @@ plot_cells(cds_temp,
 
 ######## Part 5 - Order the cells in pseudotime ########
 
-# Select naive T cells as the root
+# Select naive T cells as the root, the clusters change for Peter and Nurefsan, this is for Nurefsan
+# CD4 0,4,6,9,11
+# CD8 3,13
 cds_temp <- order_cells(cds_temp, reduction_method = "UMAP",
-  root_cells = colnames(cds_temp[, clusters(cds_temp) %in% c(0)]))
+  root_cells = colnames(cds_temp[, clusters(cds_temp) %in% c(0,4,6,9,11)]))
 
 plot_cells(cds_temp,
             color_cells_by = "pseudotime",
@@ -183,12 +184,28 @@ plot_cells(cds_temp,
 cds_temp$monocle3_pseudotime <- pseudotime(cds_temp)
 data.pseudo <- as.data.frame(colData(cds_temp))
  
-ggplot(data.pseudo,
-  aes(monocle3_pseudotime, reorder(Multinomial_Label, monocle3_pseudotime, median),
-  fill = Multinomial_Label)) +
-  geom_boxplot()
+ggplot(data.pseudo, 
+       aes(x = monocle3_pseudotime, 
+           y = reorder(Multinomial_Label, monocle3_pseudotime, median), 
+           fill = Multinomial_Label)) +
+  geom_boxplot(outlier.size = 0.8, outlier.alpha = 0.5, width = 0.6) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    x = "Monocle3 Pseudotime",
+    y = "Cell Type (ordered by median pseudotime)",
+    fill = "Cell Type"
+  ) +
+  theme_classic(base_size = 13) +  # Classic theme = no grid lines
+  theme(
+    axis.text.x = element_text(size = 11, color = "black"),
+    axis.text.y = element_text(size = 11, color = "black"),
+    axis.title = element_text(size = 13),
+    axis.line = element_line(size = 0.8),
+    legend.position = "none"
+  )
 
-
+ggsave("4.1_CD8_pseudotime_boxplot.pdf", width = 8, height = 6)
+ggsave("4.1_CD4_pseudotime_boxplot.pdf", width = 8, height = 6)
 ######## Part 6 - Make histograms of pseudotime values by cohorts ########
 
 # Wrangle Seurat object with CD8 T cells
@@ -197,6 +214,8 @@ Idents(seu_subset) <- seu_subset$celltype
 
 # Some informative visualizations
 FeaturePlot(seu_subset, reduction = "umap", features = "pseudotime", split.by = "cohort") + theme(aspect.ratio = 1)
+ggsave("4.1_CD8_pseudotime_umap_cohort.pdf", width = 8, height = 6)
+ggsave("4.1_CD4_pseudotime_umap_cohort.pdf", width = 8, height = 6)
 FeaturePlot(seu_subset, reduction = "umap", features = "Proliferation") + theme(aspect.ratio = 1)
 DimPlot(seu_subset, reduction = "umap", group.by = "celltype") + theme(aspect.ratio = 1)
 DimPlot(seu_subset, reduction = "umap", group.by = "Multinomial_Label") + theme(aspect.ratio = 1)
@@ -209,7 +228,8 @@ metadata_tib$umap_2 <- seu_subset@reductions$umap@cell.embeddings[,2]
 
 # Subset for time point and mutation status of interest
 meta_subset <- metadata_tib %>% filter(sample_status == "remission",
-  TP53_status == "MUT", timepoint %in% c(3, 5, 6),
+  TP53_status == "MUT", 
+  timepoint %in% c(3, 5, 6),
   patient_id != "P21") # Consider excluding P21 T cells - there are very few and they have an outlier cell state distribution
 
 # What is the number of cells per patient?
@@ -222,12 +242,19 @@ meta_subset <- meta_subset %>%
   group_by(patient_id) %>%
   slice_sample(n = n_cells)
 
+#define colors
+cohort_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
+
 # Plot histogram per cohort
 meta_subset %>%
   ggplot(aes(x = pseudotime, color = cohort)) +
+  scale_color_manual(values= cohort_colors)+
   geom_density() +
   theme_bw() +
   theme(aspect.ratio = 0.5, panel.grid = element_blank())
+
+ggsave("4.1_CD4_pseudotime_histogram_onlyTP53_MT.pdf", width = 8, height = 6)
+ggsave("4.1_CD8_pseudotime_histogram_onlyTP53_MT.pdf", width = 8, height = 6)
 
 # Plot histogram per patient
 meta_subset %>% ggplot(aes(x = pseudotime, color = patient_id)) +

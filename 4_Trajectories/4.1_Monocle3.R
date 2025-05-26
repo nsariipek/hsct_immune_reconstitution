@@ -45,7 +45,7 @@ seu <- readRDS("~/250428_Tcells.rds")
     #"CD8 Tissue Resident Memory", "T Proliferating"
 
     # Subset for CD4 T cells (should also change cd8 to cd4 below)
-    seu_cd4 <- subset(seu, subset = celltype %in% c("CD4 Central Memory", "CD4 Naive" ,"CD4 Effector Memory","CD4 Regulatory" ))
+    seu_subset <- subset(seu, subset = celltype %in% c("CD4 Central Memory", "CD4 Naive" ,"CD4 Effector Memory","CD4 Regulatory" ))
 
 # Normalize
 seu_subset <- NormalizeData(seu_subset)

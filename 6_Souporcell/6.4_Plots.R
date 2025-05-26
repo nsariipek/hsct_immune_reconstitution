@@ -42,7 +42,8 @@ cohort_colors <- c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")
 t1 <- final_dataset %>%
   drop_na(celltype) %>%
   filter(sample_status=="remission") %>%
-  count(patient_id, celltype, sample_status, origin, name = "count") %>%
+  group_by(patient_id, celltype, sample_status, origin) %>%
+  summarise(count = n(), .groups = "drop") %>%
   group_by(patient_id, celltype) %>%
   mutate(proportion = count / sum(count)) %>%
   ungroup()
@@ -78,9 +79,9 @@ p1 <- t1 %>%
 # View the plot
 p1
 # Save as a pdf file 
-pdf("6.4_souporcell_results_all_cells_.pdf", width = 16, height = 8)
-p1
-dev.off()
+# pdf("6.4_souporcell_results_all_cells_.pdf", width = 16, height = 8)
+# p1
+# dev.off()
 # See the genotype results per patient by each sample status for the ones that worked
 status <- c("pre-transplant","remission","relapse")
 final_dataset$sample_status <- factor(final_dataset$sample_status, levels = status)
@@ -88,7 +89,8 @@ final_dataset$sample_status <- factor(final_dataset$sample_status, levels = stat
 t2 <- final_dataset %>%
   drop_na(celltype) %>%
   filter(origin %in% c("donor", "recipient")) %>%
-  count(patient_id,origin,sample_status, name = "count") %>%
+  group_by(patient_id, origin, sample_status) %>%
+  summarise(count = n(), .groups = "drop") %>%
   group_by(patient_id, sample_status) %>%  
   mutate(proportion = count / sum(count)) %>%
   ungroup()
@@ -104,9 +106,9 @@ p2 <- ggplot(t2, aes(x = sample_status, y = proportion, fill = origin)) +
 p2
 
 # Save as a pdf file 
-pdf("6.4_souporcell_per_patient.pdf", width = 12, height = 8)
-p2
-dev.off()
+# pdf("6.4_souporcell_per_patient.pdf", width = 12, height = 8)
+# p2
+# dev.off()
 
 #### Heatmap ####
 # Prepare data
@@ -115,7 +117,8 @@ t3 <- final_dataset %>%
  filter(origin %in% c("donor", "recipient"),
     sample_status == "remission",
     timepoint %in% c("3","5","6")) %>%
-  count(patient_id, celltype, origin, cohort, TP53_status, name = "count") %>%
+  group_by(patient_id, celltype, origin, cohort, TP53_status) %>%
+  summarise(count = n(), .groups = "drop") %>%
   group_by(patient_id, celltype, cohort, TP53_status) %>%
   mutate(
     total_cells = sum(count),
@@ -126,8 +129,8 @@ t3 <- final_dataset %>%
   select(patient_id, cohort, celltype, donor_percentage, TP53_status) %>%
   distinct()
 
-# Save the table to put intocelltypentary
-write_csv(t3,"donorchimerism.csv")
+# Save the table to put into celltype
+#write_csv(t3,"donorchimerism.csv")
 
 
 # Plot
@@ -192,6 +195,58 @@ donor_chimerism_comparision <- t3 %>%
 donor_chimerism_comparision
 pdf("6.4_donor_chimerism_comparision_all.pdf", width = 8, height = 6)
 donor_chimerism_comparision
+dev.off()
+
+
+
+
+t4 <- final_dataset %>%
+  drop_na(celltype) %>%
+  filter(origin %in% c("donor", "recipient"),
+         sample_status == "remission",
+         timepoint %in% c("3","5","6")) %>%
+  filter(celltype %in% c("HSC MPP","MEP","LMPP","Cycling Progenitors","Early GMP","Late GMP"))
+
+t4$celltype_merged <- "Merged_Progenitors"
+
+merged_per_tb <- t4 %>%
+group_by(patient_id, celltype_merged, origin, cohort, TP53_status) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(patient_id, celltype_merged, cohort, TP53_status) %>%
+  mutate(
+    total_cells = sum(count),
+    donor_percentage = sum(ifelse(origin == "donor", count, 0)) / total_cells * 100
+  ) %>%
+  ungroup() %>%
+  filter(total_cells > 0) %>%
+  select(patient_id, cohort, celltype_merged, donor_percentage, TP53_status) %>%
+  distinct()
+
+merged_prog <- merged_per_tb %>% 
+  ggplot(aes(x = cohort, y = donor_percentage, color = cohort)) +
+  geom_jitter(width = 0.2, size = 3, alpha = 0.8) +  
+  stat_summary(fun = mean, geom = "crossbar", width = 0.5, color = "black", fatten = 2) + 
+  facet_wrap(~ celltype_merged, nrow = 5) +
+  stat_compare_means(aes(group = cohort), method = "wilcox.test", label.y = 50, label.x = 1.25, size= 3, label="p.format") +  # Mann-Whitney U
+  theme_bw() +
+  labs( x = "Cohort",
+        y = "Donor Chimerism") +
+  scale_color_manual(values = cohort_colors) +
+  scale_y_continuous(limits = c(0, 100)) + 
+  theme_minimal(base_size = 10) +
+  theme( aspect.ratio = 2,
+         axis.line = element_line(color = "black", size = 0.5),
+         axis.text.x = element_text(size = 10, angle = 45, hjust = 1, vjust = 1, color = "black"),
+         axis.text.y = element_text(size = 8, color = "black"),
+         axis.title.x = element_text(size = 10, color = "black"),
+         axis.title.y = element_text(size = 11, color = "black"),
+         strip.text = element_text(size = 10, color = "black"),
+         legend.title = element_text(size = 11, color = "black"),
+         panel.grid = element_blank(),                
+         axis.ticks = element_line(color = "black", size = 0.5)) 
+
+pdf("6.4_donor_chimerism_comparision_merged_prog.pdf", width = 8, height = 6)
+merged_prog
 dev.off()
 
 # Just progenitor cells

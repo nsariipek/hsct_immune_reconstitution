@@ -80,9 +80,9 @@ meta_bulk_ct <- left_join(bulk_ct@meta.data, n_cells, by = "orig.ident")
 rownames(meta_bulk_ct) <- meta_bulk_ct$orig.ident
 bulk_ct@meta.data <- meta_bulk_ct
 
-# Exclude unpaired samples
-bulk_ct@meta.data$origin <- factor(bulk_ct@meta.data$origin)
-if (length(unique(bulk_ct@meta.data$origin)) < 2) stop("Not enough groups to compare.")
+# Exclude P23 who does not have donor progenitors
+bulk_ct <- subset(bulk_ct, sample_id != "P23-Rem1")
+bulk_ct@meta.data
 
 # Check the cell counts per group
 barplot <- ggplot(bulk_ct@meta.data, aes(x = sample_id, y = n_cells, fill = origin)) +
@@ -96,7 +96,7 @@ ggsave(paste0("cell_counts_", gsub(" ", "_", ct), ".pdf"), barplot, width = 8, h
 #Run DESeq 
 cluster_counts <- FetchData(bulk_ct, layer = "counts", vars = rownames(bulk_ct))
 
-dds <- DESeqDataSetFromMatrix(t(cluster_counts), colData = bulk_ct@meta.data, design = ~ sample_id + origin) # we decided ~ smaple_id +origin is better 
+dds <- DESeqDataSetFromMatrix(t(cluster_counts), colData = bulk_ct@meta.data, design = ~ sample_id + origin) # we decided ~ smaple_id + origin is better 
 # This line put donor as a reference, but check line 136
 dds$origin <- relevel(dds$origin, ref = "donor")
 dds <- DESeq(dds)

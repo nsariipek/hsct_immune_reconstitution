@@ -1,6 +1,5 @@
 # Nurefsan Sariipek, 250522
 # DGE comparison in between tumor cells
-
 # Load the needed libraries
 library(Seurat)
 library(dplyr)

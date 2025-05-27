@@ -1,13 +1,13 @@
 # Nurefsan Sariipek
 # Date: January 22nd, 2024
 # Updated April 28, 2025
-# Analyze post 3-6 months remission samples and subset donor/host CD4/CD8 compartments using subsampling based on cell numbers which is different than scRepertoire built in subsampling which can be found on 6.1 script
-# Load the libraries
+# Analyze post 3-6 months remission samples and subset donor/host CD4/CD8 compartments using subsampling based on cell numbers which is different from scRepertoire built-in subsampling
 
-library(scRepertoire)
-library(Seurat)
-library(ggpubr)
+# Load the libraries
 library(tidyverse)
+library(Seurat)
+library(scRepertoire)
+library(ggpubr)
 library(janitor)
 library(rstatix)
 library(Hmisc)
@@ -23,8 +23,8 @@ setwd("~/TP53_ImmuneEscape/7_TCR_Diversity/")
 
 # Setup for Peter: local. Then run line 89-117 and continue at 178
 #setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/7_TCR_Diversity")
+#seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
 #combined.sc <- readRDS("AuxiliaryFiles/combined.RDS")
-#seu_merge <- readRDS("../AuxiliaryFiles/250128_seurat_annotated_final.rds")
 
 # Parameters to interact with Google bucket, this part only needed for Terra
 gcs_global_bucket("fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b")

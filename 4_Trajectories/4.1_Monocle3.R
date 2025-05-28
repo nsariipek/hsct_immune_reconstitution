@@ -19,24 +19,20 @@ rm(list=ls())
 
 # Set working directory and load Seurat object (Peter, local)
 setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/4_Trajectories/")
-seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
+seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 
 
 ######## Part 1 - Processing using Seurat ########
 
-# Add TCAT annotations
-usage_tib <- read_tsv("../3_DGE/3.1_starCAT/starCAT.scores.txt.gz") %>% rename("...1" = "cell")
-tcat_celltypes_df <- data.frame(select(usage_tib, Multinomial_Label, Proliferation, Proliferation_binary), row.names = usage_tib$cell)
-seu <- AddMetaData(seu, tcat_celltypes_df)
-seu$Multinomial_Label <- factor(seu$Multinomial_Label, levels = c("CD4_Naive", "CD4_CM", "CD4_EM", "Treg", "CD8_Naive", "CD8_CM", "CD8_EM",  "CD8_TEMRA", "MAIT", "gdT"))
-plot(usage_tib$Proliferation, pch = ".")
+# Visualize proliferation (filter by <0.05 below)
+plot(seu$TCAT_Proliferation, pch = ".")
 abline(h = 0.05, col = "red")
 
 # Subset for non-proliferating CD8 T cells
-  seu_subset <- subset(seu, subset = Multinomial_Label %in% c("CD8_Naive", "CD8_CM", "CD8_EM",  "CD8_TEMRA") & Proliferation < 0.05)
+  seu_subset <- subset(seu, subset = TCAT_Multinomial_Label %in% c("CD8_Naive", "CD8_CM", "CD8_EM",  "CD8_TEMRA") & TCAT_Proliferation < 0.05)
   T_marker <- "CD8"
 # Or subset for non-proliferating CD4 T cells
-  seu_subset <- subset(seu, subset = Multinomial_Label %in% c("CD4_Naive", "CD4_CM", "CD4_EM") & Proliferation < 0.05)
+  seu_subset <- subset(seu, subset = TCAT_Multinomial_Label %in% c("CD4_Naive", "CD4_CM", "CD4_EM") & TCAT_Proliferation < 0.05)
   T_marker <- "CD4"
 
 # Run standard Seurat steps
@@ -67,7 +63,7 @@ ElbowPlot(seu_subset, reduction = "harmony")
 #  seu_temp <- RunUMAP(seu_temp, reduction = "harmony", dims = 1:d, return.model = TRUE, verbose = FALSE)
 
 #  # Create the plot
-#  p <- DimPlot(seu_temp, reduction = "umap", group.by = "Multinomial_Label", shuffle = TRUE) +
+#  p <- DimPlot(seu_temp, reduction = "umap", group.by = "TCAT_Multinomial_Label", shuffle = TRUE) +
 #    ggtitle(paste0("Dims: 1-", d)) +
 #    theme(aspect.ratio = 1)
 
@@ -87,8 +83,8 @@ seu_subset <- FindClusters(seu_subset, resolution = 0.5)
 seu_subset <- RunUMAP(seu_subset, reduction = "harmony", dims = 1:ndim, return.model = T)
 
 # Visualize the UMAP
-p1 <- DimPlot(seu_subset, reduction = "umap", group.by = "Multinomial_Label", pt.size = 2.5,
-              shuffle = T, raster = T, raster.dpi = c(600, 600)) +
+p1 <- DimPlot(seu_subset, reduction = "umap", group.by = "TCAT_Multinomial_Label", pt.size = 6,
+              shuffle = T, raster = T, raster.dpi = c(1536, 1536)) +
   theme(aspect.ratio = 1)
 DimPlot(seu_subset, reduction = "umap", group.by = "seurat_clusters", label = T, shuffle = T) +
   theme(aspect.ratio = 1)
@@ -114,7 +110,7 @@ cds@clusters$UMAP$clusters <- seu_subset$seurat_clusters
 cds@int_colData@listData$reducedDims$UMAP <- seu_subset@reductions$umap@cell.embeddings
 
 # Plot TCAT labels and Seurat clusters
-plot_cells(cds, color_cells_by = 'Multinomial_Label',
+plot_cells(cds, color_cells_by = 'TCAT_Multinomial_Label',
            label_groups_by_cluster = FALSE,
            group_label_size = 5) +
   theme(legend.position = "right", aspect.ratio = 1)
@@ -153,7 +149,7 @@ seu_subset$monocle3_pseudotime <- pseudotime(cds)
 
 # Some informative visualizations
 FeaturePlot(seu_subset, reduction = "umap", features = "monocle3_pseudotime") + theme(aspect.ratio = 1)
-FeaturePlot(seu_subset, reduction = "umap", features = "Proliferation") + theme(aspect.ratio = 1)
+FeaturePlot(seu_subset, reduction = "umap", features = "TCAT_Proliferation") + theme(aspect.ratio = 1)
 DimPlot(seu_subset, reduction = "umap", group.by = "patient_id") + theme(aspect.ratio = 1)
 
 # Extract metadata to facilitate histogram
@@ -181,7 +177,7 @@ meta_subset <- meta_subset %>%
 x_lim <- c(min(meta_subset$monocle3_pseudotime), max(meta_subset$monocle3_pseudotime))
 p3 <- meta_subset %>%
   ggplot(aes(x = monocle3_pseudotime,
-             y = reorder(Multinomial_Label, monocle3_pseudotime, median))) +
+             y = reorder(TCAT_Multinomial_Label, monocle3_pseudotime, median))) +
   geom_boxplot(outlier.size = 0.8, outlier.alpha = 0.5, width = 0.8) +
   coord_cartesian(xlim = x_lim) +
   labs(y = "Cell type") +

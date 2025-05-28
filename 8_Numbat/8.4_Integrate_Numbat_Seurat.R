@@ -69,19 +69,11 @@ for (p_id in names(patient_info)) {
 
 # Merge metadata
 metadata_final <- do.call(rbind, metadata_list) %>%
-  select(cell, clone_opt, compartment_opt)
+  select(cell, compartment_opt)
 
 # Save
 write_csv(metadata_final, file = "8.4_Numbat_calls.csv")
 
-
-
-# Check consistency with previous version
-seu_combined_old <- readRDS("~/250505_numbat_combined_seurat.rds")
-colnames(seu_combined_old) <- paste0(seu_combined_old$orig.ident, "_", cutf(colnames(seu_combined_old), d = "_", f = 2))
-all(metadata_final$cell == colnames(seu_combined_old))
-all(metadata_final$clone_opt == seu_combined_old$clone_opt)
-all(metadata_final$compartment_opt == seu_combined_old$compartment_opt)
 
 # In future scripts, add Numbat data:
 numbat_calls <- read_csv("../8_Numbat/8.4_Numbat_calls.csv")

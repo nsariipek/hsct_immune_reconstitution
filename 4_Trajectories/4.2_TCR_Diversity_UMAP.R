@@ -30,6 +30,8 @@ celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltyp
 # Subset for T cells
 seu_subset <- subset(seu, TCAT_Multinomial_Label %in% levels(seu$TCAT_Multinomial_Label))
 
+# You can skip from here to line 93
+
 # Run standard Seurat steps
 seu_subset <- NormalizeData(seu_subset)
 seu_subset <- FindVariableFeatures(seu_subset)
@@ -84,13 +86,20 @@ p1 <- DimPlot(seu_subset, reduction = "umap", group.by =
   theme(aspect.ratio = 1)
 ggsave(paste0("4.2.1_UMAP_Multinomial-Label.pdf"), plot = p1, width = 7, height = 6)
 
+# Save UMAP coordinates to csv file
+write.csv(as.data.frame(seu_subset@reductions$umap@cell.embeddings), file = "4.2_UMAP-embeddings.csv")
+
+# Add UMAP coordinates from saved csv file
+umap_embeddings <- read.csv(file = "4.2_UMAP-embeddings.csv") %>% column_to_rownames(var = "X")
+seu_subset[["umap"]] <- CreateDimReducObject(as.matrix(umap_embeddings))
+
 # Subset for T cells with TCR info
 cells_with_TCR <- rownames(seu_subset@meta.data[!is.na(seu$CTstrict),])
 seu_TCR <- subset(seu_subset, cells = cells_with_TCR)
 
 # Determine clone size
 metadata_tib <- as_tibble(seu_TCR@meta.data, rownames = "cell")
-metadata_tib <- metadata_tib %>% group_by(CTstrict) %>% summarize(cell = cell, n = n())
+metadata_tib <- metadata_tib %>% group_by(patient_id, CTstrict) %>% summarize(cell = cell, n = n())
 metadata_df <- data.frame(metadata_tib, row.names = "cell")
 seu_TCR <- AddMetaData(seu_TCR, select(metadata_df, n))
 

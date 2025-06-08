@@ -21,7 +21,7 @@ seu <- AddMetaData(seu, tcat_celltypes_df)
 seu$TCAT_Multinomial_Label <- factor(seu$TCAT_Multinomial_Label, levels = c("CD4_Naive", "CD4_CM", "CD4_EM", "Treg", "CD8_Naive", "CD8_CM", "CD8_EM",  "CD8_TEMRA", "MAIT", "gdT"))
 
 # Add TCR calls
-tcr_calls <- read_csv("../7_TCR_Diversity/7.2_TCR_calls.csv.gz")
+tcr_calls <- read_csv("../7_TCR_Diversity/7.1_TCR_calls.csv.gz")
 tcr_calls <- column_to_rownames(tcr_calls, var = "cell")
 seu <- AddMetaData(seu, tcr_calls)
 

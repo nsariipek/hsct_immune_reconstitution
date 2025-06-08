@@ -107,14 +107,14 @@ as_tibble(seu@meta.data) %>% select(celltype, CTstrict) %>% group_by(celltype) %
         legend.position = "none")
 
 # Save plot
-ggsave("7.2_TCR_calls.pdf", height = 5, width = 8)
+ggsave("7.1_TCR_calls.pdf", height = 5, width = 8)
   
 # Save table
-write_csv(as_tibble(TCR_combined_select_df, rownames = "cell"), file = "7.2_TCR_calls.csv.gz")
+write_csv(as_tibble(TCR_combined_select_df, rownames = "cell"), file = "7.1_TCR_calls.csv.gz")
 
 
-# In future scripts, add TCR calls to Seurat object as follows:
-tcr_calls <- read_csv("../7_TCR_Diversity/7.2_TCR_calls.csv.gz")
+# In 2_Annotate-predict/2.2_Complete_Seurat_object.R, add TCR calls to Seurat object as follows:
+tcr_calls <- read_csv("../7_TCR_Diversity/7.1_TCR_calls.csv.gz")
 tcr_calls <- column_to_rownames(tcr_calls, var = "cell")
 seu <- AddMetaData(seu, tcr_calls)
 

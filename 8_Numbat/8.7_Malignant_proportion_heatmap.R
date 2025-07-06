@@ -35,7 +35,7 @@ malignant_props <- cell_counts %>%
 # Plot
 heatmap <- malignant_props %>%
   mutate(patient_id = factor(patient_id, levels = rev(unique(patient_id)))) %>%
-  complete(patient_id, celltype, fill = list(proportion_malignant = NA)) %>%
+  complete(patient_id, celltype) %>%
   ggplot(aes(x = celltype, y = patient_id, fill = proportion_malignant)) +
   geom_raster() +
   scale_fill_gradientn(
@@ -49,7 +49,7 @@ heatmap <- malignant_props %>%
     ),
     limits = c(0, 1),
     name = "Percentage",
-    na.value = "grey50"
+    na.value = "grey80"
   ) +
   labs(
     x = "Cell Type",

@@ -24,28 +24,42 @@ df2 <- df %>%
   )
 
 # Boxplot
-ggplot(df2, aes(x = Cohort, y = Chimerism, fill = Cohort)) +
-  geom_boxplot(width = 0.3, outlier.shape = NA, alpha = 0.7) +
-  geom_point(position = position_jitter(width = 0.1), alpha = 0.6, size = 1.5) +
-  scale_fill_manual(
+p1 <- ggplot(df2, aes(x = Cohort, y = Chimerism, color = Cohort)) +
+  geom_jitter(width = 0.2, size = 3, alpha = 0.5) +
+  coord_cartesian(ylim = c(0, 101)) +
+  stat_summary(
+    fun = mean,
+    geom = "crossbar",
+    width = 0.5,
+    size = 0.4,
+    color = "#00000080"
+  ) +
+  stat_compare_means(
+    aes(group = Cohort),
+    method = "wilcox.test",
+    label.y = 50,
+    label.x = 1.25,
+    size = 3,
+    label = "p.format",
+    show.legend = F
+  ) +
+  labs(y = "Donor chimerism (clinical)") +
+  scale_color_manual(
     values = c("long-term-remission" = "#546fb5", "relapse" = "#e54c35")
   ) +
-  ylim(0, 101) +
-  labs(y = "Clinical chimerism") +
   theme_bw() +
   theme(
     aspect.ratio = 2,
     panel.grid = element_blank(),
-    axis.title.x = element_blank(),
-    axis.text = element_text(color = "black")
-  ) +
-  stat_compare_means(
-    method = "t.test",
-    label = "p.format",
-    label.x = 1.4,
-    label.y = 75,
-    size = 4.5
+    axis.text = element_text(color = "black"),
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+    axis.title.x = element_blank()
   )
 
+# View
+p1
+
 # Save it as PDF
-ggsave("9.4_Clinical_chimerism.pdf", width = 5, height = 4)
+pdf("9.4_Clinical_chimerism.pdf", width = 4, height = 4)
+p1
+dev.off()

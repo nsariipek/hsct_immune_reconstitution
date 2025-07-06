@@ -166,7 +166,9 @@ dev.off()
 # Pseudotime of tumor cells
 # Extract metadata to facilitate histogram
 metadata_tib <- tibble(seu_numbat@meta.data, rownames = "cell")
+
 # Subset for time point and celltype of interest
+# TODO: RECONSIDER CELLTYPE SUBSET
 meta_subset <- metadata_tib %>% filter(celltype %in% c("HSC MPP", "MEP","LMPP","Early GMP","Late GMP"), compartment_opt =="tumor")
 
 # Consider subsetting for the same number of cells per patient

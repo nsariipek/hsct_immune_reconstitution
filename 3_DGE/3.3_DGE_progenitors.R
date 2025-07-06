@@ -43,9 +43,9 @@ seu <- ScaleData(seu)
 
 # Select the group you want to run analysis
 seu_subset <- seu %>% 
-              subset(cohort == "relapse" & timepoint %in% c("3","5","6") & celltype %in% 
-c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor","Early GMP") & sample_status == "remission" & 
-   origin %in% c("donor", "recipient")) 
+  subset(cohort == "relapse" & timepoint %in% c("3","5","6") &
+         celltype %in% c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP") & sample_status == "remission" &
+         origin %in% c("donor", "recipient"))
 
 # Combine these cell types into one label
 seu_subset$celltype_merged <- "Merged_Progenitors"
@@ -55,7 +55,6 @@ seu_subset@meta.data %>%
   group_by(sample_id, origin, celltype_merged) %>%
   summarize(n=n()) %>%
   pivot_wider(names_from = "celltype_merged", values_from = "n") %>% View()
-
 
 # Use all cells in seu_subset (which are now labeled Merged_Progenitors)
 seurat_ct <- seu_subset

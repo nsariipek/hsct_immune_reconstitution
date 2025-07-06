@@ -27,6 +27,6 @@ p1 <- ggplot(df_long, aes(x = Gene, y = Patient_id, fill = as.factor(Mutated))) 
 
 
 
-pdf("mutation_plot.pdf", width = 2.7, height = 9.9)
+pdf("9.3_Mutation_plot.pdf", width = 2.7, height = 9.9)
 p1
 dev.off()

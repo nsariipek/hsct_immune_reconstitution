@@ -1,204 +1,219 @@
-# Nurefsan Sariipek, 241219, updated at 250401
-# Combine Numbat seurat object for UMAP visulazation
-# Visualize the Numbat Results,
+# Nurefsan Sariipek and Peter van Galen, 250712
+# Visualize the Numbat results
 
 # Load Libraries
-library(readr)
-library(Seurat)
 library(tidyverse)
-library(RColorBrewer)
-library(ggsci)
-library(scattermore)
-library(ggh4x)
+library(Seurat)
+library(janitor)
+#library(readr)
+#library(RColorBrewer)
+#library(ggsci)
+#library(scattermore)
+#library(ggh4x)
 
 # Empty environment
-rm(list=ls())
+rm(list = ls())
 
-# Set working directory
+# Set working directory (for Nurefsan)
 setwd("~/TP53_ImmuneEscape/8_Numbat/")
+
 # For Peter
-#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/8_Numbat")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/8_Numbat")
 
 # Load the saved Seurat object
-seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
+seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 
-# Add Numbat calls
-numbat_calls <- read_csv("../8_Numbat/8.4_Numbat_calls.csv")
-numbat_calls <- column_to_rownames(numbat_calls, var = "cell")
-seu <- AddMetaData(seu, numbat_calls)
-seu_numbat <- subset(seu, cells = colnames(seu)[!is.na(seu$compartment_opt)])
-
-# Add UMAP coordinates to metadata
-seu_numbat$UMAP_1 <- seu_numbat@reductions$umap_bmm@cell.embeddings[,1]
-seu_numbat$UMAP_2 <- seu_numbat@reductions$umap_bmm@cell.embeddings[,2]
-
-# Set orders for plotting
-seu_numbat$sample_status <- factor(seu_numbat$sample_status, levels = c("pre-transplant", "remission", "relapse"))
-seu_numbat$compartment_opt <- factor(seu_numbat$compartment_opt,levels = c("normal", "tumor"))
-
-# # Remove the early relapse patients
-# seu_numbat_subset <- subset(seu_numbat, subset=cohort_detail=="1-Relapse")
+# Subset for cells with Numbat calls
+seu_numbat <- subset(seu, !is.na(numbat_compartment))
 
 # Define colors to use in plots
-celltype_colors_df <- read.table("../celltype_colors.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE, comment.char = "")
-celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltype)
-compartment_colors <- c("tumor" = "#4D4D4D", "normal" = "#D9B88C")
-survival_strip_colors <-c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
+celltype_colors_df <- read.table(
+  "../celltype_colors.txt",
+  sep = "\t",
+  header = TRUE,
+  stringsAsFactors = FALSE,
+  comment.char = ""
+)
+celltype_colors <- setNames(
+  celltype_colors_df$color,
+  celltype_colors_df$celltype
+)
+compartment_colors <- c(tumor = "#4D4D4D", normal = "#D9B88C")
+timepoint_colors <- c(`pre-transplant` = "#A3BFD9", relapse = "#8B0000")
 
-# Plot 1
-#Visualize the UMAP
-UMAP_genotype <- seu_numbat@meta.data %>%
-  sample_frac(1) %>%
-  ggplot(aes(x = UMAP_1, y = UMAP_2, color = compartment_opt)) +
-  geom_scattermore(pointsize = 8, pixels = c(4096, 4096)) +
-  scale_color_manual(values = compartment_colors)+
-  theme_bw() +
-  theme(panel.grid = element_blank(),
-    aspect.ratio = 1,
-    legend.title = element_blank(),
-    legend.position = "right") +
-  ggtitle("Tumor vs Normal Cells")  
-
-# Save
-pdf("8.5.1_UMAP_genotype.pdf", width = 7, height = 7)  
-UMAP_genotype
-dev.off()
-
-# Plot 2
-UMAP_status <- seu_numbat@meta.data %>%
-  drop_na(UMAP_1, UMAP_2, compartment_opt, sample_status) %>%
-  sample_frac(1) %>%
-  ggplot(aes(x = UMAP_1, y = UMAP_2, color = compartment_opt)) +
-  geom_scattermore(pointsize = 6, pixels = c(2048, 2048)) +
+#### Plot Numbat compartment ####
+DimPlot(seu_numbat, group.by = "numbat_compartment", shuffle = T) +
   scale_color_manual(values = compartment_colors) +
-  facet_wrap(~sample_status, nrow = 1) +
-  theme_bw(base_size = 14) +
   theme(
     aspect.ratio = 1,
-    strip.text = element_text(size = 14),
-    panel.grid = element_blank(),
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    strip.background = element_blank(), 
-    legend.title = element_blank(),
-    legend.position = "right") +
-  ggtitle("Tumor vs Normal Cells Across Sample Status")
+    axis.line = element_blank(),
+    panel.border = element_rect(color = "black")
+  )
 
 # Save
-pdf("8.5.2_UMAP_status.pdf", width = 7, height = 7)  
-UMAP_status
-dev.off()
+ggsave("8.5.1_UMAP_genotype.pdf", width = 7, height = 7)
 
-# Plot 3
-UMAP_celltype <- seu_numbat@meta.data %>%
-  drop_na(UMAP_1, UMAP_2, celltype, compartment_opt) %>%
-  sample_frac(1) %>%
-  ggplot(aes(x = UMAP_1, y = UMAP_2, color = celltype)) +
-  geom_scattermore(pointsize = 6, pixels = c(2048, 2048)) +
+#### Plot Numbat compartment by sample status ####
+DimPlot(
+  seu_numbat,
+  group.by = "numbat_compartment",
+  shuffle = T,
+  split.by = "sample_status",
+  pt.size = 1,
+  alpha = 0.8
+) +
+  scale_color_manual(values = compartment_colors) +
+  theme(
+    aspect.ratio = 1,
+    axis.line = element_blank(),
+    panel.border = element_rect(color = "black")
+  )
+
+# Annotate in Illustrator
+seu_numbat@meta.data %>% dplyr::count(sample_status, numbat_compartment)
+
+# Save
+ggsave("8.5.2_UMAP_status.pdf", width = 15, height = 7)
+
+#### Plot celltype by Numbat compartment ####
+DimPlot(
+  subset(seu_numbat, !is.na(celltype)),
+  group.by = "celltype",
+  shuffle = T,
+  split.by = "numbat_compartment"
+) +
   scale_color_manual(values = celltype_colors) +
-  facet_wrap(~compartment_opt, nrow = 1) +
-  theme_bw(base_size = 14) +
-  theme(aspect.ratio = 1,
-    strip.text = element_text(size = 14),
-    strip.background = element_blank(),
-    panel.grid = element_blank(),
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    legend.title = element_blank(),
-    legend.position = "none"
-  ) 
-pdf("8.5.3_UMAP_celltype.pdf", width = 7, height = 7)  
-UMAP_celltype
-dev.off()
+  theme(
+    aspect.ratio = 1,
+    axis.line = element_blank(),
+    panel.border = element_rect(color = "black")
+  )
 
-# Plot 4
-p4 <- seu_numbat@meta.data %>%
-  count(patient_id, compartment_opt, sample_status) %>%  # include sample_status
-  ggplot(aes(x = patient_id, y = n, fill = compartment_opt)) +
+# Save
+ggsave("8.5.3_UMAP_celltype.pdf", width = 15, height = 7)
+
+#### Normal vs. maligant composition per status ####
+seu_numbat@meta.data %>%
+  dplyr::count(patient_id, numbat_compartment, sample_status) %>%
+  ggplot(aes(x = patient_id, y = n, fill = numbat_compartment)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_fill_manual(values = compartment_colors) +
   facet_wrap(~sample_status) +
-  ylab("Fraction of Cells") +
+  ylab("Fraction of cells") +
   xlab("Patient") +
-  theme_bw(base_size = 14) +
-  ggtitle("Tumor vs Normal Composition per Patient")
-
-pdf("8.5.4_Relapse_cohort_Numbat_celltype.pdf", width = 8, height = 4)  
-p4
-dev.off()
-
-# Plot 5
-df_prop <- seu_numbat@meta.data %>%
-  count(cohort, patient_id, compartment_opt, celltype) %>%
-  group_by(cohort, patient_id, compartment_opt) %>%
-  mutate(prop = n / sum(n))
-
-# Plot
-p5 <- ggplot(df_prop, aes(x = compartment_opt, y = prop, fill = celltype)) +
-  geom_bar(stat = "identity", position = "stack") +
-  facet_grid2(
-    rows = vars(cohort),
-    cols = vars(patient_id),
-    switch = "y",
-    strip = strip_themed(background_y = elem_list_rect(fill = survival_strip_colors),
-      text_y = elem_list_text(face = "bold", size = 12, color = "white")
-    )
-  ) +
-  scale_fill_manual(values = celltype_colors) +
-  ylab("Proportion of Cells (Normalized to 1)") +
-  xlab("") +
-  theme_bw(base_size = 14) +
+  ggtitle("Normal vs. maligant composition per status") +
+  theme_bw() +
   theme(
-    strip.placement = "outside",
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    legend.title = element_blank(),
     panel.grid = element_blank(),
-    panel.spacing = unit(1, "lines")
+    axis.text = element_text(color = "black"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
-pdf("8.5.5_Celltype_Barplots.pdf", width = 16, height = 12)  
-p5
-dev.off()
+ggsave("8.5.4_Numbat_compartment_per_status.pdf", width = 8, height = 4)
 
-# Plot 6
-# Pseudotime of tumor cells
-# Extract metadata to facilitate histogram
+#### Plot cell type composition per patient ####
+df_prop <- seu_numbat@meta.data %>%
+  dplyr::count(cohort, patient_id, numbat_compartment, celltype) %>%
+  group_by(cohort, patient_id, numbat_compartment) %>%
+  mutate(prop = n / sum(n))
+
+ggplot(df_prop, aes(x = numbat_compartment, y = prop, fill = celltype)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_manual(values = celltype_colors) +
+  ylab("Proportion of cells") +
+  xlab("") +
+  facet_wrap(~patient_id, nrow = 1) +
+  theme_bw(base_size = 14) +
+  theme(
+    panel.grid = element_blank(),
+    axis.text = element_text(color = "black"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+ggsave("8.5.5_Celltype_barplots.pdf", width = 12, height = 6)
+
+#### Pseudotime of tumor cells ####
+
+# Extract metadata
 metadata_tib <- tibble(seu_numbat@meta.data, rownames = "cell")
 
-# Subset for time point and celltype of interest
-# TODO: RECONSIDER CELLTYPE SUBSET
-meta_subset <- metadata_tib %>% filter(celltype %in% c("HSC MPP", "MEP","LMPP","Early GMP","Late GMP"), compartment_opt =="tumor")
+# Subset for malignant cell types of interest
+metadata_tib %>%
+  filter(numbat_compartment == "tumor") %>%
+  dplyr::count(celltype) %>%
+  print(n = 40)
 
-# Consider subsetting for the same number of cells per patient
-meta_subset$patient_id %>% table %>% sort
+meta_subset <- metadata_tib %>%
+  filter(
+    numbat_compartment == "tumor",
+    celltype %in%
+      c(
+        "HSC MPP",
+        "MEP",
+        "EoBasoMast Precursor",
+        "Megakaryocyte Precursor",
+        "Early Erythroid",
+        "Late Erythroid",
+        "LMPP",
+        "Cycling Progenitor",
+        "Early GMP",
+        "Late GMP",
+        "Pro-Monocyte",
+        "CD14 Mono",
+        "CD16 Mono",
+        "cDC",
+        "pDC"
+      )
+  )
+
+# What samples can we use?
+meta_subset %>%
+  dplyr::count(patient_id, sample_status) %>%
+  pivot_wider(names_from = sample_status, values_from = n) %>%
+  adorn_totals(where = "row")
+# There are not enough remission cells to include this analysis, and we should only use samples with pre-tx and relapse time points
 meta_subset <- meta_subset %>%
-  mutate(patient_id = as.character(patient_id)) %>%
-  group_by(patient_id) %>%
-  slice_sample(n = 65)
+  filter(sample_status != "remission", !patient_id %in% c("P22", "P33"))
 
-p6 <- meta_subset %>% ggplot(aes(x = predicted_Pseudotime, color = sample_status)) +
-  geom_density(bw = 1.5) +
+# Subset for the same number of cells per patient
+meta_subset %>% dplyr::count(patient_id, sample_status)
+meta_subset <- meta_subset %>%
+  group_by(patient_id, sample_status) %>%
+  slice_sample(n = 127)
+
+meta_subset %>%
+  ggplot(aes(x = predicted_Pseudotime, color = sample_status)) +
+  geom_density(linewidth = 2) +
+  scale_color_manual(values = timepoint_colors) +
   theme_bw() +
-  theme(aspect.ratio = 0.5, panel.grid = element_blank())
+  theme(aspect.ratio = 0.3, panel.grid = element_blank())
 
-pdf("8.5.6_pseudotime_tumorcells.pdf", width = 16, height = 12)  
-p6
-dev.off()
+ggsave("8.5.6_Pseudotime_maligant_cells.pdf", width = 8, height = 6)
 
-# # Statistical test
-# group1 <- meta_subset %>% filter(cohort == "long-term-remission") %>%
-#   pull(predicted_Pseudotime)
-# group2 <- meta_subset %>% filter(cohort == "relapse") %>%
-#   pull(predicted_Pseudotime)
-# ks.test(group1, group2)
-# 
-# meta_subset %>%
-#   ggplot(aes(x = cohort, y = predicted_Pseudotime)) +
-#   geom_jitter()
-# 
-# meta_subset %>%
-#   ggplot(aes(x = cohort, y = predicted_Pseudotime)) +
-#   geom_violin()
+# Statistical test
+group1 <- meta_subset %>%
+  filter(sample_status == "pre-transplant") %>%
+  pull(predicted_Pseudotime)
+group2 <- meta_subset %>%
+  filter(sample_status == "relapse") %>%
+  pull(predicted_Pseudotime)
+ks.test(group1, group2)
 
+# Boxplot per cell type (to place below the pseudotime plot)
+meta_subset %>%
+  ggplot(aes(x = predicted_Pseudotime, y = 1, fill = celltype)) +
+  geom_tile(width = 0.1, linewidth = 0) +
+  scale_fill_manual(values = celltype_colors) +
+  labs(y = "Cell type") +
+  theme_bw() +
+  theme(
+    aspect.ratio = 0.05,
+    axis.text.x = element_text(color = "black"),
+    axis.ticks.x = element_line(color = "black"),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid = element_blank(),
+    legend.position = "bottom"
+  )
+
+ggsave("8.5.7_Pseudotime_celltypes.pdf", width = 12, height = 4)

@@ -22,7 +22,7 @@ cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], c
 # Set working directory (local). For Nurefsan:
 setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/TP53_ImmuneEscape/5_Souporcell/")
 # For Peter:
-#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_Souporcell/")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_Souporcell/")
 
 # Load Seurat data
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")

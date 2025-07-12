@@ -6,9 +6,9 @@ library(tidyverse)
 library(Seurat)
 library(ggplot2)
 library(ggpubr)
-library(RColorBrewer)
-library(janitor)
 library(ggtext)
+#library(RColorBrewer)
+#library(janitor)
 
 # Empty environment
 rm(list = ls())
@@ -16,7 +16,7 @@ rm(list = ls())
 # For Nurefsan:
 setwd("~/TP53_ImmuneEscape/6_Souporcell/")
 # For Peter:
-#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_Souporcell/")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_Souporcell/")
 
 # Load data
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
@@ -142,6 +142,13 @@ props_tib <- counts_tib %>%
     values_fill = 0
   ) %>%
   mutate(donor_percentage = donor / (donor + recipient) * 100)
+
+# For paper text:
+props_tib %>% filter(celltype == "Stromal")
+props_tib %>% filter(celltype == "Plasma Cell") %>% pull(donor) %>% sum
+props_tib %>% filter(celltype == "Plasma Cell") %>% pull(recipient) %>% sum
+649/(649+451)
+# "The replacement of recipient cell by donor cells varied across cell populations, with the persistence of recipient cells being highest for stromal cells and plasma cells (100% and 59%, respectively)"
 
 # Plot
 heatmap <- props_tib %>%

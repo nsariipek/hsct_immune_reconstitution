@@ -199,7 +199,7 @@ seu$celltype <- factor(seu$celltype,
 ### PLOT UMAPS ###
 
 # Local for Peter. This only works for the "celltype" group below
-#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/2_Annotate-predict/")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/2_Annotate-predict/")
 #seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
 #annotated_cells <- colnames(seu)[!is.na(seu$celltype)]
 #seu_pass <- subset(seu, cells = annotated_cells)

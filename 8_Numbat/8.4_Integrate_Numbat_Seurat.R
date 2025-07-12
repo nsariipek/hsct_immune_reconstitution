@@ -11,7 +11,7 @@ rm(list=ls())
 # Set working directory
 setwd("~/TP53_ImmuneEscape/8_Numbat/")
 # For Peter:
-#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/8_Numbat/")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/8_Numbat/")
 
 # Favorite function
 cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))

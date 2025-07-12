@@ -13,7 +13,7 @@ rm(list=ls())
 # For Nurefsan:
 setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/")
 # For Peter:
-#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/7_TCR_Diversity")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/7_TCR_Diversity")
 
 # Load necessary functions
 cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))

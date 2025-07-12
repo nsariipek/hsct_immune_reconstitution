@@ -14,7 +14,7 @@ rm(list=ls())
 # Set working directory for Nurefsan/Terra:
 setwd("~/TP53_ImmuneEscape/7_TCR_Diversity/")
 # For Peter:
-#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/7_TCR_Diversity")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/7_TCR_Diversity")
 
 # Load necessary functions
 cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))

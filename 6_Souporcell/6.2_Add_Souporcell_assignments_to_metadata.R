@@ -13,7 +13,7 @@ rm(list=ls())
 # For Nurefsan:
 setwd("~/TP53_ImmuneEscape/6_Souporcell/")
 # For Peter:
-#setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_Souporcell/")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/6_Souporcell/")
 
 # Load Seurat data
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")

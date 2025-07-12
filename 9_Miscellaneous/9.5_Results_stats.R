@@ -46,43 +46,31 @@ seu_T$CTstrict[!is.na(seu_T$CTstrict)] %>% unique %>% length()
 
 ### SOUPORCELL CALLS ###
 
-# Number of donor and recipient HSPCs at remission
-as_tibble(seu@meta.data) %>%
+# Recipient and donor HSPCs at remission
+
+# See 3_DGE/3.3_DGE_progenitors.R for more details
+meta_subset <- as_tibble(seu@meta.data) %>%
   filter(
     sample_status == "remission",
     celltype %in%
-      c(
-        "HSC MPP",
-        "MEP",
-        "LMPP",
-        "Cycling Progenitors",
-        "Early GMP"#,
-        #"Late GMP"
-      )
-  ) %>%
+      c("HSC MPP", "MEP", "LMPP", "Cycling Progenitors", "Early GMP"),
+    souporcell_origin %in% c("donor", "recipient"),
+    cohort == "relapse",
+    timepoint %in% c("3", "5", "6"),
+    sample_id != "P23_Rem1"
+  )
+meta_subset %>%
+  pull(patient_id) %>%
+  as.character %>%
+  unique %>%
+  sort
+# --> "For this analysis, we excluded the long-term remission cohort which had <10 persistent recipient HSPCs and P30-P33 who did not have 3-6 month remission samples, leaving six patients from the relapse cohort."
+
+meta_subset %>%
   pull(souporcell_origin) %>%
   tabyl()
-# --> "Our dataset provides a unique opportunity to compare recipient HSPCs (n=525 cells) to donor HSPCs (n=1,466 cells) at remission"
+# --> "Genes that were upregulated in recipient HSPCs (n=417 cells) compared to their donor counterparts (n=439) included"
 
-# Similar to 3_DGE/3.3_DGE_progenitors.R
-# TODO: CHECK BY RERUNNING THAT SCRIPT!
-as_tibble(seu@meta.data) %>%
-  filter(
-cohort == "relapse",
-timepoint %in% c("3", "5", "6"),
-sample_status == "remission",
-    celltype %in%
-      c(
-        "HSC MPP",
-        "MEP",
-        "LMPP",
-        "Cycling Progenitors",
-        "Early GMP"
-      ),
-      !is.na(souporcell_origin)
-  ) %>%
-  pull(patient_id) %>% as.character %>% unique %>% sort
-# --> "For this analysis, we excluded the long-term remission cohort who did not have persistent recipient HSPCs and P30-P33 who did not have 3-6 month remission samples, leaving seven patients from the relapse cohort."
 
 ### NUMBAT CALLS ###
 
@@ -91,18 +79,11 @@ as_tibble(seu@meta.data) %>%
   pull(numbat_compartment) %>%
   tabyl()
 
-# Total percent normal and tumor
-as_tibble(seu@meta.data) %>%
-  filter(sample_status == "remission") %>%
-  pull(numbat_compartment) %>%
-  tabyl()
-# --> "At clinical remission time points, 14.0% of recipient cells were classified as malignant"
-
-# Select the same HSPC populations as in 6.4_Plots.R
+# Select the same HSPC populations as in 3.3_DGE_HSPCs.R
 as_tibble(seu@meta.data) %>%
   filter(
-    sample_status == "remission",
     !is.na(numbat_compartment),
+    sample_status == "remission",
     celltype %in%
       c(
         "HSC MPP",
@@ -112,6 +93,6 @@ as_tibble(seu@meta.data) %>%
         "Early GMP"
       )
   ) %>%
-  group_by(numbat_compartment, patient_id) %>%
-  dplyr::count()
-# --> "Strikingly, 100% of recipient HSPCs were classified as malignant (58 cells across 3 patients)."
+  dplyr::count(numbat_compartment, patient_id) %>%
+  adorn_totals(where = "row")
+# --> "In all patients where Numbat detected CNVs, every recipient HSPC in remission harbored them (58 cells across 3 patients)."

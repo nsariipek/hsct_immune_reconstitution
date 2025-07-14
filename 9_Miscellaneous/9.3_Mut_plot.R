@@ -1,9 +1,13 @@
+#Figure 1-D table
+#Load the libraries
+
 library(tidyverse)
 library(readxl)
 
-#Load the table has sample timepoint info
-df <- read_excel("/Users/dz855/Partners HealthCare Dropbox/Nurefsan Sariipek/ImmuneEscapeTP53/TP53_ImmuneEscape/9_Miscellaneous/t2.xlsx")
+#Load the table has sample mutation info
+df <- read_excel("/Users/nurefsan/Partners HealthCare Dropbox/Nurefsan Sariipek/ImmuneEscapeTP53/TP53_ImmuneEscape/9_Miscellaneous/mut_table.xlsx")
 
+#Wrangle the df
 df_long <- df %>%
   pivot_longer(cols = -Patient_id, names_to = "Gene", values_to = "Mutated")
 

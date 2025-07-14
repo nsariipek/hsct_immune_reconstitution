@@ -1,70 +1,61 @@
-# Peter van Galen, 241101
-# Updated by Nurefsan Sariipek, 250411
-# Visualize one of the Numbat results files 
+# Nurefsan Sariipek and Peter van Galen, 250713
+# Visualize the Numbat results files (see https://kharchenkolab.github.io/numbat/articles/results.html)
 
-# Better to run this script on the local space rather than Terra
 library(tidyverse)
-library(igraph)
 library(numbat)
-library(glue)
-library(data.table)
-library(ggtree)
-library(tidygraph)
-library(patchwork)
 
 # Empty environment
-rm(list=ls())
+rm(list = ls())
 
-# For Nurefsan:
-setwd("/Users/dz855/Partners HealthCare Dropbox/Nurefsan Sariipek/ImmuneEscapeTP53/TP53_ImmuneEscape/8_Numbat")
+# For Peter
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/8_Numbat")
 
-# Favorite function
-cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))
+# Map IDs. This is because Numbat was run before we changed all other analyses to a new ID
+# fmt: skip
+id_map <- tribble(
+  ~OLD_ID, ~NEW_ID,
+  "P05", "P20",
+  "P07", "P22",
+  "P08", "P23",
+  "P09", "P30",
+  "P10", "P31",
+  "P12", "P33"
+) %>% column_to_rownames("NEW_ID")
 
-# Test: download example data via http://pklab.med.harvard.edu/teng/data/nb_TNBC1.rds
-#nb <- readRDS("~/Library/Mobile Documents/com~apple~CloudDocs/Downloads/nb_TNBC1.rds")
+# Loop to plot copy number landscape
+for (pt in rownames(id_map)) {
+  #pt <- "P20"
+  print(paste("Analyzing", pt))
 
-# Load numbat object from our own data (need to mount Broad storage first)
-#For Nurefsan
-nb = Numbat$new(out_dir = "/Volumes/sariipek/numbat/old/P05")
-# not sure if we have this pagoda objects somewhere
-pagoda = readRDS(url('http://pklab.org/teng/data/con_TNBC1.rds'))
-
-# Generate CNV plot
-mypal = c('1' = 'gray', '2' = "#377EB8", '3' = "#4DAF4A", '4' = "#984EA3")
-
-plot1 <- nb$plot_phylo_heatmap(
-  clone_bar = TRUE, 
-  p_min = 0.9,
-  pal_clone = mypal
-)
-plot1
-#Save the panel as pdf
-pdf("P05_panel2.pdf", width=15, height=5)
-plot1
-dev.off()
-
-plots = lapply(
-  1:4,
-  function(k) {
-    nb$cutree(n_cut = k)
-    nb$plot_phylo_heatmap() + ggtitle(paste0('n_cut=', k))
-  }
-)
-wrap_plots(plots)
-
-# Visualize  CNV events in pseudobulks where the data is more rich, aggregating cells by clone
-plot2 <- nb$bulk_clones %>% 
-  filter(n_cells > 50) %>%
-  plot_bulks(
-    min_LLR = 10, # filtering CNVs by evidence
-    legend = TRUE
+  # Load Numbat object (need to mount Broad storage first)
+  nb <- Numbat$new(
+    out_dir = paste0(
+      "/Volumes/broad_vangalenlab/sariipek/numbat/",
+      id_map[pt, "OLD_ID"]
+    )
   )
-plot2
-#Save as pdf
-pdf("P05_bulk_clones.pdf", width=15, height=10)
-plot2
-dev.off()
 
+  # Generate copy number landscape plot
+  cnv_plot <- nb$plot_phylo_heatmap(
+    clone_bar = TRUE,
+    p_min = 0.9,
+    pal_clone = c(
+      "1" = "gray",
+      "2" = "#377EB8",
+      "3" = "#4DAF4A",
+      "4" = "#984EA3"
+    )
+  )
 
+  #cnv_plot
+  # Aggregate cells by clone and visualize CNV events in pseudobulks
+  bulk_plot <- nb$bulk_clones %>%
+    filter(n_cells > 50) %>%
+    plot_bulks(legend = TRUE)
 
+  # Save as pdf
+  pdf(paste0("8.3_", pt, "_results.pdf"), width = 12, height = 4)
+  print(cnv_plot)
+  print(bulk_plot)
+  dev.off()
+}

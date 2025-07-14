@@ -51,30 +51,25 @@ heatmap <- malignant_props %>%
     name = "Percentage",
     na.value = "grey80"
   ) +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
   labs(
-    x = "Cell Type",
     y = "Patient ID",
-    title = "Malignant cell proportion (all time points)"
+    title = "Proportion malignant cells (of recipient cells, all time points)"
   ) +
-  theme_minimal(base_size = 10) +
+  theme_bw() +
   theme(
-    axis.text.x = element_text(
-      size = 8,
-      angle = 45,
-      hjust = 1,
-      vjust = 1,
-      color = "black"
-    ),
-    axis.text.y = element_text(size = 8, color = "black"),
-    axis.title.x = element_text(size = 10, color = "black"),
-    axis.title.y = element_text(size = 11, color = "black"),
-    plot.title = element_text(size = 12, color = "black", hjust = 0.5),
-    legend.title = element_text(size = 11, color = "black"),
     panel.grid = element_blank(),
-    axis.ticks = element_line(color = "black", size = 0.5)
+    axis.text = element_text(color = "black"),
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, ),
+    axis.title.x = element_blank(),
+    axis.ticks = element_line(color = "black")
   ) +
   coord_fixed(ratio = 1)
 
-pdf("8.7_Malignant_proportion_heatmap.pdf", width = 8, height = 8)
+# View
+heatmap
+
+pdf("8.6_Malignant_proportion_heatmap.pdf", width = 9, height = 4)
 heatmap
 dev.off()

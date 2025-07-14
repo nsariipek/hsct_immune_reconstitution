@@ -173,10 +173,11 @@ heatmap <- props_tib %>%
   ) +
   theme_bw() +
   theme(
+    panel.grid = element_blank(),
     axis.text = element_text(color = "black"),
     axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
-    panel.grid = element_blank(),
-    axis.title.x = element_blank()
+    axis.title.x = element_blank(),
+    axis.ticks = element_line(color = "black")
   ) +
   coord_fixed(ratio = 1) # Make tiles square
 

@@ -1,4 +1,4 @@
-# Nurefsan Sariipek, modified at 250310
+# Nurefsan Sariipek, 250310
 # Extracting recipient barcodes for running Numbat
 
 # Load the libraries
@@ -52,4 +52,4 @@ for (patient in patients) {
   print(paste("Saved barcode files for patient:", patient))
 }
 
-# On 250502, we deleted the Numbat_Barcodes folder, since the Patient IDs are now outdated and we would need to regenerate the barcode files to rerun Numbat, which are not planning to do
+# On 250502, we deleted the Numbat_Barcodes folder, since the Patient IDs are now outdated and we would need to regenerate the barcode files to rerun Numbat, which we are not planning to do

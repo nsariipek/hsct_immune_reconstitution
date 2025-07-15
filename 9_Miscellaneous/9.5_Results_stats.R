@@ -44,11 +44,20 @@ seu_T$CTstrict[!is.na(seu_T$CTstrict)] %>% unique %>% length()
 
 # --> "We captured TCR sequences in 85.6% of all 199,957 T cells in our dataset, representing 115,205 unique clonotypes"
 
+
 ### SOUPORCELL CALLS ###
 
-# Recipient and donor HSPCs at remission
+# Figure 4A
+seu@meta.data %>% tabyl("souporcell_origin") %>%
+  adorn_totals(where = "row")
+seu@meta.data %>% filter(! is.na(souporcell_origin)) %>%
+  pull(patient_id) %>% unique %>% length
+seu@meta.data %>% tabyl("numbat_compartment") %>%
+  adorn_totals(where = "row")
+seu@meta.data %>% filter(! is.na(numbat_compartment)) %>%
+  pull(patient_id) %>% unique %>% length
 
-# See 3_DGE/3.3_DGE_progenitors.R for more details
+# Recipient and donor HSPCs at remission. See 3_DGE/3.3_DGE_progenitors.R for more details
 meta_subset <- as_tibble(seu@meta.data) %>%
   filter(
     sample_status == "remission",

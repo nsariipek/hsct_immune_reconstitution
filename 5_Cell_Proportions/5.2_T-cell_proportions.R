@@ -1,7 +1,7 @@
-# Nurefsan Sariipek and Peter van Galen, 250428
-# Calculate the cell type proportions across 2 different cohort
+# Nurefsan Sariipek and Peter van Galen, 250715
+# Visualize T cell proportions
 
-# Load libraries
+# Load the libraries
 library(tidyverse)
 library(Seurat)
 library(ggpubr)
@@ -35,16 +35,30 @@ celltype_colors <- setNames(
 # Cohort colors
 cohort_colors <- c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
 
-# Wrangle for plotting. Only use MNC libraries for total cell type proportions, because the CD3+ sorted libraries would skew towards T cells.
-metadata_df <- seu@meta.data
+# Subset for T cells
+T_celltypes <- c(
+  "CD4 Naive",
+  "CD4 Central Memory",
+  "CD4 Effector Memory",
+  "CD4 Regulatory",
+  "CD8 Naive",
+  "CD8 Central Memory",
+  "CD8 Effector Memory 1",
+  "CD8 Effector Memory 2",
+  "CD8 Tissue Resident Memory",
+  "T Proliferating"
+)
+seu_T <- subset(seu, subset = celltype %in% T_celltypes)
+
+# Prepare the data
+metadata_df <- seu_T@meta.data
 celltype_proportions <- metadata_df %>%
+  mutate(patient_id = factor(patient_id)) %>%
   filter(
     sample_status == "remission",
-    timepoint %in% c("3", "5", "6"),
-    library_type == "MNC",
+    timepoint %in% c("3", "5", "6")
   ) %>%
-  drop_na(celltype) %>%
-  group_by(patient_id, celltype, cohort) %>%
+  group_by(patient_id, celltype) %>%
   summarize(count = n(), .groups = "drop") %>%
   group_by(patient_id) %>%
   mutate(percent = count / sum(count) * 100)
@@ -53,7 +67,7 @@ celltype_proportions <- metadata_df %>%
 p1 <- celltype_proportions %>%
   ggplot(aes(x = patient_id, y = percent, fill = celltype)) +
   geom_bar(stat = "identity", width = 0.8) +
-  labs(x = "Patient ID", y = "Percent of all cells") +
+  labs(x = "Patient ID", y = "Percent of T cells") +
   scale_fill_manual(values = celltype_colors) +
   theme_bw() +
   theme(
@@ -72,19 +86,34 @@ p1 <- celltype_proportions %>%
 p1
 
 # Save as a pdf
-pdf("5.1_All_cell_proportions_3-6mo_bars.pdf", width = 12, height = 6)
+pdf("5.2_T-cell_proportions_3-6mo_bars.pdf", width = 10, height = 5)
 p1
 dev.off()
 
+#### Boxplots
+
+# Prepare the data
+celltype_proportions2 <- metadata_df %>%
+  mutate(patient_id = factor(patient_id)) %>%
+  filter(
+    timepoint %in% c("3", "5", "6"),
+    sample_status == "remission",
+    TP53_status == "MUT" # Change to see WT samples or remove to see all samples
+  ) %>%
+  group_by(patient_id, celltype, cohort) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  group_by(patient_id) %>%
+  mutate(percent = count / sum(count) * 100)
+
 # Box plots with P values
-p2 <- celltype_proportions %>%
+p2 <- celltype_proportions2 %>%
   ggplot(aes(x = cohort, y = percent, fill = cohort)) +
   geom_boxplot(width = 0.7, alpha = 0.9, outlier.shape = NA) +
   geom_jitter(shape = 21, size = 2, color = "black") +
-  facet_wrap(~celltype, ncol = 12, scales = "free_y") +
+  facet_wrap(~celltype, ncol = 10) +
   scale_fill_manual(values = cohort_colors) +
   scale_y_continuous(expand = expansion(mult = c(0.05, 0.15))) +
-  labs(y = "Percent of all cells", x = NULL) +
+  labs(y = "Percent of T cells", x = NULL) +
   stat_compare_means(
     aes(x = cohort, y = percent, group = cohort),
     method = "wilcox.test",
@@ -106,10 +135,18 @@ p2 <- celltype_proportions %>%
     legend.position = "none"
   )
 
-# View
+# Check the plot
 p2
 
-# Save as a pdf
-pdf("5.1_All_cell_proportions_3-6mo_boxplots.pdf", width = 12, height = 6)
+# Save as pdf (depending on filter)
+pdf("5.2_T-cell_proportions_All-boxplots.pdf", width = 8, height = 6)
+p2
+dev.off()
+
+pdf("5.2_T-cell_proportions_TP53_MUT-boxplots.pdf", width = 8, height = 6)
+p2
+dev.off()
+
+pdf("5.2_T-cell_proportions_TP53_WT-boxplots.pdf", width = 8, height = 6)
 p2
 dev.off()

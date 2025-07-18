@@ -56,7 +56,7 @@ celltype_proportions <- metadata_df %>%
   mutate(patient_id = factor(patient_id)) %>%
   filter(
     sample_status == "remission",
-    timepoint %in% c("3", "5", "6")
+    timepoint %in% c(3, 5, 6)
   ) %>%
   group_by(patient_id, celltype) %>%
   summarize(count = n(), .groups = "drop") %>%
@@ -96,7 +96,7 @@ dev.off()
 celltype_proportions2 <- metadata_df %>%
   mutate(patient_id = factor(patient_id)) %>%
   filter(
-    timepoint %in% c("3", "5", "6"),
+    timepoint %in% c(3, 5, 6),
     sample_status == "remission",
     TP53_status == "MUT" # Change to see WT samples or remove to see all samples
   ) %>%

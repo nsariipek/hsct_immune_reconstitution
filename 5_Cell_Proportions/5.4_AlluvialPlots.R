@@ -1,5 +1,6 @@
-# Creating proportion graphs for each cohort as alluvial plots
-# Updated by Nurefsan at 240419
+# Nurefsan Sariipek, 240419
+# Create proportion graphs for each cohort as alluvial plots
+
 # Load libraries
 library(tidyverse)
 library(Seurat)

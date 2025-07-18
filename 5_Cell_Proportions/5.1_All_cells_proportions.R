@@ -40,7 +40,7 @@ metadata_df <- seu@meta.data
 celltype_proportions <- metadata_df %>%
   filter(
     sample_status == "remission",
-    timepoint %in% c("3", "5", "6"),
+    timepoint %in% c(3, 5, 6),
     library_type == "MNC",
   ) %>%
   drop_na(celltype) %>%

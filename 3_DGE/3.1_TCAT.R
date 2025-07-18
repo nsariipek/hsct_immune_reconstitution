@@ -14,19 +14,40 @@ library(R.utils)
 
 # Delete environment variables & load favorite function
 rm(list = ls())
-cutf <- function(x, f = 1, d = "/")
+cutf <- function(x, f = 1, d = "/") {
       sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
+}
 
 # Load data
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
 
 # Subset for T cells
-T_celltypes <- c("CD4 Naive", "CD4 Central Memory", "CD4 Effector Memory", "CD4 Regulatory", "CD8 Naive", "CD8 Central Memory", "CD8 Effector Memory 1", "CD8 Effector Memory 2", "CD8 Tissue Resident Memory", "T Proliferating")
+T_celltypes <- c(
+      "CD4 Naive",
+      "CD4 Central Memory",
+      "CD4 Effector Memory",
+      "CD4 Regulatory",
+      "CD8 Naive",
+      "CD8 Central Memory",
+      "CD8 Effector Memory 1",
+      "CD8 Effector Memory 2",
+      "CD8 Tissue Resident Memory",
+      "T Proliferating"
+)
 seu_T <- subset(seu, subset = celltype %in% T_celltypes)
 
 # Load colors
-celltype_colors_df <- read.table("../celltype_colors.txt", sep = "\t", header = T, stringsAsFactors = F, comment.char = "")
-celltype_colors <- setNames(celltype_colors_df$color, celltype_colors_df$celltype)
+celltype_colors_df <- read.table(
+      "../celltype_colors.txt",
+      sep = "\t",
+      header = T,
+      stringsAsFactors = F,
+      comment.char = ""
+)
+celltype_colors <- setNames(
+      celltype_colors_df$color,
+      celltype_colors_df$celltype
+)
 
 # Check data visually
 DimPlot(seu_T, group.by = "celltype") +
@@ -84,8 +105,8 @@ scores_tib <- read_tsv("3.1_starCAT/starCAT.scores.txt.gz") %>%
 
 # Compare cell type annotations with Multinomial_Label from scores
 metadata_tib <- as_tibble(seu_T@meta.data, rownames = "cell")
-metadata_tib$UMAP_1 <- seu_T@reductions$umap_bmm@cell.embeddings[,1]
-metadata_tib$UMAP_2 <- seu_T@reductions$umap_bmm@cell.embeddings[,2]
+metadata_tib$UMAP_1 <- seu_T@reductions$umap_bmm@cell.embeddings[, 1]
+metadata_tib$UMAP_2 <- seu_T@reductions$umap_bmm@cell.embeddings[, 2]
 metadata_tib <- left_join(metadata_tib, scores_tib)
 
 # Wrangle and assign colors
@@ -104,18 +125,6 @@ metadata_tib$Multinomial_Label <- factor(
             "MAIT"
       )
 )
-TCAT_Label_colors <- c(
-      "CD4_Naive" = "#466983FF",
-      "CD4_CM" = "#C75127FF",
-      "CD4_EM" = "#D58F5CFF",
-      "Treg" = "#FFC20AFF",
-      "CD8_Naive" = "#33CC00FF",
-      "CD8_CM" = "#0099CCFF",
-      "CD8_EM" = "#612A79FF",
-      "CD8_TEMRA" = "#CE3D32FF",
-      "gdT" = "#D595A7FF",
-      "MAIT" = "#0A47FFFF"
-)
 
 # UMAP
 metadata_tib %>%
@@ -123,7 +132,7 @@ metadata_tib %>%
       ggplot(aes(x = UMAP_1, y = UMAP_2, color = Multinomial_Label)) +
       geom_scattermore(pointsize = 16, pixels = c(4096, 4096)) +
       coord_cartesian(xlim = c(-13, -5), ylim = c(-7, 7)) +
-      scale_color_manual(values = TCAT_Label_colors) +
+      scale_color_manual(values = celltype_colors) +
       theme_bw() +
       theme(aspect.ratio = 1, panel.grid = element_blank()) +
       guides(color = guide_legend(override.aes = list(size = 3)))
@@ -140,7 +149,7 @@ p2 <- metadata_tib %>%
       count(Multinomial_Label) %>%
       ggplot(aes(x = Multinomial_Label, y = n, fill = Multinomial_Label)) +
       geom_bar(stat = "identity") +
-      scale_fill_manual(values = TCAT_Label_colors) +
+      scale_fill_manual(values = celltype_colors) +
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
 p1 + p2
@@ -186,6 +195,6 @@ metadata_tib %>%
       mutate(cell = factor(cell, levels = unique(cell))) %>%
       ggplot(aes(x = annotation_approach, y = cell, fill = anno)) +
       geom_tile() +
-      scale_fill_manual(values = c(celltype_colors, TCAT_Label_colors)) +
+      scale_fill_manual(values = celltype_colors) +
       theme_minimal() +
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())

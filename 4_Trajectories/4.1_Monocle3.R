@@ -11,14 +11,16 @@ library(SeuratWrappers)
 library(patchwork)
 
 # Start with a clean slate
-rm(list=ls())
+rm(list = ls())
 
 # Set working directory and load Seurat object (Nurefsan, Terra)
 #setwd("~/TP53_ImmuneEscape/4_Trajectories/")
 #seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
 
 # Set working directory and load Seurat object (Peter, local)
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/4_Trajectories/")
+setwd(
+  "~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/4_Trajectories/"
+)
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 
 
@@ -29,11 +31,21 @@ plot(seu$TCAT_Proliferation, pch = ".")
 abline(h = 0.05, col = "red")
 
 # Subset for non-proliferating CD8 T cells
-  seu_subset <- subset(seu, subset = TCAT_Multinomial_Label %in% c("CD8_Naive", "CD8_CM", "CD8_EM",  "CD8_TEMRA") & TCAT_Proliferation < 0.05)
-  T_marker <- "CD8"
+seu_subset <- subset(
+  seu,
+  subset = TCAT_Multinomial_Label %in%
+    c("CD8_Naive", "CD8_CM", "CD8_EM", "CD8_TEMRA") &
+    TCAT_Proliferation < 0.05
+)
+T_marker <- "CD8"
 # Or subset for non-proliferating CD4 T cells
-  seu_subset <- subset(seu, subset = TCAT_Multinomial_Label %in% c("CD4_Naive", "CD4_CM", "CD4_EM") & TCAT_Proliferation < 0.05)
-  T_marker <- "CD4"
+seu_subset <- subset(
+  seu,
+  subset = TCAT_Multinomial_Label %in%
+    c("CD4_Naive", "CD4_CM", "CD4_EM") &
+    TCAT_Proliferation < 0.05
+)
+T_marker <- "CD4"
 
 # Run standard Seurat steps
 seu_subset <- NormalizeData(seu_subset)
@@ -42,7 +54,11 @@ seu_subset <- ScaleData(seu_subset)
 seu_subset <- RunPCA(seu_subset)
 
 # Run Harmony to remove the batch effect
-seu_subset <- RunHarmony(object = seu_subset, group.by.vars = c("patient_id"), plot_convergence = T)
+seu_subset <- RunHarmony(
+  object = seu_subset,
+  group.by.vars = c("patient_id"),
+  plot_convergence = T
+)
 ElbowPlot(seu_subset, reduction = "pca")
 ElbowPlot(seu_subset, reduction = "harmony")
 
@@ -80,15 +96,38 @@ ElbowPlot(seu_subset, reduction = "harmony")
 ndim <- 11
 seu_subset <- FindNeighbors(seu_subset, reduction = "harmony", dims = 1:ndim)
 seu_subset <- FindClusters(seu_subset, resolution = 0.5)
-seu_subset <- RunUMAP(seu_subset, reduction = "harmony", dims = 1:ndim, return.model = T)
+seu_subset <- RunUMAP(
+  seu_subset,
+  reduction = "harmony",
+  dims = 1:ndim,
+  return.model = T
+)
 
 # Visualize the UMAP
-p1 <- DimPlot(seu_subset, reduction = "umap", group.by = "TCAT_Multinomial_Label", pt.size = 6,
-              shuffle = T, raster = T, raster.dpi = c(1536, 1536)) +
+p1 <- DimPlot(
+  seu_subset,
+  reduction = "umap",
+  group.by = "TCAT_Multinomial_Label",
+  pt.size = 6,
+  shuffle = T,
+  raster = T,
+  raster.dpi = c(1536, 1536)
+) +
   theme(aspect.ratio = 1)
-DimPlot(seu_subset, reduction = "umap", group.by = "seurat_clusters", label = T, shuffle = T) +
+DimPlot(
+  seu_subset,
+  reduction = "umap",
+  group.by = "seurat_clusters",
+  label = T,
+  shuffle = T
+) +
   theme(aspect.ratio = 1)
-ggsave(paste0("4.1.1_", T_marker, "_UMAP_Multinomial-Label.pdf"), plot = p1, width = 7, height = 6)
+ggsave(
+  paste0("4.1.1_", T_marker, "_UMAP_Multinomial-Label.pdf"),
+  plot = p1,
+  width = 7,
+  height = 6
+)
 
 
 ######## Part 2 - Monocle3 Workflow ########
@@ -110,14 +149,20 @@ cds@clusters$UMAP$clusters <- seu_subset$seurat_clusters
 cds@int_colData@listData$reducedDims$UMAP <- seu_subset@reductions$umap@cell.embeddings
 
 # Plot TCAT labels and Seurat clusters
-plot_cells(cds, color_cells_by = 'TCAT_Multinomial_Label',
-           label_groups_by_cluster = FALSE,
-           group_label_size = 5) +
+plot_cells(
+  cds,
+  color_cells_by = 'TCAT_Multinomial_Label',
+  label_groups_by_cluster = FALSE,
+  group_label_size = 5
+) +
   theme(legend.position = "right", aspect.ratio = 1)
 
-plot_cells(cds, color_cells_by = 'cluster',
-           label_groups_by_cluster = FALSE,
-           group_label_size = 5) +
+plot_cells(
+  cds,
+  color_cells_by = 'cluster',
+  label_groups_by_cluster = FALSE,
+  group_label_size = 5
+) +
   theme(legend.position = "right", aspect.ratio = 1)
 
 # Learn trajectory: this takes some time. Do not use partitions because the analysis is already subsetted to closely related T cells
@@ -127,19 +172,27 @@ cds <- learn_graph(cds, use_partition = F)
 if (T_marker == "CD8") {
   naive_clusters <- 3
 } else if (T_marker == "CD4") {
-  naive_clusters <- c(0,1)
+  naive_clusters <- c(0, 1)
 }
-cds <- order_cells(cds, reduction_method = "UMAP",
-  root_cells = colnames(cds[, clusters(cds) %in% naive_clusters]))
+cds <- order_cells(
+  cds,
+  reduction_method = "UMAP",
+  root_cells = colnames(cds[, clusters(cds) %in% naive_clusters])
+)
 
-p2 <- plot_cells(cds,
-            color_cells_by = "pseudotime",
-            label_branch_points = F,
-            label_roots = F,
-            label_leaves = F) +
+p2 <- plot_cells(
+  cds,
+  color_cells_by = "pseudotime",
+  label_branch_points = F,
+  label_roots = F,
+  label_leaves = F
+) +
   theme(aspect.ratio = 1)
 p_raster <- rasterize(p2, dpi = 300)
-ggsave(paste0("4.1.2_", T_marker, "_Monocle3_pseudotime_UMAP.pdf"), plot = p_raster)
+ggsave(
+  paste0("4.1.2_", T_marker, "_Monocle3_pseudotime_UMAP.pdf"),
+  plot = p_raster
+)
 
 
 ######## Part 3 - Make histograms of pseudotime values by cohorts ########
@@ -148,17 +201,23 @@ ggsave(paste0("4.1.2_", T_marker, "_Monocle3_pseudotime_UMAP.pdf"), plot = p_ras
 seu_subset$monocle3_pseudotime <- pseudotime(cds)
 
 # Some informative visualizations
-FeaturePlot(seu_subset, reduction = "umap", features = "monocle3_pseudotime") + theme(aspect.ratio = 1)
-FeaturePlot(seu_subset, reduction = "umap", features = "TCAT_Proliferation") + theme(aspect.ratio = 1)
-DimPlot(seu_subset, reduction = "umap", group.by = "patient_id") + theme(aspect.ratio = 1)
+FeaturePlot(seu_subset, reduction = "umap", features = "monocle3_pseudotime") +
+  theme(aspect.ratio = 1)
+FeaturePlot(seu_subset, reduction = "umap", features = "TCAT_Proliferation") +
+  theme(aspect.ratio = 1)
+DimPlot(seu_subset, reduction = "umap", group.by = "patient_id") +
+  theme(aspect.ratio = 1)
 
 # Extract metadata to facilitate histogram
 metadata_tib <- tibble(seu_subset@meta.data, rownames = "cell")
 
 # Subset for time point and mutation status of interest
-meta_subset <- metadata_tib %>% filter(sample_status == "remission",
-  TP53_status == "MUT", 
-  timepoint %in% c(3, 5, 6))
+meta_subset <- metadata_tib %>%
+  filter(
+    sample_status == "remission",
+    timepoint %in% c(3, 5, 6),
+    TP53_status == "MUT"
+  )
 
 # What is the number of cells per patient?
 meta_subset$patient_id %>% table %>% sort %>% rev
@@ -167,58 +226,83 @@ meta_subset$patient_id %>% table %>% sort %>% rev
 meta_subset <- meta_subset %>% filter(patient_id != "P21")
 
 # Subset meta_subset for the same number of cells per patient. This leaves us with 913 CD4 T cells or 434 CD8 T cells per patient
-n_cells <- min(table(meta_subset$patient_id)[table(meta_subset$patient_id) != 0])
+n_cells <- min(table(meta_subset$patient_id)[
+  table(meta_subset$patient_id) != 0
+])
 meta_subset <- meta_subset %>%
   mutate(patient_id = as.character(patient_id)) %>%
   group_by(patient_id) %>%
   slice_sample(n = n_cells)
 
 # Boxplot per cell type
-x_lim <- c(min(meta_subset$monocle3_pseudotime), max(meta_subset$monocle3_pseudotime))
+x_lim <- c(
+  min(meta_subset$monocle3_pseudotime),
+  max(meta_subset$monocle3_pseudotime)
+)
 p3 <- meta_subset %>%
-  ggplot(aes(x = monocle3_pseudotime,
-             y = reorder(TCAT_Multinomial_Label, monocle3_pseudotime, median))) +
+  ggplot(aes(
+    x = monocle3_pseudotime,
+    y = reorder(TCAT_Multinomial_Label, monocle3_pseudotime, median)
+  )) +
   geom_boxplot(outlier.size = 0.8, outlier.alpha = 0.5, width = 0.8) +
   coord_cartesian(xlim = x_lim) +
   labs(y = "Cell type") +
   theme_bw() +
-  theme(aspect.ratio = 0.2,
-        axis.text = element_text(color = "black"),
-        axis.ticks = element_line(color = "black"),
-        panel.grid = element_blank(),
-        legend.position = "none")
+  theme(
+    aspect.ratio = 0.2,
+    axis.text = element_text(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid = element_blank(),
+    legend.position = "none"
+  )
 
 # Plot histogram per cohort
 p4 <- meta_subset %>%
   ggplot(aes(x = monocle3_pseudotime, color = cohort)) +
-  scale_color_manual(values= c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")) +
+  scale_color_manual(
+    values = c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
+  ) +
   coord_cartesian(xlim = x_lim) +
   geom_density() +
   theme_bw() +
-  theme(aspect.ratio = 0.5,
-        axis.text.y = element_text(color = "black"),
-        axis.ticks.y = element_line(color = "black"),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.title.x = element_blank(),
-        panel.grid = element_blank())
+  theme(
+    aspect.ratio = 0.5,
+    axis.text.y = element_text(color = "black"),
+    axis.ticks.y = element_line(color = "black"),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    panel.grid = element_blank()
+  )
 
 p4 / p3 + plot_layout(heights = c(0.8, 0.3))
 
-ggsave(paste0("4.1.3_", T_marker, "_boxplot_histogram_TP53-MT_3-6M.pdf"), width = 8, height = 5)
+ggsave(
+  paste0("4.1.3_", T_marker, "_boxplot_histogram_TP53-MT_3-6M.pdf"),
+  width = 8,
+  height = 5
+)
 
 # Plot histogram per patient
-meta_subset %>% ggplot(aes(x = monocle3_pseudotime, color = cohort, linetype = patient_id)) +
+meta_subset %>%
+  ggplot(aes(x = monocle3_pseudotime, color = cohort, linetype = patient_id)) +
   geom_density() +
-  scale_color_manual(values= c("long-term-remission" = "#546fb5FF","relapse" = "#e54c35ff")) +
+  scale_color_manual(
+    values = c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
+  ) +
   theme_bw() +
   theme(aspect.ratio = 0.5, panel.grid = element_blank())
-ggsave(paste0("4.1.4_", T_marker, "_histogram_per-patient.pdf"), width = 8, height = 6)
+ggsave(
+  paste0("4.1.4_", T_marker, "_histogram_per-patient.pdf"),
+  width = 8,
+  height = 6
+)
 
 # Statistical test
-group1 <- meta_subset %>% filter(cohort == "long-term-remission") %>%
+group1 <- meta_subset %>%
+  filter(cohort == "long-term-remission") %>%
   pull(monocle3_pseudotime)
-group2 <- meta_subset %>% filter(cohort == "relapse") %>%
+group2 <- meta_subset %>%
+  filter(cohort == "relapse") %>%
   pull(monocle3_pseudotime)
 ks.test(group1, group2)
-

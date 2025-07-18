@@ -65,7 +65,7 @@ meta_subset <- as_tibble(seu@meta.data) %>%
       c("HSC MPP", "MEP", "LMPP", "Cycling Progenitors", "Early GMP"),
     souporcell_origin %in% c("donor", "recipient"),
     cohort == "relapse",
-    timepoint %in% c("3", "5", "6"),
+    timepoint %in% c(3, 5, 6),
     sample_id != "P23_Rem1"
   )
 meta_subset %>%

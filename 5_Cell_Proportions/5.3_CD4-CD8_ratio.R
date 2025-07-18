@@ -57,7 +57,7 @@ metadata_df$type <- factor(metadata_df$type, levels = c("CD4", "CD8"))
 meta_subset <- metadata_df %>%
   filter(
     sample_status == "remission",
-    timepoint %in% c("3", "5", "6"),
+    timepoint %in% c(3, 5, 6),
     TP53_status == "MUT" # Change to see WT samples or remove to see all samples
   )
 

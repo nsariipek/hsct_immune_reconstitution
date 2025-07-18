@@ -51,7 +51,7 @@ cohort_colors <- c("long-term-remission" = "#546fb5", relapse = "#e54c35")
 
 # Calculate the proportion recipient and donor cells
 t1 <- metadata_tib %>%
-  filter(sample_status == "remission", timepoint %in% c("3", "5", "6")) %>%
+  filter(sample_status == "remission", timepoint %in% c(3, 5, 6)) %>%
   group_by(patient_id, celltype, sample_status, souporcell_origin) %>%
   summarise(count = n(), .groups = "drop") %>%
   group_by(patient_id, celltype) %>%
@@ -131,7 +131,7 @@ dev.off()
 
 # Prepare data for heatmap visualization
 counts_tib <- metadata_tib %>%
-  filter(sample_status == "remission", timepoint %in% c("3", "5", "6")) %>%
+  filter(sample_status == "remission", timepoint %in% c(3, 5, 6)) %>%
   dplyr::count(patient_id, cohort, celltype, souporcell_origin)
 
 # Pivot wider to compute proportion donor
@@ -235,7 +235,7 @@ dev.off()
 
 # Prepare data for heatmap visualization
 merged_counts_tib <- metadata_tib %>%
-  filter(sample_status == "remission", timepoint %in% c("3", "5", "6")) %>%
+  filter(sample_status == "remission", timepoint %in% c(3, 5, 6)) %>%
   dplyr::count(patient_id, cohort, souporcell_origin)
 
 # Pivot wider to compute proportion donor
@@ -338,7 +338,7 @@ dev.off()
 merged_prog_counts_tib <- metadata_tib %>%
   filter(
     sample_status == "remission",
-    timepoint %in% c("3", "5", "6"),
+    timepoint %in% c(3, 5, 6),
     celltype %in%
       c("HSC MPP", "MEP", "LMPP", "Cycling Progenitors", "Early GMP")
   ) %>%

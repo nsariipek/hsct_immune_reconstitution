@@ -37,7 +37,7 @@ seu_subset@meta.data %>%
 
 # Subset further
 seu_subset <- seu_subset %>%
-  subset(cohort == "relapse" & timepoint %in% c("3", "5", "6"))
+  subset(cohort == "relapse" & timepoint %in% c(3, 5, 6))
 
 # Also exclude P23 who does not have recipient HSPCs
 seu_subset <- subset(seu_subset, sample_id != "P23_Rem1")

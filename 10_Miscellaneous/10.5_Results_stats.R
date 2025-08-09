@@ -7,9 +7,8 @@ library(tidyverse)
 library(janitor)
 
 # Set working directory
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/10_Miscellaneous"
-)
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/10_Miscellaneous")
 
 # Delete environment variables & load favorite function
 rm(list = ls())
@@ -44,18 +43,21 @@ seu_T$CTstrict[!is.na(seu_T$CTstrict)] %>% unique %>% length()
 
 # --> "We captured TCR sequences in 85.6% of all 199,957 T cells in our dataset, representing 115,205 unique clonotypes"
 
-
 ### SOUPORCELL CALLS ###
 
 # Figure 4A
-seu@meta.data %>% tabyl("souporcell_origin") %>%
-  adorn_totals(where = "row")
-seu@meta.data %>% filter(! is.na(souporcell_origin)) %>%
-  pull(patient_id) %>% unique %>% length
-seu@meta.data %>% tabyl("numbat_compartment") %>%
-  adorn_totals(where = "row")
-seu@meta.data %>% filter(! is.na(numbat_compartment)) %>%
-  pull(patient_id) %>% unique %>% length
+seu@meta.data %>% tabyl("souporcell_origin") %>% adorn_totals(where = "row")
+seu@meta.data %>%
+  filter(!is.na(souporcell_origin)) %>%
+  pull(patient_id) %>%
+  unique %>%
+  length
+seu@meta.data %>% tabyl("numbat_compartment") %>% adorn_totals(where = "row")
+seu@meta.data %>%
+  filter(!is.na(numbat_compartment)) %>%
+  pull(patient_id) %>%
+  unique %>%
+  length
 
 # Recipient and donor HSPCs at remission. See 3_DGE/3.3_DGE_progenitors.R for more details
 meta_subset <- as_tibble(seu@meta.data) %>%
@@ -79,7 +81,6 @@ meta_subset %>%
   pull(souporcell_origin) %>%
   tabyl()
 # --> "Genes that were upregulated in recipient HSPCs (n=417 cells) compared to their donor counterparts (n=439) included"
-
 
 ### NUMBAT CALLS ###
 

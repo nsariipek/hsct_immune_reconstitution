@@ -15,7 +15,7 @@ setwd("~/TP53_ImmuneEscape/05_DGE/")
 setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/05_DGE")
 
 # Load pathways for GSEA
-c2_pathways <- gmtPathways("../AuxiliaryFiles/c2.all.v2024.1.Hs.symbols.gmt")
+c2_pathways <- gmtPathways("c2.all.v2024.1.Hs.symbols.gmt")
 
 # Rank the DEG results from 5.5_DGE_tumorcells.R
 de_results <- read_tsv("5.5_DGE_Pre-transplant_vs_Relapse.tsv")

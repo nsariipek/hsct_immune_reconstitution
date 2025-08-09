@@ -9,9 +9,8 @@ library(janitor)
 # Empty environment
 rm(list = ls())
 
-# Set working directory (for Nurefsan)
-setwd("~/TP53_ImmuneEscape/09_Numbat/")
-
+# Set working directory (for VM)
+#setwd("~/TP53_ImmuneEscape/09_Numbat/")
 # For Peter
 setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/09_Numbat")
 
@@ -95,6 +94,7 @@ seu_numbat@meta.data %>%
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
+# Save
 ggsave("9.7.3_Numbat_compartment_per_status.pdf", width = 8, height = 4)
 
 #### Plot cell type composition per patient ####
@@ -116,4 +116,42 @@ ggplot(df_prop, aes(x = numbat_compartment, y = prop, fill = celltype)) +
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
+# Save
 ggsave("9.7.4_Celltype_barplots.pdf", width = 12, height = 6)
+
+
+#### Plot HSPC compartments at remission
+
+as_tibble(seu_numbat@meta.data, rownames = "cell") %>%
+  filter(
+    !is.na(celltype),
+    sample_status == "remission"
+  ) %>%
+  mutate(HSPC = celltype %in% c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP")) %>%
+  group_by(patient_id) %>%
+  filter(any(HSPC)) %>% # remove samples with 0 HSPCs
+  ungroup() %>%
+  group_by(patient_id, celltype) %>%
+  slice_sample(n = 10) %>% # improve visuals
+  ungroup() %>%
+  arrange(desc(HSPC), celltype) %>%
+  mutate(cell = factor(cell, levels = as.character(cell))) %>%
+  ggplot(aes(x = cell)) +
+  geom_tile(aes(y = 0, fill = celltype), height = 0.5) +
+  geom_tile(aes(y = 0.5, fill = HSPC), height = 0.5) +
+  geom_tile(aes(y = 1, fill = numbat_compartment), height = 0.5) +
+  scale_y_discrete(expand = c(0, 0)) +
+  scale_fill_manual(
+    values = c(celltype_colors, compartment_colors, "TRUE" = "#FF1463", "FALSE" = "#B3B3B3")) +
+  facet_wrap(~patient_id, scales = "free_x") +
+  theme_bw() +
+  theme(aspect.ratio = 0.5,
+    panel.grid = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.title.y = element_blank(),
+    axis.ticks = element_blank(),
+    legend.title = element_blank()
+  )
+
+ggsave("9.7.5_HSPC_compartment.pdf", width = 12, height = 8)

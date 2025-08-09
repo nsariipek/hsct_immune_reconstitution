@@ -13,9 +13,10 @@ library(ggtext)
 # Empty environment
 rm(list = ls())
 
-# For Nurefsan:
-setwd("~/TP53_ImmuneEscape/08_Souporcell/")
+# For VM:
+# setwd("~/TP53_ImmuneEscape/08_Souporcell/")
 # For Peter:
+# fmt: skip
 setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/08_Souporcell/")
 
 # Load data
@@ -52,14 +53,36 @@ cohort_colors <- c("long-term-remission" = "#546fb5", relapse = "#e54c35")
 # Calculate the proportion recipient and donor cells
 t1 <- metadata_tib %>%
   filter(sample_status == "remission", timepoint %in% c(3, 5, 6)) %>%
-  group_by(patient_id, celltype, sample_status, souporcell_origin) %>%
+  select(patient_id, celltype, souporcell_origin) %>%
+  # Add cell type percent
+  arrange(celltype) %>%
+  add_count(celltype, name = "celltype_count") %>%
+  mutate(celltype_percent = celltype_count / n() * 100) %>%
+  mutate(
+    celltype = paste0(celltype, " (", round(celltype_percent, 2), "%)")
+  ) %>%
+  mutate(
+    celltype = factor(
+      celltype,
+      levels = unique(celltype)
+    )
+  ) %>%
+  # Add souporcell donor/recipient proportion
+  group_by(
+    patient_id,
+    celltype,
+    souporcell_origin
+  ) %>%
   summarise(count = n(), .groups = "drop") %>%
   group_by(patient_id, celltype) %>%
-  mutate(proportion = count / sum(count)) %>%
-  ungroup()
+  mutate(souporcell_proportion = count / sum(count))
 
 p1 <- t1 %>%
-  ggplot(aes(x = patient_id, y = proportion, fill = souporcell_origin)) +
+  ggplot(aes(
+    x = patient_id,
+    y = souporcell_proportion,
+    fill = souporcell_origin
+  )) +
   geom_bar(stat = "identity", position = "stack", width = 0.8) +
   facet_wrap(~celltype, scales = "free_x", nrow = 5) +
   scale_fill_manual(values = souporcell_colors) +
@@ -75,8 +98,10 @@ p1 <- t1 %>%
   theme_bw() +
   theme(
     panel.grid = element_blank(),
+    strip.background = element_blank(),
     axis.text = element_text(color = "black"),
-    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 6),
+    axis.text.x = element_text(angle = 90, , vjust = 0.5, hjust = 1),
+    axis.ticks = element_line(color = "black"),
     panel.spacing = unit(1.5, "lines"),
     plot.title = element_text(size = 10, color = "black", hjust = 0.5),
   )
@@ -147,7 +172,7 @@ props_tib <- counts_tib %>%
 props_tib %>% filter(celltype == "Stromal")
 props_tib %>% filter(celltype == "Plasma Cell") %>% pull(donor) %>% sum
 props_tib %>% filter(celltype == "Plasma Cell") %>% pull(recipient) %>% sum
-649/(649+451)
+649 / (649 + 451)
 # "The replacement of recipient cell by donor cells varied across cell populations, with the persistence of recipient cells being highest for stromal cells and plasma cells (100% and 59%, respectively)"
 
 # Plot

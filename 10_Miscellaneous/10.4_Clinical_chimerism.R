@@ -6,9 +6,8 @@ library(tidyverse)
 library(ggpubr)
 
 # Set working directory
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/10_Miscellaneous"
-)
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/10_Miscellaneous")
 
 # Clear environment variables
 rm(list = ls())

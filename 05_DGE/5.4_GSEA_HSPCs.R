@@ -15,9 +15,7 @@ setwd("~/TP53_ImmuneEscape/05_DGE/")
 setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/05_DGE")
 
 # Load pathways for GSEA
-hallmark_pathways <- gmtPathways(
-  "../AuxiliaryFiles/h.all.v2024.1.Hs.symbols.gmt"
-)
+hallmark_pathways <- gmtPathways("h.all.v2024.1.Hs.symbols.gmt")
 
 # Rank the DGE results from 5.3_DGE_progenitors.R
 de_results <- read_tsv("5.3_DGE_Recipient_vs_Donor_HSPCs.tsv")
@@ -50,7 +48,7 @@ df <- gseaRes %>%
   dplyr::select(ID = pathway, padj, NES) %>%
   mutate(padj = -log10(padj)) %>%
   arrange(desc(NES)) %>%
-#  mutate(ID = gsub("HALLMARK_", "", ID)) %>%
+  #  mutate(ID = gsub("HALLMARK_", "", ID)) %>%
   mutate(ID = factor(ID, levels = ID))
 
 # Plot

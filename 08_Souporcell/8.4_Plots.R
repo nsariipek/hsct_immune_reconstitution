@@ -7,8 +7,6 @@ library(Seurat)
 library(ggplot2)
 library(ggpubr)
 library(ggtext)
-#library(RColorBrewer)
-#library(janitor)
 
 # Empty environment
 rm(list = ls())
@@ -415,3 +413,9 @@ merged_prog_plot
 pdf("8.4.7_Jitter_merged_HSPC.pdf", width = 4, height = 4)
 merged_prog_plot
 dev.off()
+
+# For text:
+merged_prog_props_tib %>%
+  group_by(cohort) %>%
+  summarize(median_chimerism = median(donor_percentage))
+# "We found that HSPC donor chimerism was significantly lower in patients who eventually relapsed compared to those who stayed in remission (median 100% and 63%, p=0.0039)"

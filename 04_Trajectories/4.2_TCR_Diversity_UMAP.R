@@ -13,11 +13,11 @@ library(viridis)
 rm(list = ls())
 
 # Set working directory (Nurefsan, Terra)
-setwd("~/TP53_ImmuneEscape/4_Trajectories/")
+setwd("~/TP53_ImmuneEscape/04_Trajectories/")
 
 # For Peter
 # fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/4_Trajectories/")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/04_Trajectories/")
 
 # Load data
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")

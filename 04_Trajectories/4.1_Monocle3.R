@@ -4,37 +4,43 @@
 # Load libraries
 library(tidyverse)
 library(Seurat)
+library(SeuratWrappers)
 library(harmony)
 library(ggrastr)
 library(monocle3)
-library(SeuratWrappers)
+library(patchwork)
+library(ggpubr)
 
 # Start with a clean slate
 rm(list = ls())
 
+######## LOAD DATA AND SUBSET TO RELEVANT CELL TYPE ########
+
 # Set working directory and load Seurat object
 # fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/4_Trajectories/")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/04_Trajectories/")
 # For VM:
 #setwd("~/TP53_ImmuneEscape/4_Trajectories/")
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 
-
-######## Part 1 - Processing using Seurat ########
+# Load colors
+celltype_colors_df <- read.table(
+  "../celltype_colors.txt",
+  sep = "\t",
+  header = T,
+  stringsAsFactors = F,
+  comment.char = ""
+)
+celltype_colors <- setNames(
+  celltype_colors_df$color,
+  celltype_colors_df$celltype
+)
 
 # Visualize proliferation (filter by <0.05 below)
 plot(seu$TCAT_Proliferation, pch = ".")
 abline(h = 0.05, col = "red")
 
-# Subset for non-proliferating CD8 T cells
-seu_subset <- subset(
-  seu,
-  subset = TCAT_Multinomial_Label %in%
-    c("CD8_Naive", "CD8_CM", "CD8_EM", "CD8_TEMRA") &
-    TCAT_Proliferation < 0.05
-)
-T_marker <- "CD8"
-# Or subset for non-proliferating CD4 T cells
+# Subset for non-proliferating CD4 T cells
 seu_subset <- subset(
   seu,
   subset = TCAT_Multinomial_Label %in%
@@ -42,8 +48,18 @@ seu_subset <- subset(
     TCAT_Proliferation < 0.05
 )
 T_marker <- "CD4"
+# Or subset for non-proliferating CD8 T cells
+seu_subset <- subset(
+  seu,
+  subset = TCAT_Multinomial_Label %in%
+    c("CD8_Naive", "CD8_CM", "CD8_EM", "CD8_TEMRA") &
+    TCAT_Proliferation < 0.05
+)
+T_marker <- "CD8"
 
-# OPTIONAL: SKIP TO LINE 203
+# OPTIONAL: SKIP TO LINE 215
+
+######## GENERATE UMAPS USING SEURAT ########
 
 # Run standard Seurat steps
 seu_subset <- NormalizeData(seu_subset)
@@ -127,8 +143,7 @@ ggsave(
   height = 6
 )
 
-
-######## Part 2 - Monocle3 Workflow ########
+######## MONOCLE3 WORKFLOW ########
 
 # Convert the Seurat object to the cell_data_set object for monocle3
 cds <- as.cell_data_set(seu_subset)
@@ -192,8 +207,7 @@ ggsave(
   plot = p_raster
 )
 
-
-######## Part 3 - Make histograms of pseudotime values by cohorts ########
+######## PSEUDOTIME DENSITY PLOT ########
 
 # Add pseudotime column to Seurat object
 seu_subset$monocle3_pseudotime <- pseudotime(cds)
@@ -245,6 +259,13 @@ meta_subset <- meta_subset %>%
   group_by(patient_id) %>%
   slice_sample(n = n_cells)
 
+# Determine bin breaks (this becomes more relevant in the stats section)
+bin_breaks <- seq(
+  from = min(meta_subset$monocle3_pseudotime),
+  to = max(meta_subset$monocle3_pseudotime),
+  length.out = 4
+)
+
 # Boxplot per cell type
 x_lim <- c(
   min(meta_subset$monocle3_pseudotime),
@@ -253,14 +274,16 @@ x_lim <- c(
 p3 <- meta_subset %>%
   ggplot(aes(
     x = monocle3_pseudotime,
-    y = reorder(TCAT_Multinomial_Label, monocle3_pseudotime, median)
+    y = reorder(TCAT_Multinomial_Label, monocle3_pseudotime, median),
+    fill = TCAT_Multinomial_Label
   )) +
   geom_boxplot(outlier.size = 0.8, outlier.alpha = 0.5, width = 0.8) +
+  scale_fill_manual(values = celltype_colors) +
   coord_cartesian(xlim = x_lim) +
-  labs(y = "Cell type") +
+  labs(y = "TCAT Label") +
   theme_bw() +
   theme(
-    aspect.ratio = 0.2,
+    aspect.ratio = 0.1,
     axis.text = element_text(color = "black"),
     axis.ticks = element_line(color = "black"),
     panel.grid = element_blank(),
@@ -275,9 +298,15 @@ p4 <- meta_subset %>%
   ) +
   coord_cartesian(xlim = x_lim) +
   geom_density() +
+  geom_vline(
+    xintercept = bin_breaks,
+    linetype = "dashed",
+    alpha = 0.7,
+    color = "black"
+  ) +
   theme_bw() +
   theme(
-    aspect.ratio = 0.5,
+    aspect.ratio = 0.25,
     axis.text.y = element_text(color = "black"),
     axis.ticks.y = element_line(color = "black"),
     axis.text.x = element_blank(),
@@ -286,18 +315,23 @@ p4 <- meta_subset %>%
     panel.grid = element_blank()
   )
 
-p4 / p3 + plot_layout(heights = c(0.8, 0.3))
+p4 / p3 + plot_layout(heights = c(0.2, 0.1))
 
 ggsave(
   paste0("4.1.3_", T_marker, "_boxplot_histogram_TP53-MT_3-6M.pdf"),
   width = 8,
-  height = 5
+  height = 3
 )
 
 # Plot histogram per patient
 meta_subset %>%
   ggplot(aes(x = monocle3_pseudotime, color = cohort, linetype = patient_id)) +
   geom_density() +
+  geom_vline(
+    xintercept = bin_breaks,
+    alpha = 0.7,
+    color = "black"
+  ) +
   scale_color_manual(
     values = c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
   ) +
@@ -309,16 +343,63 @@ ggsave(
   height = 6
 )
 
-# Statistical test
-group1 <- meta_subset %>%
-  filter(cohort == "long-term-remission") %>%
-  pull(monocle3_pseudotime)
-group2 <- meta_subset %>%
-  filter(cohort == "relapse") %>%
-  pull(monocle3_pseudotime)
-ks.test(group1, group2)$p.value
+######## STATISTICS ########
 
-# Save csv file to facilitate reproduction
+# We initially thought about comparing pseudotime values between the cohorts using the Kolmogorov-Smirnov test or Wilcoxon test. However, using cells as replicates is not OK.
+# Instead, we should compare patient medians. In this section, we will compare the proportion of cells that fall within three pseudotime bins.
+
+# Create 3 equal-width bins of pseudotime values
+meta_binned <- meta_subset %>%
+  select(patient_id, cohort, TCAT_Multinomial_Label, monocle3_pseudotime) %>%
+  mutate(
+    pseudotime_bin = cut(
+      monocle3_pseudotime,
+      breaks = 3,
+      labels = c("Low", "Medium", "High")
+    )
+  )
+
+# Calculate proportions of cells per patient/cohort in each bin
+proportions_data <- meta_binned %>%
+  group_by(patient_id, cohort, pseudotime_bin) %>%
+  summarize(count = n()) %>%
+  mutate(proportion = count / sum(count)) %>%
+  ungroup()
+
+proportions_data %>%
+  ggplot(aes(x = cohort, y = proportion, fill = cohort)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter() +
+  scale_fill_manual(
+    values = c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
+  ) +
+  facet_wrap(~pseudotime_bin) +
+  stat_compare_means(
+    method = "wilcox.test",
+    label = "p.format",
+    label.x.npc = 0.5,
+    label.y.npc = 0.95,
+    hjust = 0.5
+  ) +
+  theme_bw() +
+  theme(
+    aspect.ratio = 2,
+    axis.text = element_text(color = "black"),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.grid = element_blank()
+  )
+
+ggsave(
+  paste0("4.1.5_", T_marker, "_bin_proportions_per-patient.pdf"),
+  width = 7,
+  height = 4
+)
+
+
+######## SAVE ########
+
+# Save cell embeddings and pseudotime values  to facilitate reproduction
 data2save <- seu_subset@reductions$umap@cell.embeddings
 all(rownames(data2save) == colnames(seu_subset))
 data2save <- cbind(

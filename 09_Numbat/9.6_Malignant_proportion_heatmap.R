@@ -21,7 +21,7 @@ seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 cell_counts <- as_tibble(seu@meta.data) %>%
   filter(
     !is.na(numbat_compartment),
-    !is.na(celltype),
+    !is.na(celltype)
   ) %>%
   dplyr::count(patient_id, celltype, numbat_compartment)
 
@@ -75,3 +75,17 @@ heatmap
 pdf("9.6_Malignant_proportion_heatmap.pdf", width = 9, height = 4)
 heatmap
 dev.off()
+
+
+# For the legend:
+as_tibble(seu@meta.data) %>%
+  filter(
+    !is.na(numbat_compartment),
+    !is.na(celltype)
+  ) %>%
+  dplyr::count(patient_id, sample_status) %>%
+  pivot_wider(
+    names_from = sample_status,
+    values_from = n
+  )
+# --> "Cells from all time points are included and P33 mainly represents pre-transplant cells."

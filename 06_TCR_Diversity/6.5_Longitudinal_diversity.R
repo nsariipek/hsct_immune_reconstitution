@@ -231,7 +231,7 @@ p2
 
 p <- plot_grid(p1, p2)
 save_plot(
-  "6.3_Longitudinal_diversity.pdf",
+  "6.4_Longitudinal_diversity.pdf",
   p,
   ncol = 2,
   base_asp = 2,

@@ -49,7 +49,7 @@ df2 %>%
   mutate(Timepoint_months = Timepoint_days / 30.44) %>%
   pull(Timepoint_months) %>% #length()
   summary
-# --> "We focused our analysis on the morphologic remission time period around 3 months post-transplant (n=27 samples, median=3.3 months, IQR: 3.1–3.7)."
+# --> "We focused our analysis on morphologic remission samples collected ~3 months after transplant (n=27 samples, median=3.3 months, range: 2.2–5.9)"
 
 df2 %>%
   filter(Cohort == "Relapse", Sample_type == "Relapse") %>%
@@ -58,7 +58,25 @@ df2 %>%
   mutate(Timepoint_months = Timepoint_days / 30.44) %>%
   pull(Timepoint_months) %>% #length()
   summary
-# --> "...and a relapse cohort who experienced relapse (median time to relapse: 5.5 months, n=10"
+# --> "...those who experienced relapse (median time to relapse, 5.5 months [range, 2–39 months], n=10)"
+
+df2 %>%
+  filter(
+    Cohort == "Relapse",
+    TP53_status == "MT",
+    Sample_type %in% c("Remission", "Relapse")
+  ) %>%
+  select(Sample_id, Sample_type, Timepoint_days, Analyzed_cells) %>%
+  group_by(Sample_id, Sample_type)
+months_to_relapse <- c(188 - 104, 502 - 90, 166 - 110, 1201 - 116) / 30.44
+summary(months_to_relapse)
+# --> "Since the patients were in morphologic remission and sampling took place a median of 8.1 months prior to relapse, ..." [applies to TP53]
+
+# Sample collection times (not used in the text)
+df2 %>%
+  filter(Timepoint_days != -25, Analyzed_cells == "Yes") %>%
+  select(Patient_id, Timepoint_days) %>%
+  print(n = 50)
 
 ###################
 

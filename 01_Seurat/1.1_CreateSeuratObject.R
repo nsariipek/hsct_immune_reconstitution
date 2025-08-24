@@ -17,7 +17,7 @@ rm(list = ls())
 
 # Parameters to interact with Google bucket, this part only needed for Terra
 gcs_global_bucket("fc-3783b423-62ac-4c69-8c2f-98cb0ee4503b")
-# Check if you can list the objects. In Terra, you may need to authenticate using gcs_auth(). In VM, this did not work - hence the alternative function on line 65.
+# Check if you can list the objects. In Terra, you may need to authenticate using gcs_auth(). In VM, this did not work - hence the alternative function on line 123.
 gcs_list_objects()
 
 # Load matrices of all samples

@@ -16,26 +16,12 @@ setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/5_Cell_
 # Clear environment variables
 rm(list = ls())
 
-# Load the Seurat object
+# Load Seurat object & subset for T cells
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
+seu_T <- subset(seu, !is.na(TCAT_Multinomial_Label))
 
 # Cohort colors
 cohort_colors <- c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
-
-# Subset for T cells
-T_celltypes <- c(
-  "CD4 Naive",
-  "CD4 Central Memory",
-  "CD4 Effector Memory",
-  "CD4 Regulatory",
-  "CD8 Naive",
-  "CD8 Central Memory",
-  "CD8 Effector Memory 1",
-  "CD8 Effector Memory 2",
-  "CD8 Tissue Resident Memory",
-  "T Proliferating"
-)
-seu_T <- subset(seu, subset = celltype %in% T_celltypes)
 
 # Make a dataframe and add CD4/CD8
 metadata_df <- seu_T@meta.data %>%
@@ -63,8 +49,8 @@ meta_subset <- metadata_df %>%
 
 # Calculate the ratio for each patient
 tb <- meta_subset %>%
-  group_by(patient_id, type, cohort) %>%
-  dplyr::summarize(n = n()) %>%
+  group_by(patient_id, cohort, type) %>%
+  count() %>%
   ungroup() %>%
   group_by(patient_id) %>%
   pivot_wider(names_from = type, values_from = n) %>%

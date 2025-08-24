@@ -105,7 +105,7 @@ df_prop <- seu_numbat@meta.data %>%
   group_by(cohort, patient_id, numbat_compartment) %>%
   mutate(prop = n / sum(n))
 
-ggplot(df_prop, aes(x = numbat_compartment, y = prop, fill = celltype)) +
+df_prop %>% ggplot(aes(x = numbat_compartment, y = prop, fill = celltype)) +
   geom_bar(stat = "identity", position = "stack") +
   scale_fill_manual(values = celltype_colors) +
   ylab("Proportion of cells") +
@@ -167,3 +167,4 @@ as_tibble(seu_numbat@meta.data, rownames = "cell") %>%
   )
 
 ggsave("9.7.5_HSPC_compartment.pdf", width = 12, height = 8)
+

@@ -11,7 +11,9 @@ library(circlize)
 
 # Set working directory
 #VM: setwd("~/hsct_immune_reconstitution/05_DGE/")
-#Local: setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE")
+#Local:
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE")
 
 # Delete environment variables & load favorite function
 rm(list = ls())
@@ -21,19 +23,7 @@ cutf <- function(x, f = 1, d = "/") {
 
 # Load data
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
-t_celltypes <- c(
-      "CD4 Naive",
-      "CD4 Central Memory",
-      "CD4 Effector Memory",
-      "CD4 Regulatory",
-      "CD8 Naive",
-      "CD8 Central Memory",
-      "CD8 Effector Memory 1",
-      "CD8 Effector Memory 2",
-      "CD8 Tissue Resident Memory",
-      "T Proliferating"
-)
-seu_T <- subset(seu, celltype %in% t_celltypes)
+seu_T <- subset(seu, !is.na(TCAT_Multinomial_Label))
 
 # Load colors from 2.3_PvG-Colors.R
 celltype_colors_df <- read.table(
@@ -48,32 +38,6 @@ celltype_colors <- setNames(
       celltype_colors_df$celltype
 )
 
-# Add T cell UMAP coordinates generated in 4_Trajectories/4.2_TCR_Diversity_UMAP.R & check visually
-t_coordinates <- read.table(
-      "../4_Trajectories/4.2_UMAP-embeddings.csv",
-      header = T,
-      sep = ",",
-      row.names = 1
-)
-seu_T[["umapT"]] <- CreateDimReducObject(
-      embeddings = as.matrix(t_coordinates),
-      key = "umapT_",
-      assay = "RNA"
-)
-DimPlot(
-      seu_T,
-      reduction = "umapT",
-      shuffle = T,
-      group.by = "TCAT_Multinomial_Label",
-      cols = celltype_colors
-) +
-      theme_bw() +
-      theme(aspect.ratio = 1, panel.grid = element_blank()) +
-      guides(color = guide_legend(override.aes = list(size = 3)))
-
-
-### PETER LEFT OFF HERE
-
 # Combine TCAT scores and program usage results with Seurat metadata
 usage_tib <- read_tsv("5.1_starCAT/starCAT.scores.txt.gz") %>%
       rename("cell" = "...1")
@@ -83,32 +47,14 @@ metadata_tib <- as_tibble(seu_T@meta.data, rownames = "cell")
 metadata_tib <- left_join(metadata_tib, scores_tib)
 metadata_tib <- left_join(metadata_tib, usage_tib)
 
-# Filter data for relevant time points and sample status
-metadata_100d_tib <- metadata_tib %>%
+# Filter data for remission samples ~3M after transplant
+metadata_subset <- metadata_tib %>%
       filter(
-            timepoint %in% c(3, 5, 6),
-            sample_status == "remission"
+            sample_status == "remission",
+            timepoint %in% c(3, 5, 6)
       )
 
-# Quick look at antigen-specific activation (ASA) scores...Is the difference between cohorts driven by TP53?
-p1 <- metadata_100d_tib %>%
-      filter(celltype == "CD8 Effector Memory 2") %>%
-      ggplot(aes(
-            x = cohort,
-            y = `ASA`,
-            color = TP53_status == "MUT"
-      )) +
-      geom_violin(scale = "width", fill = NA, draw_quantiles = 0.5) +
-      stat_compare_means(method = "wilcox.test", show.legend = F) + # This may not be the best statistical test
-      theme_bw() +
-      #nurefsan's edition
-      theme(panel.grid = element_blank())
-# Save the plot cohort# Save the plot
-pdf("3.2.1_ASA_Score.pdf", width = 8, height = 6)
-p1
-dev.off()
-
-# Subset for analysis of activity programs from the paper (Figure 2C, Table S1)
+# Subset for analysis of activity programs from the bioRxiv *CAT paper (https://doi.org/10.1101/2024.05.03.592310, Figure 2C, Table S1)
 activity_programs <- c(
       "CellCycle-S",
       "CellCycle-Late-S",
@@ -173,7 +119,7 @@ sum(duplicated(all_programs))
 setdiff(colnames(scores_tib), all_programs)
 
 # Select relevant columns
-metadata_programs_tib <- metadata_100d_tib %>%
+metadata_programs_tib <- metadata_subset %>%
       select(
             patient_id,
             timepoint,
@@ -183,14 +129,15 @@ metadata_programs_tib <- metadata_100d_tib %>%
             all_of(activity_programs)
       )
 
-# Summarize to get mean program usage per patient per cell type
+# Checks
 metadata_programs_tib %>%
       select(patient_id, cohort, TP53_status) %>%
       unique %>%
       count(cohort)
 metadata_programs_tib$celltype %>% unique %>% length
 length(activity_programs)
-# Here we expect a tibble with nrow is the number of patients * cell types & programs
+
+# Summarize to get one row per group (26 patients, 1 timepoint except P01 (2 timepoints), 10 celltypes except P18 (9 celltypes), 24 programs; 26*10*24+1*9*24 rows)
 program_averages_tib <- metadata_programs_tib %>%
       pivot_longer(
             cols = all_of(activity_programs),
@@ -226,8 +173,8 @@ group_sizes <- group_sizes %>%
       mutate(
             x_start = lag(cumsum(size), default = 0) + 1, # Start position for each group
             x_end = cumsum(size), # End position for each group
-            x_center = (x_start + x_end) / 2
-      ) # Midpoint for labeling
+            x_center = (x_start + x_end) / 2 # Midpoint for labeling
+      )
 
 program_averages_tib %>%
       ggplot(aes(x = celltype_patient, y = program, fill = mean_usage)) +
@@ -270,10 +217,10 @@ program_averages_tib %>%
             axis.text.x = element_text(angle = 45, hjust = 1, size = 5)
       )
 
-ggsave("3.2.2_PerPatient.png", width = 12, height = 8)
+ggsave("5.2.1_Program_usage_per_patient.png", width = 12, height = 8)
 
 # The significance is hard to see in the plot above. Here's an alternative that shows it more clearly.
-pdf("3.2.3_Test_plots.pdf", width = 10, height = 8)
+pdf("5.2.2_Program_usage_stats.pdf", width = 10, height = 8)
 
 for (ct in unique(program_averages_tib$celltype)) {
       #ct <- "CD8 Effector"
@@ -331,10 +278,10 @@ for (ct in unique(program_averages_tib$celltype)) {
 
 dev.off()
 
-# Now show the median across patients. Of note, this is misleading, as visually striking differences may in fact be driven by 1-2 patients
+# Now show median program usage across patients, separated by cohort
 program_averages_tib %>%
       group_by(cohort, celltype, program) %>%
-      summarize(median_p = median(mean_usage), .groups = "drop") %>% # Mean program usage per cohort (3)
+      summarize(median_p = median(mean_usage), .groups = "drop") %>%
       ggplot(aes(x = celltype, y = program, fill = median_p)) +
       geom_tile() +
       scale_fill_gradient(low = "white", high = "red") +
@@ -345,119 +292,9 @@ program_averages_tib %>%
       ) +
       facet_wrap(~cohort)
 
-# Subtract to identify look at differences
-non_relapsed_tib <- program_averages_tib %>%
-      filter(cohort == "long-term-remission") %>%
-      group_by(cohort, celltype, program) %>%
-      summarize(median_p = median(mean_usage), .groups = "drop")
+ggsave("5.2.3_Program_usage_medians.png", width = 12, height = 8)
 
-relapsed_tib <- program_averages_tib %>%
-      filter(cohort == "relapse") %>%
-      group_by(cohort, celltype, program) %>%
-      summarize(median_p = median(mean_usage), .groups = "drop")
-
-join_tib <- full_join(
-      non_relapsed_tib,
-      relapsed_tib,
-      by = c("celltype", "program"),
-      suffix = c(".non-relapsed", ".relapsed")
-)
-join_tib <- join_tib %>%
-      mutate(diff = median_p.relapsed - `median_p.non-relapsed`)
-
-join_tib %>%
-      ggplot(aes(x = celltype, y = program, fill = diff)) +
-      geom_tile() +
-      scale_fill_gradientn(
-            colors = rev(RColorBrewer::brewer.pal(n = 5, name = "RdBu"))
-      ) +
-      theme_minimal() +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1), aspect.ratio = 2)
-ggsave("3.2.4_Difference.png", width = 12, height = 8)
-
-# Now make a heatmap like Figure 4F in Van Galen ... Bernstein 2019
-
-# Convert data to matrix
-# 9 cell types, 24 programs --> 216 rows
-df <- program_averages_tib %>%
-      mutate(celltype_program = paste0(celltype, ", ", program)) %>%
-      mutate(
-            cohort_patient = paste(
-                  cohort,
-                  TP53_status,
-                  patient_id,
-                  ".",
-                  timepoint,
-                  "M"
-            )
-      ) %>%
-      select(celltype_program, cohort_patient, mean_usage) %>%
-      pivot_wider(names_from = cohort_patient, values_from = mean_usage) %>%
-      as.data.frame() %>%
-      column_to_rownames("celltype_program")
-df[1:3, 1:3]
-
-# Side annotation
-T_cell_types <- intersect(levels(seu_T$celltype), seu_T$celltype)
-T_cell_types <- factor(T_cell_types, levels = T_cell_types)
-row_anno <- rowAnnotation(
-      celltype = factor(
-            cutf(rownames(df), d = ", ", f = 1),
-            levels = levels(T_cell_types)
-      ),
-      program = cutf(rownames(df), d = ", ", f = 2),
-      col = list(celltype = celltype_colors)
-)
-
-# Bottom annotation
-tokens <- strsplit(colnames(df), " ")
-cohort_vec <- sapply(tokens, `[`, 1)
-TP53_vec <- sapply(tokens, `[`, 2)
-
-# Reorder df by cohort
-cohort_factor <- factor(
-      cohort_vec,
-      levels = c("long-term-remission", "relapse")
-)
-column_order <- order(cohort_factor)
-df_ordered <- df[, column_order]
-# Apply same order to annotation variables
-cohort_vec_ordered <- cohort_vec[column_order]
-TP53_vec_ordered <- TP53_vec[column_order]
-
-cohort_colors <- c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35FF")
-TP53_colors <- c("WT" = "#6BD76BFF", "MUT" = "#FF1463FF")
-col_anno <- HeatmapAnnotation(
-      Cohort = factor(
-            cohort_vec_ordered,
-            levels = c("long-term-remission", "relapse")
-      ),
-      TP53_status = factor(TP53_vec_ordered, levels = c("WT", "MUT")),
-      col = list(
-            Cohort = cohort_colors,
-            TP53_status = TP53_colors
-      )
-)
-
-# Generate heatmap with clustering
-h1 <- Heatmap(
-      as.matrix(df_ordered),
-      col = colorRamp2(
-            c(
-                  min(as.matrix(df_ordered), na.rm = TRUE),
-                  max(as.matrix(df_ordered), na.rm = TRUE)
-            ),
-            c("white", "red")
-      ),
-      cluster_rows = FALSE,
-      cluster_columns = FALSE,
-      left_annotation = row_anno,
-      bottom_annotation = col_anno,
-      row_names_gp = gpar(fontsize = 6)
-)
-
-h1
-
-png("3.2.5_ClusteredHeatmap.png", height = 1500, width = 800)
-draw(h1)
-dev.off()
+# Note: in prior versions of this script, I also tried:
+# 1. To subtract the medians and look at the difference between cohorts in one plot. This was misleading as small and insignificant changes were visually striking.
+# 2. Making a heatmap to evaluate if samples could be clustered by T cell program usages. This clustering did not separate cohorts or TP53 mutation status
+# I deleted these scripts on 250902 (should still be in Github history)

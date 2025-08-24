@@ -9,7 +9,7 @@ library(Matrix)
 library(R.utils)
 
 # Set working directory
-#VM: setwd("~/hsct_immune_reconstitution/05_DGE/")
+# VM: setwd("~/hsct_immune_reconstitution/05_DGE/")
 #Local: setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE")
 
 # Delete environment variables & load favorite function
@@ -198,3 +198,51 @@ metadata_tib %>%
       scale_fill_manual(values = celltype_colors) +
       theme_minimal() +
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+
+# Compare CD4/CD8 ratio (similar to 3.3_CD4-CD8_ratio.R but with TCAT labels)
+metadata_tib %>%
+      filter(
+            sample_status == "remission",
+            timepoint %in% c(3, 5, 6),
+            TP53_status == "MUT"
+      ) %>%
+      mutate(
+            type = case_when(
+                  grepl("CD4|Treg", Multinomial_Label) ~ "CD4",
+                  grepl("CD8", Multinomial_Label) ~ "CD8"
+            )
+      ) %>%
+      # group_by(Multinomial_Label, type) %>% count # check
+      group_by(patient_id, cohort, type) %>%
+      count() %>%
+      ungroup() %>%
+      group_by(patient_id) %>%
+      pivot_wider(names_from = type, values_from = n) %>%
+      mutate(ratio = CD4 / CD8) %>%
+      ggplot(aes(x = cohort, y = ratio, fill = cohort)) +
+      geom_boxplot(width = 0.7, alpha = 0.9, outlier.shape = NA) +
+      geom_jitter(shape = 21, size = 2, color = "black") +
+      scale_fill_manual(values = c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")) +
+      labs(y = "CD4/CD8 T cell ratio", x = NULL) +
+      stat_compare_means(
+            aes(group = cohort),
+            method = "wilcox.test",
+            label = "p.format",
+            label.y = 4,
+            label.x = 1.2,
+            size = 3
+      ) +
+      theme_minimal() +
+      theme(
+            aspect.ratio = 2,
+            panel.grid = element_blank(),
+            axis.text = element_text(color = "black"),
+            axis.text.x = element_text(
+                  color = "black",
+                  angle = 45,
+                  hjust = 1
+            ),
+            panel.border = element_rect(color = "black", fill = NA),
+            axis.ticks = element_line(color = "black"),
+            legend.position = "none"
+      )

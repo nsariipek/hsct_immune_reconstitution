@@ -1,5 +1,7 @@
 # Nurefsan Sariipek and Peter van Galen, 250528
-# Save TCR data for all T cells. This must be run on Terra.
+# Save TCR data for all T cells
+
+# Note: this script has to be run from Terra. Access to Google Cloud storage from other locations is finicky and it would be better to use `gsutil cp` instead, as in 1.1_CreateSeuratObject.R
 
 # Load the libraries
 library(tidyverse)
@@ -11,7 +13,7 @@ library(scRepertoire)
 # Empty environment
 rm(list = ls())
 
-# Set working directory. This script has to be run from Terra.
+# Set working directory
 setwd("~/hsct_immune_reconstitution/06_TCR_Diversity/")
 
 # Load Seurat object
@@ -101,7 +103,10 @@ TCR_combined_select_df <- TCR_combined_select_df[
 seu <- AddMetaData(seu, TCR_combined_select_df)
 mean(!is.na(seu$CTstrict))
 
-# Visualize the proportion of TCRs recovered per cell type
+# Visualize the proportion of TCRs recovered per cell type --------------------
+
+# Shortcut if you skipped the code above:
+# seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 
 # Load colors
 celltype_colors_df <- read.table(
@@ -127,12 +132,14 @@ as_tibble(seu@meta.data) %>%
   theme_bw() +
   theme(
     panel.grid = element_blank(),
+    axis.text = element_text(color = "black"),
     axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.ticks = element_line(color = "black"),
     legend.position = "none"
   )
 
 # Save plot
-ggsave("6.1_TCR_calls.pdf", height = 5, width = 8)
+ggsave("6.1_TCR_calls.pdf", height = 4, width = 6)
 
 # Save table
 write_csv(

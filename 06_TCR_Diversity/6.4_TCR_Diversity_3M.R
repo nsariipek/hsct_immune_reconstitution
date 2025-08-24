@@ -1,5 +1,5 @@
 # Nurefsan Sariipek and Peter van Galen, 250718
-# Analyze post 3-6 months remission samples and subset donor/host CD4/CD8 compartments using subsampling based on cell numbers which is different from scRepertoire built-in subsampling
+# Analyze diversity in remission samples ~3 months after transplant using subsampling based on cell numbers which is different from scRepertoire built-in subsampling
 
 # Load the libraries
 library(tidyverse)
@@ -16,27 +16,9 @@ setwd("~/hsct_immune_reconstitution/06_TCR_Diversity/")
 # fmt: skip
 setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/06_TCR_Diversity")
 
-# Load necessary functions
-cutf <- function(x, f = 1, d = "/") {
-  sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
-}
-source("DiversityFunctions.R")
-
-# Load final Seurat object including TCR calls
+# Load final Seurat object including TCR calls & subset for T cells
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
-
-# Celltype colors
-celltype_colors_df <- read.table(
-  "../celltype_colors.txt",
-  sep = "\t",
-  header = TRUE,
-  stringsAsFactors = FALSE,
-  comment.char = ""
-)
-celltype_colors <- setNames(
-  celltype_colors_df$color,
-  celltype_colors_df$celltype
-)
+seu_T <- subset(seu, subset = !is.na(TCAT_Multinomial_Label))
 
 # Cohort colors
 cohort_colors <- c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
@@ -44,15 +26,10 @@ cohort_colors <- c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
 
 ######## PREPARE DATA ########
 
-# Subset for T cells
-seu_subset <- subset(seu, subset = !is.na(TCAT_Multinomial_Label))
-
 # Turn metadata to a tibble and keep only needed variables
-metadata_tib <- as_tibble(seu_T@meta.data, rownames = "cell")
-metasubset_tib <- metadata_tib %>%
+metadata_tib <- as_tibble(seu_T@meta.data, rownames = "cell") %>%
   select(
     cell,
-    orig.ident,
     cohort,
     patient_id,
     timepoint,
@@ -63,26 +40,12 @@ metasubset_tib <- metadata_tib %>%
     souporcell_origin
   )
 
-# Keep only 3-6M remission samples and exclude early relapse cohort
-metasubset2_tib <- metasubset_tib %>%
+# Filter for remission samples ~3M after transplant
+metasubset1_tib <- metadata_tib %>%
   filter(
-    timepoint %in% c(3, 5, 6),
-    sample_status == "remission"
+    sample_status == "remission",
+    timepoint %in% c(3, 5, 6)
   )
-
-# Add group for TCR diversity calculation
-metasubset2_tib$group <- paste0(
-  metasubset2_tib$patient_id,
-  "_",
-  metasubset2_tib$sample_status,
-  "_3-6M"
-)
-
-# Check
-metasubset2_tib %>%
-  group_by(patient_id, sample_status, timepoint, group) %>%
-  count() %>%
-  print(n = 30)
 
 
 ######## SUBSET ########
@@ -91,27 +54,27 @@ metasubset2_tib %>%
 
 # All cells
 cell_subset <- "_all"
-metasubset3_tib <- metasubset2_tib
+metasubset2_tib <- metasubset1_tib
 
 # CD4+ T cells
 cell_subset <- "_CD4"
-metasubset3_tib <- metasubset2_tib %>%
+metasubset2_tib <- metasubset1_tib %>%
   subset(TCAT_Multinomial_Label %in% c("CD4_Naive", "CD4_CM", "CD4_EM", "Treg"))
 
 # CD8+ T cells
 cell_subset <- "_CD8"
-metasubset3_tib <- metasubset2_tib %>%
+metasubset2_tib <- metasubset1_tib %>%
   subset(
     TCAT_Multinomial_Label %in% c("CD8_Naive", "CD8_CM", "CD8_EM", "CD8_TEMRA")
   )
 
 # Recipient cells
 cell_subset <- "_recipient"
-metasubset3_tib <- metasubset2_tib %>% subset(souporcell_origin == "recipient")
+metasubset2_tib <- metasubset1_tib %>% subset(souporcell_origin == "recipient")
 
 # Donor cells
 cell_subset <- "_donor"
-metasubset3_tib <- metasubset2_tib %>% subset(souporcell_origin == "donor")
+metasubset2_tib <- metasubset1_tib %>% subset(souporcell_origin == "donor")
 
 
 ######## CALCULATE AND PLOT DIVERSITY ########
@@ -119,12 +82,11 @@ metasubset3_tib <- metasubset2_tib %>% subset(souporcell_origin == "donor")
 # Cell threshold
 min_cells <- 300
 
-# Subset to samples with a reasonable number of cells
-metasubset3_tib %>% group_by(group) %>% count()
-metasubset3_tib %>%
-  group_by(group) %>%
+# Visualize number of cells per patient
+metasubset2_tib %>%
+  group_by(patient_id) %>%
   count() %>%
-  ggplot(aes(x = group, y = n)) +
+  ggplot(aes(x = patient_id, y = n)) +
   geom_point() +
   geom_hline(yintercept = min_cells, color = "red") +
   theme_bw() +
@@ -134,26 +96,25 @@ metasubset3_tib %>%
   )
 
 # Filter for samples with sufficient cells
-metasubset4_tib <- metasubset3_tib %>%
-  group_by(group) %>%
-  filter(n() >= min_cells)
+metasubset3_tib <- metasubset2_tib %>%
+  group_by(patient_id) %>%
+  filter(n() >= min_cells) %>%
+  mutate(patient_id = as.character(patient_id))
 
-# Sample min_cells from each group. This gives all the plots below the same y-axis range
-metasubset4_tib <- metasubset4_tib %>%
-  group_by(group) %>%
+# Sample min_cells from each patient. This gives all the plots below the same y-axis range
+metasubset3_tib <- metasubset3_tib %>%
+  group_by(patient_id) %>%
   slice_sample(n = min_cells)
 
-# Split data into list
-metasubset_ls <- split(metasubset4_tib, f = metasubset4_tib$group)
-
-# Calculate diversity (works only with lists)
-diversities_df = compute_diversity(metasubset_ls, "CTstrict", 1000)
-diversities_df
-max(diversities_df$inv.simpson)
+# Load diversity functions, split data into a list, and calculate diversity
+source("DiversityFunctions.R")
+metasubset_ls <- split(metasubset3_tib, f = metasubset3_tib$patient_id)
+diversities_df <- compute_diversity(metasubset_ls, "CTstrict", 1000)
+diversities_df <- diversities_df %>% rename(patient_id = "group")
 
 # Add information to make annotated plots
-metasubset_summary <- metasubset4_tib %>%
-  group_by(group, cohort, patient_id, TP53_status) %>%
+metasubset_summary <- metasubset3_tib %>%
+  group_by(patient_id, cohort, TP53_status) %>%
   summarize
 joined_tibble <- diversities_df %>% left_join(metasubset_summary)
 
@@ -170,8 +131,6 @@ plot_TCR <- function(df, title = NULL) {
       aes(group = cohort),
       method = "wilcox.test",
       label = "p.format",
-      #label.x.npc = "center",
-      #label.x = 1.5,
       label.y = 300
     ) +
     theme_minimal() +
@@ -203,7 +162,7 @@ TCR_WT <- plot_TCR(
 
 # Save as a pdf: combined TP53-MUT and TP53-WT, or separate
 pdf(
-  paste0("6.2_Post-transplant", cell_subset, "_both.pdf"),
+  paste0("6.3_TCR_Diversity_3M", cell_subset, "_both.pdf"),
   width = 2.5,
   height = 3.5
 )
@@ -211,7 +170,7 @@ TCR_all
 dev.off()
 
 pdf(
-  paste0("6.2_Post-transplant", cell_subset, "_MT.pdf"),
+  paste0("6.3_TCR_Diversity_3M", cell_subset, "_MT.pdf"),
   width = 2.5,
   height = 3.5
 )
@@ -219,16 +178,19 @@ TCR_MT
 dev.off()
 
 pdf(
-  paste0("6.2_Post-transplant", cell_subset, "_WT.pdf"),
+  paste0("6.3_TCR_Diversity_3M", cell_subset, "_WT.pdf"),
   width = 2.5,
   height = 3.5
 )
 TCR_WT
 dev.off()
 
-# It's mildly surprising that recipient T cells appear more diverse than donor T cells.
-# It's because a much higher fraction of recipient T cells are CD4+:
-metasubset2_tib %>%
+
+######## MISCELLANEOUS THOUGHT ########
+
+# It may appear surprising that recipient T cells appear more diverse than donor T cells,
+# but it makes sense considering a much higher fraction of recipient T cells are CD4+:
+metasubset1_tib %>%
   filter(!is.na(souporcell_origin)) %>%
   dplyr::count(souporcell_origin, TCAT_Multinomial_Label) %>%
   pivot_wider(names_from = souporcell_origin, values_from = n) %>%
@@ -241,4 +203,8 @@ metasubset2_tib %>%
   geom_bar(stat = "identity", position = "stack") +
   scale_fill_manual(values = celltype_colors) +
   theme_bw() +
-  theme(panel.grid = element_blank())
+  theme(
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.title.x = element_blank()
+  )

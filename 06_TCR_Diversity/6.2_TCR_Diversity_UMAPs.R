@@ -36,24 +36,24 @@ celltype_colors <- setNames(
 )
 
 # Subset for T cells
-seu_subset <- subset(seu, subset = !is.na(TCAT_Multinomial_Label))
+seu_T <- subset(seu, subset = !is.na(TCAT_Multinomial_Label))
 
 # TO SKIP SEURAT PROCESSING (WHICH VARIES PER ENVIRONMENT), SKIP TO LINE 109
 
 # Run standard Seurat steps
-seu_subset <- NormalizeData(seu_subset)
-seu_subset <- FindVariableFeatures(seu_subset)
-seu_subset <- ScaleData(seu_subset)
-seu_subset <- RunPCA(seu_subset)
+seu_T <- NormalizeData(seu_T)
+seu_T <- FindVariableFeatures(seu_T)
+seu_T <- ScaleData(seu_T)
+seu_T <- RunPCA(seu_T)
 
 # Run Harmony to remove the batch effect
-seu_subset <- RunHarmony(
-  object = seu_subset,
+seu_T <- RunHarmony(
+  object = seu_T,
   group.by.vars = c("patient_id"),
   plot_convergence = T
 )
-ElbowPlot(seu_subset, reduction = "pca")
-ElbowPlot(seu_subset, reduction = "harmony")
+ElbowPlot(seu_T, reduction = "pca")
+ElbowPlot(seu_T, reduction = "harmony")
 
 ## Decide on the dimensions by checking different ones
 #dims_to_test <- seq(10, 20)
@@ -65,7 +65,7 @@ ElbowPlot(seu_subset, reduction = "harmony")
 #  cat("Running UMAP with dims = 1 :", d, "\n")
 
 #  # Copy the object
-#  seu_temp <- seu_subset
+#  seu_temp <- seu_T
 
 #  # Recalculate neighbors and UMAP
 #  seu_temp <- FindNeighbors(seu_temp, dims = 1:d, verbose = FALSE)
@@ -87,10 +87,10 @@ ElbowPlot(seu_subset, reduction = "harmony")
 
 # Move forward with manually selected number of dimensions. This is optimized for Peter's environment
 ndim <- 17
-seu_subset <- FindNeighbors(seu_subset, reduction = "harmony", dims = 1:ndim)
-#seu_subset <- FindClusters(seu_subset, resolution = 0.5)
-seu_subset <- RunUMAP(
-  seu_subset,
+seu_T <- FindNeighbors(seu_T, reduction = "harmony", dims = 1:ndim)
+#seu_T <- FindClusters(seu_T, resolution = 0.5)
+seu_T <- RunUMAP(
+  seu_T,
   reduction = "harmony",
   dims = 1:ndim,
   return.model = T
@@ -98,18 +98,18 @@ seu_subset <- RunUMAP(
 
 # Save UMAP coordinates to csv file
 write.csv(
-  as.data.frame(seu_subset@reductions$umap@cell.embeddings),
-  file = "4.2_UMAP-embeddings.csv"
+  as.data.frame(seu_T@reductions$umap@cell.embeddings),
+  file = "6.2_UMAP-embeddings.csv"
 )
 
 # Add UMAP coordinates from saved csv file
-umap_embeddings <- read.csv(file = "4.2_UMAP-embeddings.csv") %>%
+umap_embeddings <- read.csv(file = "6.2_UMAP-embeddings.csv") %>%
   column_to_rownames(var = "X")
-seu_subset[["umap"]] <- CreateDimReducObject(as.matrix(umap_embeddings))
+seu_T[["umap"]] <- CreateDimReducObject(as.matrix(umap_embeddings))
 
 # Visualize the UMAP
 p1 <- DimPlot(
-  seu_subset,
+  seu_T,
   reduction = "umap",
   group.by = "TCAT_Multinomial_Label",
   raster = T,
@@ -126,15 +126,15 @@ p1
 
 # Save
 ggsave(
-  paste0("4.2.1_UMAP_Multinomial-Label.pdf"),
+  paste0("6.2.1_UMAP_Multinomial-Label.pdf"),
   plot = p1,
   width = 7,
   height = 6
 )
 
 # Subset for T cells with TCR info
-cells_with_TCR <- rownames(seu_subset@meta.data[!is.na(seu$CTstrict), ])
-seu_TCR <- subset(seu_subset, cells = cells_with_TCR)
+cells_with_TCR <- rownames(seu_T@meta.data[!is.na(seu$CTstrict), ])
+seu_TCR <- subset(seu_T, cells = cells_with_TCR)
 
 # Determine clone size
 metadata_tib <- as_tibble(seu_TCR@meta.data, rownames = "cell")
@@ -163,9 +163,9 @@ p2 <- FeaturePlot(
 p2
 
 # Save
-ggsave(paste0("4.2.2_CloneSize.pdf"), plot = p2, width = 7, height = 6)
+ggsave(paste0("6.2.2_CloneSize.pdf"), plot = p2, width = 7, height = 6)
 
-# Plot TCR diversity for TP53 mutated patients in remission at 3-6M after transplant split by cohort
+# Plot TCR diversity for TP53 mutated patients in remission ~3 months after transplant split by cohort
 seu_TCR_subset <- subset(
   seu_TCR,
   sample_status == "remission" &
@@ -198,7 +198,7 @@ rel <- FeaturePlot(
 rem + rel
 
 ggsave(
-  paste0("4.2.3_CloneSize_TP53-3-6M_split.pdf"),
+  paste0("6.2.3_CloneSize_TP53-3M_split.pdf"),
   plot = rem + rel,
   width = 7,
   height = 10

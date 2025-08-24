@@ -23,19 +23,7 @@ seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 ### TCR ENRICHMENT ###
 
 # Subset for T cells
-T_celltypes <- c(
-  "CD4 Naive",
-  "CD4 Central Memory",
-  "CD4 Effector Memory",
-  "CD4 Regulatory",
-  "CD8 Naive",
-  "CD8 Central Memory",
-  "CD8 Effector Memory 1",
-  "CD8 Effector Memory 2",
-  "CD8 Tissue Resident Memory",
-  "T Proliferating"
-)
-seu_T <- subset(seu, subset = celltype %in% T_celltypes)
+seu_T <- subset(seu, !is.na(TCAT_Multinomial_Label))
 
 # Some stats for the results section:
 table(is.na(seu_T$CTstrict))
@@ -63,11 +51,11 @@ seu@meta.data %>%
 meta_subset <- as_tibble(seu@meta.data) %>%
   filter(
     sample_status == "remission",
+    timepoint %in% c(3, 5, 6),
     celltype %in%
       c("HSC MPP", "MEP", "LMPP", "Cycling Progenitors", "Early GMP"),
     souporcell_origin %in% c("donor", "recipient"),
     cohort == "relapse",
-    timepoint %in% c(3, 5, 6),
     sample_id != "P23_Rem1" # does not have recipient HSPCs
   )
 meta_subset %>%

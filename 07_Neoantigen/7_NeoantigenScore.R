@@ -32,7 +32,7 @@ seu_T <- AddMetaData(seu_T, select(usage_tib, ASA))
 # Load antigen recognition signatures from Rosenberg lab: Lowery 2022, Table S10 (https://www.sciencedirect.com/science/article/pii/S1535610823003963)
 cd4neoA <- read.csv("signatures/cd4.csv")
 cd8neoA <- read.csv("signatures/cd8.csv")
-# And Yossef 2023 (https://www.science.org/doi/10.1126/science.abl5447)
+# And Yossef 2023 (https://www.science.org/doi/10.1126/science.abl5447). This is more specific to circulating T celsl and we don't end up using it in the paper.
 neoA <- read.csv("signatures/neoantigen.csv")
 
 # Subset for CD8 T cell subsets with (similar to 4.1_Monocle3.R). Excluding naive cells changes the results but overall conclusions stay the same.
@@ -40,8 +40,8 @@ seu_subset <- subset(
   seu_T,
   subset = TCAT_Multinomial_Label %in%
     c("CD8_Naive", "CD8_CM", "CD8_EM", "CD8_TEMRA") &
-    timepoint %in% c(3, 5, 6) &
-    sample_status == "remission"
+    sample_status == "remission" &
+    timepoint %in% c(3, 5, 6)
 )
 T_marker <- "CD8"
 
@@ -50,8 +50,8 @@ seu_subset <- subset(
   seu_T,
   subset = TCAT_Multinomial_Label %in%
     c("CD4_Naive", "CD4_CM", "CD4_EM") &
-    timepoint %in% c(3, 5, 6) &
-    sample_status == "remission"
+    sample_status == "remission" &
+    timepoint %in% c(3, 5, 6)
 )
 T_marker <- "CD4"
 

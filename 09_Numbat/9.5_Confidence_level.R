@@ -9,10 +9,12 @@ library(Seurat)
 rm(list = ls())
 
 # Set working directory (for Nurefsan)
-setwd("~/TP53_ImmuneEscape/09_Numbat/")
+setwd("~/hsct_immune_reconstitution/09_Numbat/")
 
 # For Peter
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/09_Numbat")
+setwd(
+  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat"
+)
 
 # Favorite function
 cutf <- function(x, f = 1, d = "/") {

@@ -12,9 +12,11 @@ library(pheatmap)
 rm(list = ls())
 
 # Set working directory (Nurefsan)
-setwd("~/TP53_ImmuneEscape/05_DGE/")
+setwd("~/hsct_immune_reconstitution/05_DGE/")
 # For Peter:
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/05_DGE/")
+setwd(
+  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE/"
+)
 
 # Load the saved Seurat object
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")

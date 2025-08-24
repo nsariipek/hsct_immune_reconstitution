@@ -11,7 +11,7 @@
 
 # Determine program usage
 starcat --reference "TCAT.V1" \
-        --counts "/home/unix/vangalen/TP53_ImmuneEscape/AuxiliaryFiles/starCAT/matrix.mtx.gz" \
-        --output-dir "/home/unix/vangalen/TP53_ImmuneEscape/05_DGE/5.1_starCAT/"
+        --counts "/home/unix/vangalen/hsct_immune_reconstitution/AuxiliaryFiles/starCAT/matrix.mtx.gz" \
+        --output-dir "/home/unix/vangalen/hsct_immune_reconstitution/05_DGE/5.1_starCAT/"
 
 # Delete cache folder that was generated

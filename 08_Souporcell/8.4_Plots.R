@@ -12,10 +12,10 @@ library(ggtext)
 rm(list = ls())
 
 # For VM:
-# setwd("~/TP53_ImmuneEscape/08_Souporcell/")
+# setwd("~/hsct_immune_reconstitution/08_Souporcell/")
 # For Peter:
 # fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/08_Souporcell/")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/08_Souporcell/")
 
 # Load data
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")

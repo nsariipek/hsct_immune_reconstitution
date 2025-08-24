@@ -17,12 +17,18 @@ library(grid)
 rm(list = ls())
 
 # Favorite function
-cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))
+cutf <- function(x, f = 1, d = "/") {
+  sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
+}
 
 # Set working directory (local). For Nurefsan:
-setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/TP53_ImmuneEscape/5_Souporcell/")
+setwd(
+  "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/hsct_immune_reconstitution/5_Souporcell/"
+)
 # For Peter:
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/08_Souporcell/")
+setwd(
+  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/08_Souporcell/"
+)
 
 # Load Seurat data
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
@@ -71,7 +77,11 @@ for (pt in pts) {
 
   # For each patient, we made a file that combines reference and alternative matrices output of the souporcell in bash on Broad cluster in bash: `paste ref.mtx alt.mtx | sed 's/ /\t/g' > ${PT}.combined.tsv`
   # These files are saved in "5_Souporcell/AuxiliaryFiles" and not synced to GitHub due to their large size (see .gitignore). They are available upon request.
-  variants_df <- read.table(paste0("AuxiliaryFiles/", pt, ".combined.tsv"), skip = 3, sep = "\t")
+  variants_df <- read.table(
+    paste0("AuxiliaryFiles/", pt, ".combined.tsv"),
+    skip = 3,
+    sep = "\t"
+  )
 
   # Name columns, remove variants without coverage, add genotype specifying if a variant is WT or MT
   variants_df <- variants_df %>%
@@ -97,13 +107,36 @@ for (pt in pts) {
     filter(assignment %in% c(0, 1))
 
   # Now, change Souporcell assignment (0 or 1) to origin (recipient or donor), or vice versa, as determined in 8.2_Genotype_donor-host_assignments.R
-  zero_origin <- filter(souporcell_assignments, patient_id == pt, assignment == 0) %>% pull(origin) %>% unique
-  one_origin <- filter(souporcell_assignments, patient_id == pt, assignment == 1) %>% pull(origin) %>% unique
-  if(! "unknown" %in% c(zero_origin, one_origin)) {
-    cells <- cells %>% mutate(assignment = gsub("0", substr(zero_origin, 1, 1), gsub("1", substr(one_origin, 1, 1), assignment))) %>%
-      mutate(assignment = factor(assignment, levels = c("r", "r/d", "d", "d/r")))
+  zero_origin <- filter(
+    souporcell_assignments,
+    patient_id == pt,
+    assignment == 0
+  ) %>%
+    pull(origin) %>%
+    unique
+  one_origin <- filter(
+    souporcell_assignments,
+    patient_id == pt,
+    assignment == 1
+  ) %>%
+    pull(origin) %>%
+    unique
+  if (!"unknown" %in% c(zero_origin, one_origin)) {
+    cells <- cells %>%
+      mutate(
+        assignment = gsub(
+          "0",
+          substr(zero_origin, 1, 1),
+          gsub("1", substr(one_origin, 1, 1), assignment)
+        )
+      ) %>%
+      mutate(
+        assignment = factor(assignment, levels = c("r", "r/d", "d", "d/r"))
+      )
     unambiguous_cells <- unambiguous_cells %>%
-      mutate(assignment = gsub("0", zero_origin, gsub("1", one_origin, assignment))) %>%
+      mutate(
+        assignment = gsub("0", zero_origin, gsub("1", one_origin, assignment))
+      ) %>%
       mutate(assignment = factor(assignment, levels = c("recipient", "donor")))
   }
 
@@ -154,7 +187,8 @@ for (pt in pts) {
     high_coverage_variants_df %>%
       count(var) %>%
       rename(`Number of cells` = n) %>%
-      mutate(Variants = "High coverage")) %>%
+      mutate(Variants = "High coverage")
+  ) %>%
     ggplot(aes(x = `Number of cells`, fill = Variants)) +
     geom_histogram(position = "identity") +
     scale_x_log10() +
@@ -184,9 +218,12 @@ for (pt in pts) {
       pull(genotype)
     assignments <- high_coverage_variants_df %>%
       filter(var == i) %>%
-      mutate(assignment = case_when(
-        assignment %in% c("0", "donor") ~ 0,
-        assignment %in% c("1", "recipient") ~ 1)) %>%
+      mutate(
+        assignment = case_when(
+          assignment %in% c("0", "donor") ~ 0,
+          assignment %in% c("1", "recipient") ~ 1
+        )
+      ) %>%
       pull(assignment)
     r <- rand.index(genotypes, assignments)
     rand_indices <- rbind(
@@ -339,8 +376,12 @@ for (pt in pts) {
         "remission" = "#F6E06E",
         "relapse" = "#8B0000"
       ),
-      souporcell_assignment = c("0" = "#3B1B53", "1" = "#F0E685",
-        "donor" = "#4B3140", recipient = "#E4C9B0"),
+      souporcell_assignment = c(
+        "0" = "#3B1B53",
+        "1" = "#F0E685",
+        "donor" = "#4B3140",
+        recipient = "#E4C9B0"
+      ),
       celltype = celltype_colors_current
     ),
     annotation_legend_param = list(
@@ -424,7 +465,6 @@ for (pt in pts) {
 
   # Trigger garbage collection
   gc()
-
 }
 
 # Close the file connection

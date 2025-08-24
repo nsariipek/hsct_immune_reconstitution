@@ -13,9 +13,9 @@ rm(list = ls())
 
 # Set working directory and load Seurat object
 # fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/07_Neoantigen")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/07_Neoantigen")
 # For VM:
-#setwd("~/TP53_ImmuneEscape/10_Neoantigen/")
+#setwd("~/hsct_immune_reconstitution/10_Neoantigen/")
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 
 # Subset for T cells

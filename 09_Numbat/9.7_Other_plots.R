@@ -10,9 +10,11 @@ library(janitor)
 rm(list = ls())
 
 # Set working directory (for VM)
-#setwd("~/TP53_ImmuneEscape/09_Numbat/")
+#setwd("~/hsct_immune_reconstitution/09_Numbat/")
 # For Peter
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/09_Numbat")
+setwd(
+  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat"
+)
 
 # Load the saved Seurat object
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
@@ -127,7 +129,10 @@ as_tibble(seu_numbat@meta.data, rownames = "cell") %>%
     !is.na(celltype),
     sample_status == "remission"
   ) %>%
-  mutate(HSPC = celltype %in% c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP")) %>%
+  mutate(
+    HSPC = celltype %in%
+      c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP")
+  ) %>%
   group_by(patient_id) %>%
   filter(any(HSPC)) %>% # remove samples with 0 HSPCs
   ungroup() %>%
@@ -142,10 +147,17 @@ as_tibble(seu_numbat@meta.data, rownames = "cell") %>%
   geom_tile(aes(y = 1, fill = numbat_compartment), height = 0.5) +
   scale_y_discrete(expand = c(0, 0)) +
   scale_fill_manual(
-    values = c(celltype_colors, compartment_colors, "TRUE" = "#FF1463", "FALSE" = "#B3B3B3")) +
+    values = c(
+      celltype_colors,
+      compartment_colors,
+      "TRUE" = "#FF1463",
+      "FALSE" = "#B3B3B3"
+    )
+  ) +
   facet_wrap(~patient_id, scales = "free_x") +
   theme_bw() +
-  theme(aspect.ratio = 0.5,
+  theme(
+    aspect.ratio = 0.5,
     panel.grid = element_blank(),
     axis.text.x = element_blank(),
     axis.text.y = element_blank(),

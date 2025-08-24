@@ -8,7 +8,9 @@ library(numbat)
 rm(list = ls())
 
 # For Peter
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/09_Numbat")
+setwd(
+  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat"
+)
 
 # Map IDs. This is because Numbat was run before we changed all other analyses to a new ID
 # fmt: skip

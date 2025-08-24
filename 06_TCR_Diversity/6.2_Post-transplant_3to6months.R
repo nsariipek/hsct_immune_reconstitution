@@ -10,11 +10,11 @@ library(ggpubr)
 rm(list = ls())
 
 # Set working directory for Nurefsan/Terra:
-setwd("~/TP53_ImmuneEscape/06_TCR_Diversity/")
+setwd("~/hsct_immune_reconstitution/06_TCR_Diversity/")
 
 # For Peter:
 # fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/06_TCR_Diversity")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/06_TCR_Diversity")
 
 # Load necessary functions
 cutf <- function(x, f = 1, d = "/") {
@@ -238,7 +238,7 @@ metasubset2_tib %>%
   ) %>%
   pivot_longer(cols = c(fraction_recipient, fraction_donor)) %>%
   ggplot(aes(x = name, y = value, fill = TCAT_Multinomial_Label)) +
-    geom_bar(stat = "identity", position = "stack") +
+  geom_bar(stat = "identity", position = "stack") +
   scale_fill_manual(values = celltype_colors) +
   theme_bw() +
   theme(panel.grid = element_blank())

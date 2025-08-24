@@ -6,21 +6,27 @@ library(tidyverse)
 library(Seurat)
 
 # Empty environment
-rm(list=ls())
+rm(list = ls())
 
 # Set working directory
-setwd("~/TP53_ImmuneEscape/09_Numbat/")
+setwd("~/hsct_immune_reconstitution/09_Numbat/")
 # For Peter:
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/09_Numbat/")
+setwd(
+  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat/"
+)
 
 # Favorite function
-cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))
+cutf <- function(x, f = 1, d = "/") {
+  sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
+}
 
 # Load the saved Seurat object
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
 
 # Load the saved dataframe that contains souporcell information
-souporcell_assignments <- read_csv("../08_Souporcell/6.2_Souporcell_assignments.csv.gz")
+souporcell_assignments <- read_csv(
+  "../08_Souporcell/6.2_Souporcell_assignments.csv.gz"
+)
 
 # Define paths to files with Numbat data
 patient_info <- list(
@@ -41,27 +47,39 @@ metadata_list <- list()
 for (p_id in names(patient_info)) {
   #p_id <- names(patient_info)[1]
   cat("\nProcessing", p_id, "...\n")
-  
+
   # Subset Seurat object for recipient cells of current patient
-  soc_subset <- souporcell_assignments %>% filter(patient_id == p_id, origin == "recipient")
+  soc_subset <- souporcell_assignments %>%
+    filter(patient_id == p_id, origin == "recipient")
   metadata_subset_tib <- filter(metadata_tib, cell %in% soc_subset$cell)
-  
+
   # Add a new barcode to facilitate merging with Numbat below & make sure there are no duplicates
-  metadata_subset_tib$barcode <- paste0(metadata_subset_tib$patient_id, "_", cutf(metadata_subset_tib$cell, d = "_", f = 3))
-  print(paste(sum(duplicated(metadata_subset_tib$barcode)), "duplicate barcodes"))
+  metadata_subset_tib$barcode <- paste0(
+    metadata_subset_tib$patient_id,
+    "_",
+    cutf(metadata_subset_tib$cell, d = "_", f = 3)
+  )
+  print(paste(
+    sum(duplicated(metadata_subset_tib$barcode)),
+    "duplicate barcodes"
+  ))
 
   # Load Numbat data
   clone_path <- patient_info[[p_id]]
   pt_clone <- read.table(clone_path, header = TRUE)
   # Add barcode column & select relevant columns
-  pt_clone <- pt_clone %>% mutate(barcode = paste0(p_id, "_", pt_clone$cell)) %>%
+  pt_clone <- pt_clone %>%
+    mutate(barcode = paste0(p_id, "_", pt_clone$cell)) %>%
     select(barcode, clone_opt, compartment_opt)
-  
+
   # Join Seurat metadata with Numbat data & restore rownames
   meta_join <- metadata_subset_tib %>% left_join(pt_clone, by = "barcode")
-  
+
   # Check for NAs (should be 0)
-  print(paste(sum(is.na(select(meta_join, clone_opt, compartment_opt))), "NAs detected"))
+  print(paste(
+    sum(is.na(select(meta_join, clone_opt, compartment_opt))),
+    "NAs detected"
+  ))
 
   # Store
   metadata_list[[p_id]] <- meta_join

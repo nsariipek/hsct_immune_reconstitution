@@ -10,10 +10,12 @@ library(janitor)
 rm(list = ls())
 
 # Set working directory (for Nurefsan)
-setwd("~/TP53_ImmuneEscape/09_Numbat/")
+setwd("~/hsct_immune_reconstitution/09_Numbat/")
 
 # For Peter
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/09_Numbat")
+setwd(
+  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat"
+)
 
 # Load the saved Seurat object
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
@@ -118,4 +120,3 @@ meta_subset2 %>%
   )
 
 ggsave("9.8.2_Pseudotime_celltypes.pdf", width = 12, height = 4)
-

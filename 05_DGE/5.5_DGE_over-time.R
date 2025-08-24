@@ -10,11 +10,11 @@ library(pheatmap)
 library(janitor)
 
 # Set working directory (Nurefsan)
-setwd("~/TP53_ImmuneEscape/05_DGE/")
+setwd("~/hsct_immune_reconstitution/05_DGE/")
 
 # For Peter
 # fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/05_DGE")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE")
 
 # Remove environment variables
 rm(list = ls())

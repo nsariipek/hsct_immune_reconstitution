@@ -7,7 +7,7 @@ library(ggpubr)
 
 # Set working directory
 # fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/10_Miscellaneous")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/10_Miscellaneous")
 
 # Clear environment variables
 rm(list = ls())

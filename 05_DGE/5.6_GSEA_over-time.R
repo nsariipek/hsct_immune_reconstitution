@@ -9,10 +9,12 @@ library(fgsea)
 rm(list = ls())
 
 # Set working directory
-setwd("~/TP53_ImmuneEscape/05_DGE/")
+setwd("~/hsct_immune_reconstitution/05_DGE/")
 
 # For Peter
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/05_DGE")
+setwd(
+  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE"
+)
 
 # Load pathways for GSEA
 c2_pathways <- gmtPathways("c2.all.v2024.1.Hs.symbols.gmt")

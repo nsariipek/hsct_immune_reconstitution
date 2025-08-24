@@ -10,8 +10,8 @@ library(ComplexHeatmap)
 library(circlize)
 
 # Set working directory
-#VM: setwd("~/TP53_ImmuneEscape/05_DGE/")
-#Local: setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/05_DGE")
+#VM: setwd("~/hsct_immune_reconstitution/05_DGE/")
+#Local: setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE")
 
 # Delete environment variables & load favorite function
 rm(list = ls())
@@ -49,16 +49,30 @@ celltype_colors <- setNames(
 )
 
 # Add T cell UMAP coordinates generated in 4_Trajectories/4.2_TCR_Diversity_UMAP.R & check visually
-t_coordinates <- read.table("../4_Trajectories/4.2_UMAP-embeddings.csv", header = T, sep = ",", row.names = 1)
-seu_T[["umapT"]] <- CreateDimReducObject(embeddings = as.matrix(t_coordinates), key = "umapT_", assay = "RNA")
-DimPlot(seu_T, reduction = "umapT", shuffle = T, group.by = "TCAT_Multinomial_Label", cols = celltype_colors) +
+t_coordinates <- read.table(
+      "../4_Trajectories/4.2_UMAP-embeddings.csv",
+      header = T,
+      sep = ",",
+      row.names = 1
+)
+seu_T[["umapT"]] <- CreateDimReducObject(
+      embeddings = as.matrix(t_coordinates),
+      key = "umapT_",
+      assay = "RNA"
+)
+DimPlot(
+      seu_T,
+      reduction = "umapT",
+      shuffle = T,
+      group.by = "TCAT_Multinomial_Label",
+      cols = celltype_colors
+) +
       theme_bw() +
       theme(aspect.ratio = 1, panel.grid = element_blank()) +
       guides(color = guide_legend(override.aes = list(size = 3)))
 
 
 ### PETER LEFT OFF HERE
-
 
 # Combine TCAT scores and program usage results with Seurat metadata
 usage_tib <- read_tsv("5.1_starCAT/starCAT.scores.txt.gz") %>%

@@ -8,7 +8,7 @@ library(janitor)
 
 # Set working directory
 # fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/10_Miscellaneous")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/10_Miscellaneous")
 
 # Delete environment variables & load favorite function
 rm(list = ls())
@@ -59,7 +59,7 @@ seu@meta.data %>%
   unique %>%
   length
 
-# Recipient and donor HSPCs at remission. See 3_DGE/3.3_DGE_progenitors.R for more details
+# Recipient and donor HSPCs at remission. See 05_DGE/5.3_DGE_HSPCs.R for more details
 meta_subset <- as_tibble(seu@meta.data) %>%
   filter(
     sample_status == "remission",
@@ -68,7 +68,7 @@ meta_subset <- as_tibble(seu@meta.data) %>%
     souporcell_origin %in% c("donor", "recipient"),
     cohort == "relapse",
     timepoint %in% c(3, 5, 6),
-    sample_id != "P23_Rem1"
+    sample_id != "P23_Rem1" # does not have recipient HSPCs
   )
 meta_subset %>%
   pull(patient_id) %>%
@@ -81,6 +81,28 @@ meta_subset %>%
   pull(souporcell_origin) %>%
   tabyl()
 # --> "Genes that were upregulated in recipient HSPCs (n=417 cells) compared to their donor counterparts (n=439) included"
+
+# Similar to 8.4_Plots.R
+merged_prog_counts_tib <- as_tibble(seu@meta.data) %>%
+  filter(
+    sample_status == "remission",
+    timepoint %in% c(3, 5, 6),
+    celltype %in%
+      c("HSC MPP", "MEP", "LMPP", "Cycling Progenitors", "Early GMP")
+  ) %>%
+  dplyr::count(patient_id, cohort, souporcell_origin)
+# Pivot wider to compute proportion donor
+merged_prog_counts_tib %>%
+  filter(souporcell_origin %in% c("donor", "recipient")) %>%
+  pivot_wider(
+    names_from = souporcell_origin,
+    values_from = n,
+    values_fill = 0
+  ) %>%
+  mutate(donor_percentage = donor / (donor + recipient) * 100) %>%
+  arrange(donor_percentage) %>%
+  print(n = 30)
+# --> "All patients in whom recipient HSPCs persisted at >5% developed relapse within 18 months"
 
 ### NUMBAT CALLS ###
 

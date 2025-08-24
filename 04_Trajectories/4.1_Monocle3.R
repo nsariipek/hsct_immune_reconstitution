@@ -18,9 +18,9 @@ rm(list = ls())
 
 # Set working directory and load Seurat object
 # fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/04_Trajectories/")
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/04_Trajectories/")
 # For VM:
-#setwd("~/TP53_ImmuneEscape/4_Trajectories/")
+#setwd("~/hsct_immune_reconstitution/4_Trajectories/")
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 
 # Load colors

@@ -9,8 +9,8 @@ library(Matrix)
 library(R.utils)
 
 # Set working directory
-#VM: setwd("~/TP53_ImmuneEscape/05_DGE/")
-#Local: setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/TP53_ImmuneEscape/05_DGE")
+#VM: setwd("~/hsct_immune_reconstitution/05_DGE/")
+#Local: setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE")
 
 # Delete environment variables & load favorite function
 rm(list = ls())
@@ -90,7 +90,7 @@ write_delim(
 gzip("../AuxiliaryFiles/starCAT/features.tsv", overwrite = T, remove = T)
 
 # Run 3.1_PvG-TCAT.sh to generate results (this was done on a Google Cloud Platform virtual machine terminal). This will create a folder 5.1_starCAT with the results
-#cd /home/unix/vangalen/TP53_ImmuneEscape/05_DGE
+#cd /home/unix/vangalen/hsct_immune_reconstitution/05_DGE
 #mkdir 5.1_starCAT
 #./5.1_starCAT.sh
 #rm -r cache

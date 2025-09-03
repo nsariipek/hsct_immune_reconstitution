@@ -9,13 +9,12 @@ library(janitor)
 # Empty environment
 rm(list = ls())
 
-# Set working directory (for Nurefsan)
+# Set working directory (for Nurefsan or VM)
 setwd("~/hsct_immune_reconstitution/09_Numbat/")
 
-# For Peter
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat"
-)
+# For Peter (local)
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat")
 
 # Load the saved Seurat object
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
@@ -91,7 +90,7 @@ meta_subset2 %>%
   theme_bw() +
   theme(aspect.ratio = 0.3, panel.grid = element_blank())
 
-ggsave("9.8.1_Pseudotime_maligant_cells.pdf", width = 8, height = 4)
+ggsave("9.8.1_Pseudotime_density_maligant_cells.pdf", width = 8, height = 4)
 
 # Statistical test
 group1 <- meta_subset2 %>%
@@ -120,3 +119,27 @@ meta_subset2 %>%
   )
 
 ggsave("9.8.2_Pseudotime_celltypes.pdf", width = 12, height = 4)
+
+# How does it look split by patient?
+meta_subset2 %>%
+  ggplot(aes(x = predicted_Pseudotime, color = sample_status)) +
+  geom_density(linewidth = 1) +
+  scale_color_manual(values = timepoint_colors) +
+  facet_wrap(~patient_id, nrow = 1) +
+  theme_bw() +
+  theme(aspect.ratio = 0.3, panel.grid = element_blank())
+
+ggsave("9.8.3_Pseudotime_density_per_patient.pdf", width = 10)
+
+# Statistical test
+p_id <- "P20"
+p_id <- "P23"
+p_id <- "P30"
+p_id <- "P31"
+group1 <- meta_subset2 %>%
+  filter(sample_status == "pre-transplant", patient_id == p_id) %>%
+  pull(predicted_Pseudotime)
+group2 <- meta_subset2 %>%
+  filter(sample_status == "relapse", patient_id == p_id) %>%
+  pull(predicted_Pseudotime)
+ks.test(group1, group2)

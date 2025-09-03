@@ -346,7 +346,7 @@ ggsave(
 ######## STATISTICS ########
 
 # We initially thought about comparing pseudotime values between the cohorts using the Kolmogorov-Smirnov test or Wilcoxon test. However, using cells as replicates is not OK.
-# Instead, we should compare patient medians. In this section, we will compare the proportion of cells that fall within three pseudotime bins.
+# Instead, we should compare patients In this section, we will compare the proportion of cells that fall within three pseudotime bins.
 
 # Create 3 equal-width bins of pseudotime values
 meta_binned <- meta_subset %>%

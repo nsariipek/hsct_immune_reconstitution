@@ -212,12 +212,18 @@ program_averages_tib %>%
       scale_y_discrete(expand = expansion(mult = c(0, 0.22))) +
       theme_bw() +
       theme(
-            panel.grid = element_blank(),
             aspect.ratio = 2,
+            panel.grid = element_blank(),
+            panel.border = element_rect(
+                  color = "black",
+                  fill = NA,
+                  linewidth = 0.5
+            ),
+            axis.text = element_text(color = "black"),
             axis.text.x = element_text(angle = 45, hjust = 1, size = 5)
       )
 
-ggsave("5.2.1_Program_usage_per_patient.png", width = 12, height = 8)
+ggsave("5.2.1_Program_usage_per_patient.pdf", width = 12, height = 8)
 
 # The significance is hard to see in the plot above. Here's an alternative that shows it more clearly.
 pdf("5.2.2_Program_usage_stats.pdf", width = 10, height = 8)
@@ -285,16 +291,25 @@ program_averages_tib %>%
       ggplot(aes(x = celltype, y = program, fill = median_p)) +
       geom_tile() +
       scale_fill_gradient(low = "white", high = "red") +
+      scale_x_discrete(expand = c(0, 0)) +
+      scale_y_discrete(expand = c(0, 0)) +
       theme_minimal() +
       theme(
+            aspect.ratio = 2.3,
+            panel.grid = element_blank(),
+            panel.border = element_rect(
+                  color = "black",
+                  fill = NA,
+                  linewidth = 0.5
+            ),
+            axis.text = element_text(color = "black"),
             axis.text.x = element_text(angle = 45, hjust = 1),
-            aspect.ratio = 2
       ) +
       facet_wrap(~cohort)
 
-ggsave("5.2.3_Program_usage_medians.png", width = 12, height = 8)
+ggsave("5.2.3_Program_usage_medians.pdf", width = 6, height = 6)
 
 # Note: in prior versions of this script, I also tried:
 # 1. To subtract the medians and look at the difference between cohorts in one plot. This was misleading as small and insignificant changes were visually striking.
-# 2. Making a heatmap to evaluate if samples could be clustered by T cell program usages. This clustering did not separate cohorts or TP53 mutation status
+# 2. Making a heatmap to evaluate if samples could be clustered by T cell program usages. This clustering did not separate cohorts or TP53 mutation status.
 # I deleted these scripts on 250902 (should still be in Github history)

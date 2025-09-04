@@ -5,6 +5,7 @@
 library(Seurat)
 library(tidyverse)
 library(janitor)
+library(readxl)
 
 # Set working directory
 # fmt: skip
@@ -20,68 +21,38 @@ cutf <- function(x, f = 1, d = "/") {
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 
 
-### TCR ENRICHMENT ###
+# RELAPSE PREDICTION TIME -----------------------------------------------------
 
-# Subset for T cells
-seu_T <- subset(seu, !is.na(TCAT_Multinomial_Label))
+# How long after transplant were patients in the relapse cohort diagnosed with relapse?
 
-# Some stats for the results section:
-table(is.na(seu_T$CTstrict))
-seu_T$CTstrict[!is.na(seu_T$CTstrict)] %>% unique %>% length()
+df <- read_excel("10.2_Timepoints.xlsx")
+relapse_after_days_df <- df %>%
+  filter(Sample_type == "Relapse", Cohort == "Relapse", Patient_id != "P23") %>% # Exclude P23 b/c they had few persistent recipient progenitors
+  group_by(Patient_id) %>%
+  arrange(Patient_id, Timepoint_days) %>%
+  slice_head(n = 1)
+summary(as.numeric(relapse_after_days_df$Timepoint_days) / 30.44)
 
-# --> "We captured TCR sequences in 85.6% of all 199,957 T cells in our dataset, representing 115,205 unique clonotypes"
+# Subset for six patients with >5% persistent HSPCs ~3 months after transplant (see merged_prog_props_tib from 8.3_Souporcell_plots.R)
+subset_relapse_after_days <- relapse_after_days_df %>%
+  filter(Patient_id %in% c("P20", "P21", "P22", "P24", "P26", "P27")) %>%
+  pull(Timepoint_days) %>%
+  as.numeric()
+summary(subset_relapse_after_days / 30.44)
+# Either way, the median is 5.5 months
 
-### SOUPORCELL CALLS ###
+# --> "All 10 patients with <5% recipient HSPCs ~3 months after transplant remained in remission for more than three years (remission cohort and patient 23), whereas all six patients with >5% developed relapse within 18 months (median 5.5, range 4.4-16.5 months)."
 
-# Figure 4A
-seu@meta.data %>% tabyl("souporcell_origin") %>% adorn_totals(where = "row")
-seu@meta.data %>%
-  filter(!is.na(souporcell_origin)) %>%
-  pull(patient_id) %>%
-  unique %>%
-  length
-seu@meta.data %>% tabyl("numbat_compartment") %>% adorn_totals(where = "row")
-seu@meta.data %>%
-  filter(!is.na(numbat_compartment)) %>%
-  pull(patient_id) %>%
-  unique %>%
-  length
-
-# Recipient and donor HSPCs at remission. See 05_DGE/5.3_DGE_HSPCs.R for more details
-meta_subset <- as_tibble(seu@meta.data) %>%
-  filter(
-    sample_status == "remission",
-    timepoint %in% c(3, 5, 6),
-    celltype %in%
-      c("HSC MPP", "MEP", "LMPP", "Cycling Progenitors", "Early GMP"),
-    souporcell_origin %in% c("donor", "recipient"),
-    cohort == "relapse",
-    sample_id != "P23_Rem1" # does not have recipient HSPCs
-  )
-meta_subset %>%
-  pull(patient_id) %>%
-  as.character %>%
-  unique %>%
-  sort
-# --> "For this analysis, we excluded the long-term remission cohort which had <10 persistent recipient HSPCs and P30-P33 who did not have 3-6 month remission samples, leaving six patients from the relapse cohort."
-
-meta_subset %>%
-  pull(souporcell_origin) %>%
-  tabyl()
-# --> "Genes that were upregulated in recipient HSPCs (n=417 cells) compared to their donor counterparts (n=439) included"
-
-# Similar to 8.4_Plots.R
+# Here's another way to get at the same conclusion (more similar to 8.4_Plots.R)
 merged_prog_counts_tib <- as_tibble(seu@meta.data) %>%
   filter(
     sample_status == "remission",
     timepoint %in% c(3, 5, 6),
+    souporcell_origin %in% c("donor", "recipient"),
     celltype %in%
-      c("HSC MPP", "MEP", "LMPP", "Cycling Progenitors", "Early GMP")
+      c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP")
   ) %>%
-  dplyr::count(patient_id, cohort, souporcell_origin)
-# Pivot wider to compute proportion donor
-merged_prog_counts_tib %>%
-  filter(souporcell_origin %in% c("donor", "recipient")) %>%
+  dplyr::count(patient_id, cohort, souporcell_origin) %>%
   pivot_wider(
     names_from = souporcell_origin,
     values_from = n,
@@ -90,9 +61,47 @@ merged_prog_counts_tib %>%
   mutate(donor_percentage = donor / (donor + recipient) * 100) %>%
   arrange(donor_percentage) %>%
   print(n = 30)
-# --> "All patients in whom recipient HSPCs persisted at >5% developed relapse within 18 months"
 
-### NUMBAT CALLS ###
+
+# PERSISTENT RECIPIENT PROGENITORS --------------------------------------------
+
+as_tibble(seu@meta.data) %>%
+  filter(
+    sample_status == "remission",
+    timepoint %in% c(3, 5, 6),
+    patient_id %in% c("P20", "P21", "P22", "P24", "P26", "P27"),
+    !is.na(celltype),
+    !is.na(souporcell_origin)
+  ) %>%
+  mutate(
+    classification = ifelse(
+      celltype %in%
+        c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP") &
+        souporcell_origin == "recipient",
+      yes = "recipient_progenitor",
+      no = "other"
+    )
+  ) %>%
+  group_by(patient_id, classification) %>%
+  dplyr::count() %>%
+  pivot_wider(names_from = classification, values_from = n) %>%
+  mutate(percent = recipient_progenitor / (recipient_progenitor + other) * 100)
+# --> "The persistent recipient HSPCs made up 0.27–1.31% of cells in these marrows"
+
+# SOUPORCELL STATS ------------------------------------------------------------
+
+# Figure 4A
+seu@meta.data %>%
+  tabyl("souporcell_origin") %>%
+  adorn_totals(where = "row")
+seu@meta.data %>%
+  filter(!is.na(souporcell_origin)) %>%
+  pull(patient_id) %>%
+  unique %>%
+  length
+# Out of 33 patients in total, we successfully resolved cell origins in 21, yielding recipient/donor assignments for 342,780 out of 496,691 cells.
+
+# NUMBAT CALLS ----------------------------------------------------------------
 
 # Total percent normal and tumor
 as_tibble(seu@meta.data) %>%
@@ -109,10 +118,21 @@ as_tibble(seu@meta.data) %>%
         "HSC MPP",
         "MEP",
         "LMPP",
-        "Cycling Progenitors",
+        "Cycling Progenitor", # THIS IS A TYPO
         "Early GMP"
       )
   ) %>%
   dplyr::count(numbat_compartment, patient_id) %>%
   adorn_totals(where = "row")
-# --> "In all patients where Numbat detected CNVs, every recipient HSPC in remission harbored them (58 cells across 3 patients)."
+# --> "In all patients where Numbat detected CNVs, every recipient HSPC in remission harbored them (75 cells across 3 patients)."
+
+# TCR ENRICHMENT STATS --------------------------------------------------------
+
+# Subset for T cells
+seu_T <- subset(seu, !is.na(TCAT_Multinomial_Label))
+
+# Some stats for the results section:
+table(is.na(seu_T$CTstrict))
+seu_T$CTstrict[!is.na(seu_T$CTstrict)] %>% unique %>% length()
+
+# --> "We captured TCR sequences in 85.6% of all 199,957 T cells in our dataset, representing 115,205 unique clonotypes"

@@ -4,7 +4,7 @@
 # Load the libraries
 library(tidyverse)
 library(Seurat)
-library(ggplot2)
+library(ggplot1)
 library(ggpubr)
 library(ggtext)
 
@@ -46,10 +46,45 @@ souporcell_colors <- c(
 cohort_colors <- c("long-term-remission" = "#546fb5", relapse = "#e54c35")
 
 
-# 1. ALL BARPLOTS --------------------------------------------------------
+# 1. BARPLOTS -----------------------------------------------------------------
 
-# Calculate the proportion recipient and donor cells
+# Chimerism per patient by sample status
 t1 <- metadata_tib %>%
+  group_by(patient_id, souporcell_origin, sample_status) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(patient_id, sample_status) %>%
+  mutate(proportion = count / sum(count)) %>%
+  ungroup()
+
+# Barplot per patient by sample status
+p1 <- t1 %>%
+  ggplot(aes(x = sample_status, y = proportion, fill = souporcell_origin)) +
+  geom_bar(stat = "identity", position = "stack") +
+  facet_wrap(~patient_id, ncol = 7) +
+  scale_fill_manual(values = souporcell_colors) +
+  labs(
+    x = "Patient ID",
+    y = "Proportion",
+    fill = "Cell origin",
+    title = "Proportion of cell origins in each sample"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid = element_blank(),
+    axis.text = element_text(color = "black"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+# View
+p1
+
+# Save as a pdf file
+pdf("8.4.1_Barplots_per_patient.pdf", width = 8, height = 8)
+p1
+dev.off()
+
+# Chimerism per cell type by patient
+t2 <- metadata_tib %>%
   filter(sample_status == "remission", timepoint %in% c(3, 5, 6)) %>%
   select(patient_id, celltype, souporcell_origin) %>%
   # Add cell type percent
@@ -75,7 +110,8 @@ t1 <- metadata_tib %>%
   group_by(patient_id, celltype) %>%
   mutate(souporcell_proportion = count / sum(count))
 
-p1 <- t1 %>%
+# Barplot per cell type by patient
+p2 <- t2 %>%
   ggplot(aes(
     x = patient_id,
     y = souporcell_proportion,
@@ -105,52 +141,15 @@ p1 <- t1 %>%
   )
 
 # View
-p1
-
-# Save as a pdf file
-pdf("8.4.1_All_barplots.pdf", width = 16, height = 12)
-p1
-dev.off()
-
-
-# 2. BARPLOT PER PATIENT -------------------------------------------------
-
-# Genotype results per patient by sample status
-t2 <- metadata_tib %>%
-  group_by(patient_id, souporcell_origin, sample_status) %>%
-  summarise(count = n(), .groups = "drop") %>%
-  group_by(patient_id, sample_status) %>%
-  mutate(proportion = count / sum(count)) %>%
-  ungroup()
-
-p2 <- t2 %>%
-  ggplot(aes(x = sample_status, y = proportion, fill = souporcell_origin)) +
-  geom_bar(stat = "identity", position = "stack") +
-  facet_wrap(~patient_id, ncol = 7) +
-  scale_fill_manual(values = souporcell_colors) +
-  labs(
-    x = "Patient ID",
-    y = "Proportion",
-    fill = "Cell origin",
-    title = "Proportion of cell origins in each sample"
-  ) +
-  theme_bw() +
-  theme(
-    panel.grid = element_blank(),
-    axis.text = element_text(color = "black"),
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
-
-# View
 p2
 
 # Save as a pdf file
-pdf("8.4.2_Barplot_per_patient.pdf", width = 8, height = 8)
+pdf("8.4.2_Barplots_per_celltype.pdf", width = 16, height = 12)
 p2
 dev.off()
 
 
-# 3. HEATMAP -------------------------------------------------------------
+# 2. HEATMAP AND JITTER PLOTS -------------------------------------------------
 
 # Prepare data for heatmap visualization
 counts_tib <- metadata_tib %>%
@@ -173,7 +172,8 @@ props_tib %>% filter(celltype == "Plasma Cell") %>% pull(recipient) %>% sum
 649 / (649 + 451)
 # "The replacement of recipient cell by donor cells varied across cell populations, with the persistence of recipient cells being highest for stromal cells and plasma cells (100% and 59%, respectively)"
 
-# Plot
+# HEATMAP ---------------------------------------
+
 heatmap <- props_tib %>%
   mutate(patient_id = factor(patient_id, levels = unique(patient_id))) %>%
   complete(patient_id, celltype) %>%
@@ -211,10 +211,9 @@ pdf("8.4.3_Souporcell_heatmap.pdf", width = 9, height = 5)
 heatmap
 dev.off()
 
+# JITTER ALL ------------------------------------
 
-#. 4 JITTER ALL ----------------------------------------------------------
-
-# Visualize the donor chimerism ratio between cohorts 3-6M samples for each celltype
+# Donor chimerism per celltype by cohort
 jitter_all_plot <- props_tib %>%
   ggplot(aes(x = cohort, y = donor_percentage, color = cohort)) +
   geom_jitter(width = 0.2, alpha = 0.5) +
@@ -253,23 +252,15 @@ pdf("8.4.4_Jitter_all.pdf", width = 8, height = 6)
 jitter_all_plot
 dev.off()
 
+# JITTER MERGED ALL -----------------------------
 
-# 5. JITTER MERGED ALL ------------------------------------------------------
-
-# Prepare data for heatmap visualization
-merged_counts_tib <- metadata_tib %>%
-  filter(sample_status == "remission", timepoint %in% c(3, 5, 6)) %>%
-  dplyr::count(patient_id, cohort, souporcell_origin)
-
-# Pivot wider to compute proportion donor
-merged_props_tib <- merged_counts_tib %>%
-  pivot_wider(
-    names_from = souporcell_origin,
-    values_from = n,
-    values_fill = 0
-  ) %>%
+# Donor chimerism per patient (cell types merged)
+merged_props_tib <- props_tib %>%
+  group_by(patient_id, cohort) %>%
+  summarize(donor = sum(donor), recipient = sum(recipient)) %>%
   mutate(donor_percentage = donor / (donor + recipient) * 100)
 
+# Plot
 merged_all_plot <- merged_props_tib %>%
   ggplot(aes(x = cohort, y = donor_percentage, color = cohort)) +
   geom_jitter(width = 0.2, size = 3, alpha = 0.8) +
@@ -309,8 +300,9 @@ merged_all_plot
 dev.off()
 
 
-# 6. JITTER HSPCs --------------------------------------------------------
+# JITTER HSPCs ----------------------------------
 
+# Jitter plot per HSPC cell type by cohort
 prog_plots <- props_tib %>%
   filter(
     celltype %in% c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP")
@@ -355,25 +347,16 @@ prog_plots
 dev.off()
 
 
-# 7. JITTER MERGED HSPCs -------------------------------------------------
+# JITTER MERGED HSPCs ---------------------------
 
-# Prepare data for heatmap visualization
-merged_prog_counts_tib <- metadata_tib %>%
+# Donor chimerism per patient (cell types merged)
+merged_prog_props_tib <- props_tib %>%
   filter(
-    sample_status == "remission",
-    timepoint %in% c(3, 5, 6),
     celltype %in%
-      c("HSC MPP", "MEP", "LMPP", "Cycling Progenitors", "Early GMP")
+      c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP")
   ) %>%
-  dplyr::count(patient_id, cohort, souporcell_origin)
-
-# Pivot wider to compute proportion donor
-merged_prog_props_tib <- merged_prog_counts_tib %>%
-  pivot_wider(
-    names_from = souporcell_origin,
-    values_from = n,
-    values_fill = 0
-  ) %>%
+  group_by(patient_id, cohort) %>%
+  summarize(donor = sum(donor), recipient = sum(recipient)) %>%
   mutate(donor_percentage = donor / (donor + recipient) * 100)
 
 merged_prog_plot <- merged_prog_props_tib %>%
@@ -381,7 +364,7 @@ merged_prog_plot <- merged_prog_props_tib %>%
   geom_jitter(width = 0.2, size = 3, alpha = 0.5) +
   coord_cartesian(ylim = c(0, 101)) +
   stat_summary(
-    fun = mean,
+    fun = median,
     geom = "crossbar",
     width = 0.5,
     size = 0.4,

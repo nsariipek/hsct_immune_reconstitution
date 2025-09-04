@@ -43,6 +43,8 @@ seu_subset <- seu_subset %>%
 
 # Also exclude P23 who does not have recipient HSPCs
 seu_subset <- subset(seu_subset, sample_id != "P23_Rem1")
+seu_subset$patient_id %>% unique %>% sort
+# --> "For this analysis, we excluded the long-term remission cohort which had <10 persistent recipient HSPCs and P30-P33 who did not have remission samples at the 3-month time point. Thus, the following analysis of recipient vs. donor HSPCs during remission is based on six patients who developed relapse within 18 months."
 
 # Check final cell numbers
 n_cells <- seu_subset@meta.data %>%

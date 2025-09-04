@@ -404,7 +404,7 @@ seu$timepoint <- case_when(
   grepl("4618", seu$orig.ident) ~ 0,
   grepl("6174", seu$orig.ident) ~ 3,
   grepl("9931", seu$orig.ident) ~ 12,
-  grepl("1953", seu$orig.ident) ~ 24,
+  grepl("1953", seu$orig.ident) ~ 24, # was actually 39 months
   grepl("1677", seu$orig.ident) ~ 0,
   grepl("1732", seu$orig.ident) ~ 1,
   grepl("1811", seu$orig.ident) ~ 3,

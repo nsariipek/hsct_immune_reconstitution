@@ -10,7 +10,7 @@ AnalysisPeter/
 # R Environment Variables and R project files for Terra
 .Renviron
 .Rproj.user
-.Rproj
+*.Rproj
 
 # Python environment for starcat
 .venv/

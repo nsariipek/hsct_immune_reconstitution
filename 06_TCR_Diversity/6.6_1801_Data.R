@@ -13,11 +13,9 @@ library(readxl)
 # Empty environment
 rm(list = ls())
 
-# Peter's favorite function
-#cutf <- function(x, f=1, d="/") sapply(strsplit(x, d), function(i) paste(i[f], collapse=d))
-
-# For Nurefsan:
-my_wd <- "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/hsct_immune_reconstitution/06_TCR_Diversity"
+# Set working directory (local)
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/06_TCR_Diversity/")
 
 # Load the tsv files for relapse cohort
 rel_files <- list.files(

@@ -4,7 +4,6 @@
 # Load the libraries
 library(tidyverse)
 library(Seurat)
-library(ggplot1)
 library(ggpubr)
 library(ggtext)
 

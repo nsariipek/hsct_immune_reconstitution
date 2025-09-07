@@ -10,12 +10,9 @@ library(cowplot)
 # Empty environment
 rm(list = ls())
 
-# For Nurefsan:
-setwd("/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/")
-# For Peter:
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/06_TCR_Diversity"
-)
+# Set working directory (local)
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/06_TCR_Diversity/")
 
 # Load necessary functions
 cutf <- function(x, f = 1, d = "/") {

@@ -7,9 +7,8 @@ library(tidyverse)
 library(janitor)
 
 # Set working directory
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat"
-)
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat")
 
 # Delete environment variables
 rm(list = ls())

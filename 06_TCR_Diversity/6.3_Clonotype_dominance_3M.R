@@ -72,7 +72,7 @@ metasubset2_tib %>%
 
 # Save
 ggsave(
-  paste0("6.2.1_Clonotype_proportion_", patient_filter, ".pdf"),
+  paste0("6.3.1_Clonotype_proportion_", patient_filter, ".pdf"),
   width = 4.5,
   height = 3
 )
@@ -140,7 +140,7 @@ metasubset4_tib %>%
 
 # Save
 ggsave(
-  paste0("6.2.2_Clonotype_number_", patient_filter, ".pdf"),
+  paste0("6.3.2_Clonotype_number_", patient_filter, ".pdf"),
   width = 3,
   height = 3.5
 )

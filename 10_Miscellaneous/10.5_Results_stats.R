@@ -11,11 +11,8 @@ library(readxl)
 # fmt: skip
 setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/10_Miscellaneous")
 
-# Delete environment variables & load favorite function
+# Delete environment variables
 rm(list = ls())
-cutf <- function(x, f = 1, d = "/") {
-  sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
-}
 
 # Load data
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
@@ -24,10 +21,9 @@ seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 # RELAPSE PREDICTION TIME -----------------------------------------------------
 
 # How long after transplant were patients in the relapse cohort diagnosed with relapse?
-
 df <- read_excel("10.2_Timepoints.xlsx")
 relapse_after_days_df <- df %>%
-  filter(Sample_type == "Relapse", Cohort == "Relapse", Patient_id != "P23") %>% # Exclude P23 b/c they had few persistent recipient progenitors
+  filter(Cohort == "Relapse", Sample_type == "Relapse") %>%
   group_by(Patient_id) %>%
   arrange(Patient_id, Timepoint_days) %>%
   slice_head(n = 1)

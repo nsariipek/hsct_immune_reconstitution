@@ -20,7 +20,18 @@ setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/06_TCR_
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 seu_T <- subset(seu, subset = !is.na(TCAT_Multinomial_Label))
 
-# Cohort colors
+# Load colors
+celltype_colors_df <- read.table(
+  "../celltype_colors.txt",
+  sep = "\t",
+  header = T,
+  stringsAsFactors = F,
+  comment.char = ""
+)
+celltype_colors <- setNames(
+  celltype_colors_df$color,
+  celltype_colors_df$celltype
+)
 cohort_colors <- c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
 
 
@@ -102,6 +113,7 @@ metasubset3_tib <- metasubset2_tib %>%
   mutate(patient_id = as.character(patient_id))
 
 # Sample min_cells from each patient. This gives all the plots below the same y-axis range
+set.seed(94)
 metasubset3_tib <- metasubset3_tib %>%
   group_by(patient_id) %>%
   slice_sample(n = min_cells)
@@ -162,7 +174,7 @@ TCR_WT <- plot_TCR(
 
 # Save as a pdf: combined TP53-MUT and TP53-WT, or separate
 pdf(
-  paste0("6.3_TCR_Diversity_3M", cell_subset, "_both.pdf"),
+  paste0("6.4_TCR_Diversity_3M", cell_subset, "_both.pdf"),
   width = 2.5,
   height = 3.5
 )
@@ -170,7 +182,7 @@ TCR_all
 dev.off()
 
 pdf(
-  paste0("6.3_TCR_Diversity_3M", cell_subset, "_MT.pdf"),
+  paste0("6.4_TCR_Diversity_3M", cell_subset, "_MT.pdf"),
   width = 2.5,
   height = 3.5
 )
@@ -178,7 +190,7 @@ TCR_MT
 dev.off()
 
 pdf(
-  paste0("6.3_TCR_Diversity_3M", cell_subset, "_WT.pdf"),
+  paste0("6.4_TCR_Diversity_3M", cell_subset, "_WT.pdf"),
   width = 2.5,
   height = 3.5
 )

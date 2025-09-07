@@ -1,17 +1,16 @@
 # Custom additions
 .DS_Store
-.qodo
-gs/
-AuxiliaryFiles/
 02_Annotate-manual
-08_Souporcell/AuxiliaryFiles/
+AuxiliaryFiles/
 AnalysisPeter/
 
 # History files
 .Rhistory
 
-# R Environment Variables
+# R Environment Variables and R project files for Terra
 .Renviron
+.Rproj.user
+.Rproj
 
 # Python environment for starcat
 .venv/

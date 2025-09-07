@@ -32,7 +32,7 @@ seu_T <- AddMetaData(seu_T, select(usage_tib, ASA))
 # Load antigen recognition signatures from Rosenberg lab: Lowery 2022, Table S10 (https://www.sciencedirect.com/science/article/pii/S1535610823003963)
 cd4neoA <- read.csv("signatures/cd4.csv")
 cd8neoA <- read.csv("signatures/cd8.csv")
-# And Yossef 2023 (https://www.science.org/doi/10.1126/science.abl5447). This is more specific to circulating T celsl and we don't end up using it in the paper.
+# And Yossef 2023 (https://www.science.org/doi/10.1126/science.abl5447). This is more specific to circulating T cells and we don't end up using it in the paper.
 neoA <- read.csv("signatures/neoantigen.csv")
 
 # Subset for CD8 T cell subsets with (similar to 4.1_Monocle3.R). Excluding naive cells changes the results but overall conclusions stay the same.
@@ -85,7 +85,7 @@ metadata <- as_tibble(seu_subset@meta.data) %>%
   ) %>%
   mutate(TP53_status = factor(TP53_status, levels = c("WT", "MUT")))
 
-# For each clonotype, calculate relative size and median signature score. We don't actually plot the size (but used to in a prior version)
+# For each clonotype, calculate relative size and median signature score. We don't actually plot the clonotype size (but used to in a prior version)
 ct_tib <- metadata %>%
   group_by(patient_id) %>%
   mutate(n_total = n(), .groups = "drop") %>%

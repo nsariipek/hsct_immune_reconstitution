@@ -4,6 +4,7 @@
 # Load the needed libraries
 library(tidyverse)
 library(Seurat)
+library(janitor)
 library(DESeq2)
 library(apeglm)
 library(pheatmap)
@@ -14,9 +15,8 @@ rm(list = ls())
 # Set working directory (Nurefsan)
 setwd("~/hsct_immune_reconstitution/05_DGE/")
 # For Peter:
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE/"
-)
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE/")
 
 # Load the saved Seurat object
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
@@ -154,6 +154,8 @@ res_tbl <- res_tbl %>%
       TRUE ~ "Not significant"
     )
   )
+res_tbl$significance %>% table
+#
 
 # Select top 20 genes for labeling
 label_genes <- res_tbl %>%

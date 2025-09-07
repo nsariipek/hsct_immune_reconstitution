@@ -1,15 +1,20 @@
-#Figure 1-D table
-#Load the libraries
+# Nurefsan Sariipek, Peter van Galen
+# Figure 1D table
 
 library(tidyverse)
 library(readxl)
 
-#Load the table has sample mutation info
-df <- read_excel(
-  "/Users/nurefsan/Partners HealthCare Dropbox/Nurefsan Sariipek/ImmuneEscapeTP53/hsct_immune_reconstitution/9_Miscellaneous/mut_table.xlsx"
-)
+# Set working directory
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/10_Miscellaneous")
 
-#Wrangle the df
+# Load table with sample mutation info
+df <- read_excel("10.3_Mutation_table.xlsx")
+
+# See number of mutations (for resutls section)
+apply(select(df, -"Patient_id"), 2, function(x) sum(as.numeric(x)))
+
+# Wrangle the df
 df_long <- df %>%
   pivot_longer(cols = -Patient_id, names_to = "Gene", values_to = "Mutated")
 

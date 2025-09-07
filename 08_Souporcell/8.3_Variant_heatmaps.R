@@ -21,14 +21,9 @@ cutf <- function(x, f = 1, d = "/") {
   sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
 }
 
-# Set working directory (local). For Nurefsan:
-setwd(
-  "/Users/dz855/Dropbox (Partners HealthCare)/ImmuneEscapeTP53/hsct_immune_reconstitution/5_Souporcell/"
-)
-# For Peter:
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/08_Souporcell/"
-)
+# Set working directory (local)
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/08_Souporcell/")
 
 # Load Seurat data
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
@@ -76,9 +71,9 @@ for (pt in pts) {
   message(paste("Starting", pt, "analysis"))
 
   # For each patient, we made a file that combines reference and alternative matrices output of the souporcell in bash on Broad cluster in bash: `paste ref.mtx alt.mtx | sed 's/ /\t/g' > ${PT}.combined.tsv`
-  # These files are saved in "5_Souporcell/AuxiliaryFiles" and not synced to GitHub due to their large size (see .gitignore). They are available upon request.
+  # These files are saved in "AuxiliaryFiles/Souporcell" and not synced to GitHub due to their large size (see .gitignore). They are available upon request.
   variants_df <- read.table(
-    paste0("AuxiliaryFiles/", pt, ".combined.tsv"),
+    paste0("../AuxiliaryFiles/Souporcell/", pt, ".combined.tsv"),
     skip = 3,
     sep = "\t"
   )

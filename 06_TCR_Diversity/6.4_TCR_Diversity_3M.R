@@ -32,7 +32,7 @@ celltype_colors <- setNames(
   celltype_colors_df$color,
   celltype_colors_df$celltype
 )
-cohort_colors <- c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
+cohort_colors <- c("long-term-remission" = "#546fb5", "relapse" = "#e54c35")
 
 
 ######## PREPARE DATA ########

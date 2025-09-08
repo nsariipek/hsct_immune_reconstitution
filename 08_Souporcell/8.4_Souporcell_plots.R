@@ -6,6 +6,7 @@ library(tidyverse)
 library(Seurat)
 library(ggpubr)
 library(ggtext)
+library(ggrepel)
 
 # Empty environment
 rm(list = ls())
@@ -361,6 +362,13 @@ merged_prog_props_tib <- props_tib %>%
 merged_prog_plot <- merged_prog_props_tib %>%
   ggplot(aes(x = cohort, y = donor_percentage, color = cohort)) +
   geom_jitter(width = 0.2, size = 3, alpha = 0.5) +
+  geom_text_repel(
+    aes(label = patient_id),
+    size = 3,
+    color = "black",
+    max.overlaps = Inf,
+    box.padding = 0.3
+  ) +
   coord_cartesian(ylim = c(0, 101)) +
   stat_summary(
     fun = median,

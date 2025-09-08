@@ -25,9 +25,7 @@ df2 <- df %>%
     ))
   )
 
-#### SOME CHECKS ####
-
-# Compare remission samples with the ones we use for remission time point analyses in the paper
+# Check that the remission time point samples are consistent between Timepoints.xlsx and seu
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 test_df <- cbind(
   swimmerfile = df2 %>%
@@ -43,36 +41,74 @@ test_df <- cbind(
 )
 identical(test_df[, "swimmerfile"], test_df[, "seuratfile"])
 
-# For manuscript text
-df2 %>%
-  filter(between(Timepoint_days, 50, 200), Sample_type == "Remission") %>%
-  mutate(Timepoint_months = Timepoint_days / 30.44) %>%
-  pull(Timepoint_months) %>% #length()
-  summary
-# --> "We focused our analysis on morphologic remission samples collected ~3 months after transplant (n=27 samples, median=3.3 months, range: 2.2–5.9)"
+# Stats for manuscript text ---------------------------------------------------
 
+# Long-term remission cohort follow up
+df2 %>%
+  filter(Cohort == "Long term remission") %>%
+  group_by(Patient_id) %>%
+  slice_max(order_by = Timepoint_days, n = 1) %>%
+  mutate(Timepoint_months = Timepoint_days / 30.44) %>%
+  pull(Timepoint_months) %>%
+  (\(x) c(n = length(x), summary(x)))()
+# --> "those who remained relapse-free during follow-up (n=19, median follow-up 36 months, range 8–83 months)"
+
+# Time to relapse
 df2 %>%
   filter(Cohort == "Relapse", Sample_type == "Relapse") %>%
   group_by(Patient_id) %>%
   filter(Timepoint_days == min(Timepoint_days)) %>%
   mutate(Timepoint_months = Timepoint_days / 30.44) %>%
-  pull(Timepoint_months) %>% #length()
-  summary
-# --> "...those who experienced relapse (median time to relapse, 5.5 months [range, 2–39 months], n=10)"
+  pull(Timepoint_months) %>%
+  (\(x) c(n = length(x), summary(x)))()
+# --> "those who experienced relapse (n=10, median time to relapse 5.5 months, range 2–39 months)"
 
+# Remission sample collection time
+df2 %>%
+  filter(between(Timepoint_days, 50, 200), Sample_type == "Remission") %>%
+  mutate(Timepoint_months = Timepoint_days / 30.44) %>%
+  pull(Timepoint_months) %>%
+  (\(x) c(n = length(x), summary(x)))()
+# --> "We focused our analysis on remission samples collected ~3 months after transplant (n=27, median 3.3 months, range 2.2–5.9 months)"
+
+# Time between sampling and relapse for patients with TP53 mutations
 df2 %>%
   filter(
     Cohort == "Relapse",
     TP53_status == "MT",
     Sample_type %in% c("Remission", "Relapse")
   ) %>%
-  select(Sample_id, Sample_type, Timepoint_days, Analyzed_cells) %>%
-  group_by(Sample_id, Sample_type)
-months_to_relapse <- c(188 - 104, 502 - 90, 166 - 110, 1201 - 116) / 30.44
-summary(months_to_relapse)
-# --> "Since the patients were in morphologic remission and sampling took place a median of 8.1 months prior to relapse, ..." [applies to TP53]
+  select(Sample_id, Sample_type, Timepoint_days, Analyzed_cells)
+sampling_to_relapse <- c(
+  188 - 104,  #P20
+  502 - 90,   #P21
+  166 - 110,  #P22
+  1201 - 116  #P23
+) /
+  30.44
+summary(sampling_to_relapse)
+# --> "The patients with TP53-mutated AML/MDS were in morphologic remission at this time and did not develop relapse until a median of 8.1 months after sampling (range 1.8–35.6 months)"
 
-# Sample collection times (not used in the text)
+# Time between sampling and relapse for patients with >5% recipient HSPCs ~3 months after transplant
+df2 %>%
+  filter(
+    Patient_id %in% c("P20", "P21", "P22", "P24", "P26", "P27"),
+    Sample_type %in% c("Remission", "Relapse")
+  ) %>%
+  select(Sample_id, Sample_type, Timepoint_days, Analyzed_cells)
+sampling_to_relapse <- c(
+  188 - 104, #P20
+  502 - 90,  #P21
+  166 - 110, #P22
+  168 - 88,  #P24
+  133 - 104, #P26
+  146 - 83   #P27
+) /
+  30.44
+summary(sampling_to_relapse)
+# --> "These six patients did not develop relapse until a median of 2.3 months after sampling (range 1.0–13.5 months). "
+
+# Overall sample collection times (not used in the text)
 df2 %>%
   filter(Timepoint_days != -25, Analyzed_cells == "Yes") %>%
   select(Patient_id, Timepoint_days) %>%
@@ -87,7 +123,8 @@ df_line <- df2 %>%
     Timepoint_days == max(Timepoint_days) |
       Timepoint_days == min(Timepoint_days)
   ) %>%
-  select(Patient_id, Timepoint_days, y_placement)
+  select(Patient_id, Timepoint_days, y_placement) %>%
+  mutate(Timepoint_days = pmin(Timepoint_days, 63 * 30.44))
 
 # Create background rectangles for remission (yellow) and relapse (red)
 rem_rect <- df2 %>%
@@ -101,6 +138,7 @@ rem_rect <- df2 %>%
     )
   ) %>%
   mutate(
+    xmax = pmin(xmax, 63 * 30.44),
     ymin = y_placement - 0.3,
     ymax = y_placement + 0.3
   )

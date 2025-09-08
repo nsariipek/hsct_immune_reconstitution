@@ -114,7 +114,7 @@ as_tibble(seu@meta.data) %>%
         "HSC MPP",
         "MEP",
         "LMPP",
-        "Cycling Progenitor", # THIS IS A TYPO
+        "Cycling Progenitor",
         "Early GMP"
       )
   ) %>%

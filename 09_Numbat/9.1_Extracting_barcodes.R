@@ -7,7 +7,10 @@ library(janitor)
 library(readr)
 library(dplyr)
 
-setwd("~/hsct_immune_reconstitution/09_Numbat/")
+# Set working directory
+#setwd("~/hsct_immune_reconstitution/09_Numbat/")
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/10_Miscellaneous")
 
 # Empty environment
 rm(list = ls())
@@ -19,7 +22,7 @@ cutf <- function(x, f = 1, d = "/") {
 
 # Load the saved dataframe that contains souporcell information + barcodes
 souporcell_assignments <- read_csv(
-  "../08_Souporcell/6.2_Souporcell_assignments.csv.gz"
+  "../08_Souporcell/8.2_Souporcell_assignments.csv.gz"
 )
 
 # Get unique patient identifiers

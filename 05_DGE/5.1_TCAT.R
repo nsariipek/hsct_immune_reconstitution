@@ -222,7 +222,12 @@ metadata_tib %>%
       ggplot(aes(x = cohort, y = ratio, fill = cohort)) +
       geom_boxplot(width = 0.7, alpha = 0.9, outlier.shape = NA) +
       geom_jitter(shape = 21, size = 2, color = "black") +
-      scale_fill_manual(values = c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")) +
+      scale_fill_manual(
+            values = c(
+                  "long-term-remission" = "#546fb5",
+                  "relapse" = "#e54c35"
+            )
+      ) +
       labs(y = "CD4/CD8 T cell ratio", x = NULL) +
       stat_compare_means(
             aes(group = cohort),

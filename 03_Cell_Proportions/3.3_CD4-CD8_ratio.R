@@ -21,7 +21,7 @@ seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 seu_T <- subset(seu, !is.na(TCAT_Multinomial_Label))
 
 # Cohort colors
-cohort_colors <- c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
+cohort_colors <- c("long-term-remission" = "#546fb5", "relapse" = "#e54c35")
 
 # Make a dataframe and add CD4/CD8
 metadata_df <- seu_T@meta.data %>%

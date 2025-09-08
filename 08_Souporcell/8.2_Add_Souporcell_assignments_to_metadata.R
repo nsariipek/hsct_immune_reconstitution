@@ -1,5 +1,5 @@
 # Nurefsan Sariipek and Peter van Galen, 250518
-# Adding Souporcell results to Seurat metadata and save as Gzipped csv file
+# Add Souporcell results to Seurat metadata and save as gzipped csv file
 
 library(tidyverse)
 library(Seurat)
@@ -13,9 +13,8 @@ rm(list = ls())
 # For Nurefsan:
 setwd("~/hsct_immune_reconstitution/08_Souporcell/")
 # For Peter:
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/08_Souporcell/"
-)
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/08_Souporcell/")
 
 # Load Seurat data
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
@@ -31,8 +30,9 @@ souporcell_assignments <- tibble() # Empty tibble to store merged data
 
 # Loop through each patient
 for (patient_id in patient_list) {
-  # Notifier: Show which patient is being processed
-  message(paste("🔄 Processing patient:", patient_id))
+  # patient_id <- "P20"
+  # Show which patient is being processed
+  message(paste("▶️ Processing:", patient_id))
 
   patient_meta <- seu@meta.data %>%
     as_tibble(rownames = "barcode") %>%
@@ -43,30 +43,33 @@ for (patient_id in patient_list) {
 
   # Check if the file exists before proceeding
   if (!file.exists(souporcell_file)) {
-    message(paste("⚠️ Warning: Souporcell file not found for", patient_id))
-    next # Skip this patient
+    message(paste("⚠️ Skipping due to Souporcell file not found:", patient_id))
+    next
   }
 
-  df_souporcell <- read_tsv(souporcell_file)
+  df_souporcell <- read_tsv(
+    souporcell_file,
+    col_types = cols(assignment = col_character()),
+    show_col_types = FALSE
+  )
 
-  # Wrangle the data frame
-  patient_meta$barcode <- gsub(".*_", "", patient_meta$barcode) # Extract barcode after last "_"
+  # Extract barcode after last "_"
+  patient_meta$barcode <- gsub(".*_", "", patient_meta$barcode)
 
   # Merge metadata with Souporcell data
   df_merged <- patient_meta %>%
     left_join(df_souporcell, by = "barcode") %>%
     filter(assignment %in% c("0", "1"))
 
-  ########## Big decision of origin #########
+  ########## Rule-based classification #########
 
-  # ✅ Check if timepoint == 0 sample exists first
+  # Check if timepoint == 0 sample exists first
   pretransplant_data <- df_merged %>%
     filter(timepoint == 0) %>%
     count(assignment, name = "pretransplant_cells") %>%
     mutate(percent = pretransplant_cells / sum(pretransplant_cells) * 100)
 
   donor_assignment <- NULL
-  assignment_source <- "None"
   donor_percentage <- NA_real_
 
   if (nrow(pretransplant_data) > 0) {
@@ -76,51 +79,16 @@ for (patient_id in patient_list) {
 
     if (length(dominant_assignment) == 1) {
       donor_assignment <- setdiff(c("0", "1"), dominant_assignment)
-      assignment_source <- "Timepoint = 0 sample"
+      assignment_source <- "pre-transplant sample"
       donor_percentage <- max(pretransplant_data$percent)
     } else {
       message(paste(
-        "⚠️ Could not determine dominant genotype from timepoint = 0 sample for",
+        "⚠️ Could not determine dominant genotype from pre-transplant sample for",
         patient_id
       ))
     }
   } else {
     message(paste("⚠️ No pre-transplant sample found for", patient_id))
-  }
-
-  # Compute total Mid Ery & Late Ery cell count per assignment
-  cell_counts <- df_merged %>%
-    filter(celltype %in% c("Mid Erythroids", "Late Erythroids")) %>%
-    count(assignment, name = "total_ery_cells")
-
-  total_ery_cells <- sum(cell_counts$total_ery_cells, na.rm = TRUE)
-
-  if (is.null(donor_assignment) && total_ery_cells > 200) {
-    if (nrow(cell_counts) > 0) {
-      cell_counts <- cell_counts %>%
-        mutate(percent = total_ery_cells / sum(total_ery_cells) * 100)
-
-      if (max(cell_counts$percent, na.rm = TRUE) > 80) {
-        donor_assignment <- cell_counts %>%
-          arrange(desc(percent)) %>%
-          slice(1) %>%
-          pull(assignment)
-        assignment_source <- "Mid/Late Erythroid Ratio"
-        donor_percentage <- max(cell_counts$percent)
-      } else {
-        message(paste(
-          "⚠️ Mid/Late Erythroid ratio below 80% or insufficient dominance for",
-          patient_id,
-          "- Moving to all cell type ratio"
-        ))
-      }
-    }
-  } else {
-    message(paste(
-      "⚠️ Total Mid/Late Erythroid cells ≤ 200 for",
-      patient_id,
-      "- Skipping this method"
-    ))
   }
 
   if (is.null(donor_assignment)) {
@@ -137,59 +105,59 @@ for (patient_id in patient_list) {
 
       if (length(all_cells_donor_assignment) == 1) {
         donor_assignment <- all_cells_donor_assignment
-        assignment_source <- "Overall Cell Type Ratio"
+        assignment_source <- "overall cell type ratio"
         donor_percentage <- max(all_cells_count$percent)
       } else {
         max_percentage <- max(all_cells_count$percent, na.rm = TRUE)
         donor_assignment <- "unknown"
         assignment_source <- "unknown"
         donor_percentage <- NA_real_
-        message(paste(
-          "⚠️ No dominant donor found for",
+        message(paste0(
+          "⚠️ No dominant donor found for ",
           patient_id,
-          "- Highest genotype percentage:",
-          max_percentage,
-          "% - Assigning as unknown"
+          ". Highest genotype percentage: ",
+          round(max_percentage, 2),
+          "%"
         ))
       }
     }
   }
 
-  if (!is.null(donor_assignment)) {
-    # 🔥 **Fix: Ensure 'Unknown' is correctly assigned in the dataset**
-    df_merged <- df_merged %>%
-      mutate(
-        assignment = as.character(assignment),
-        origin = case_when(
-          donor_assignment == "unknown" ~ "unknown", # Assign unknown cases
-          assignment == donor_assignment ~ "donor",
-          TRUE ~ "recipient"
-        ),
-        patient_id = patient_id
-      )
+  df_merged <- df_merged %>%
+    mutate(
+      assignment = as.character(assignment),
+      origin = case_when(
+        donor_assignment == "unknown" ~ "unknown",
+        assignment == donor_assignment ~ "donor",
+        TRUE ~ "recipient"
+      ),
+      patient_id = patient_id
+    )
 
-    # Store patient data in results list
-    results[[patient_id]] <- df_merged
+  # Store patient data in results list
+  results[[patient_id]] <- df_merged
 
-    # Append to final dataset
-    souporcell_assignments <- bind_rows(souporcell_assignments, df_merged)
+  # Append to final dataset
+  souporcell_assignments <- bind_rows(souporcell_assignments, df_merged)
 
-    message(paste(
-      "✅ Assigned donor using",
-      assignment_source,
-      "for",
+  # At the end, replace the current message with:
+  if (donor_assignment == "unknown") {
+    message(paste0(
+      "⚠️ Could not determine donor assignment for ",
       patient_id,
-      "- Donor Genotype:",
-      donor_assignment,
-      "(",
-      round(donor_percentage, 2),
-      "% )"
+      ". All cells marked as unknown"
     ))
   } else {
-    message(paste(
-      "No clear donor assignment for",
+    message(paste0(
+      "✅ Assigned donor using ",
+      assignment_source,
+      " for ",
       patient_id,
-      "- Assigned as Unknown"
+      ". Donor genotype: ",
+      donor_assignment,
+      " (",
+      round(donor_percentage, 2),
+      "%)"
     ))
   }
 }

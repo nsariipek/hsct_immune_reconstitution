@@ -294,7 +294,7 @@ p3 <- meta_subset %>%
 p4 <- meta_subset %>%
   ggplot(aes(x = monocle3_pseudotime, color = cohort)) +
   scale_color_manual(
-    values = c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
+    values = c("long-term-remission" = "#546fb5", "relapse" = "#e54c35")
   ) +
   coord_cartesian(xlim = x_lim) +
   geom_density() +
@@ -333,7 +333,7 @@ meta_subset %>%
     color = "black"
   ) +
   scale_color_manual(
-    values = c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
+    values = c("long-term-remission" = "#546fb5", "relapse" = "#e54c35")
   ) +
   theme_bw() +
   theme(aspect.ratio = 0.5, panel.grid = element_blank())
@@ -371,7 +371,7 @@ proportions_data %>%
   geom_boxplot(outlier.shape = NA) +
   geom_jitter() +
   scale_fill_manual(
-    values = c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
+    values = c("long-term-remission" = "#546fb5", "relapse" = "#e54c35")
   ) +
   facet_wrap(~pseudotime_bin) +
   stat_compare_means(

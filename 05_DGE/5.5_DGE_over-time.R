@@ -61,7 +61,7 @@ ggsave("5.5.1_Cell_counts.pdf", width = 7, height = 4)
 # Exclude P22 and P33 who have only one timepoint, and exclude remission due to insufficient cell numbers
 seu_subset <- subset(
   seu_subset,
-  !patient_id %in% c("P22", "P33") & sample_status != "remission"
+  ! patient_id %in% c("P22", "P33") & sample_status != "remission"
 )
 
 # Check final cell numbers

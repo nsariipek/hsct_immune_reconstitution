@@ -134,7 +134,7 @@ as_tibble(seu_numbat@meta.data, rownames = "cell") %>%
       c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP")
   ) %>%
   group_by(patient_id) %>%
-  filter(any(HSPC)) %>% # remove samples with 0 HSPCs
+ # filter(any(HSPC)) %>% # remove samples with 0 HSPCs
   ungroup() %>%
   group_by(patient_id, celltype) %>%
   slice_sample(n = 10) %>% # improve visuals

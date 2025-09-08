@@ -1,52 +1,53 @@
+# Nurefsan Sariipek and Peter van Galen, 250722
+# Pie chart for Figure 1
 
-# Pie Chart 
 # Load libraries
 library(tidyverse)
 
-# Your survival colors
-survival_colors <- c(
-  "Non-relapsed" = "#4775FFFF",
-  "Relapsed" = "#E64B35FF"
-)
+# Set working directory
+# fmt: skip
+setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/10_Miscellaneous")
 
-# Make lighter versions for WT
-lighter_colors <- c("Relapsed_WT" = scales::alpha("#E64B35FF", 0.4),
-  "Non-relapsed_WT" = scales::alpha("#4775FFFF", 0.4)
+# Clear environment variables
+rm(list = ls())
+
+# Define cohort colors
+cohort_colors <- c(
+  "Remission_MUT" = "#546fb5",
+  "Remission_WT" = alpha("#546fb5", 0.4),
+  "Relapse_WT" = alpha("#e54c35", 0.4),
+  "Relapse_MUT" = "#e54c35"
 )
 
 # Create the data
 df <- tibble(
-  tp53_status = c("TP53MT", "TP53WT", "TP53MT", "TP53WT"),
-  outcome = c("Relapsed", "Relapsed", "Non-relapsed", "Non-relapsed"),
-  n = c(8, 6, 6, 13)
+  cohort = c("Remission_MUT", "Remission_WT", "Relapse_WT", "Relapse_MUT"),
+  n = c(6, 13, 6, 4)
 ) %>%
+  mutate(cohort = factor(cohort, levels = cohort)) %>%
   mutate(
-    label = paste(tp53_status, outcome, "\n(n=", n, ")", sep=""),
-    fill_group = case_when(
-      tp53_status == "TP53MT" ~ outcome,
-      tp53_status == "TP53WT" ~ paste0(outcome, "_WT")
-    )
+    label = paste0(cohort, "\n(n=", n, ")")
   )
 
-# Calculate positions
+# Calculate positions for text
 df <- df %>%
-  arrange(outcome, tp53_status) %>%
-  mutate(csum = cumsum(n),
-         pos = csum - n/2)
+  mutate(csum = cumsum(n), pos = csum - n / 2) %>%
+  mutate(pos = sum(n) - pos)
 
 # Plot
-pie_chart <- ggplot(df, aes(x = "", y = n, fill = fill_group)) +
+pie_chart <- df %>%
+  ggplot(aes(x = "", y = n, fill = cohort)) +
   geom_col(width = 1, color = "white") +
   coord_polar(theta = "y") +
   geom_text(aes(y = pos, label = label), color = "black", size = 3) +
-  scale_fill_manual(values = c(lighter_colors, survival_colors)) +
+  scale_fill_manual(values = cohort_colors) +
   theme_void() +
   theme(legend.position = "none")
 
+# View
+pie_chart
 
-pdf("Figure1_piechart.pdf", width = 8, height = 8)
+# Save
+pdf("10.1_Piechart.pdf", width = 5, height = 5)
 pie_chart
 dev.off()
-
-
-  

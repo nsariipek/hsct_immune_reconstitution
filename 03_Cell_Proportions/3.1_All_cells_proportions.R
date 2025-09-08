@@ -33,7 +33,7 @@ celltype_colors <- setNames(
 )
 
 # Cohort colors
-cohort_colors <- c("long-term-remission" = "#546fb5FF", "relapse" = "#e54c35ff")
+cohort_colors <- c("long-term-remission" = "#546fb5", "relapse" = "#e54c35")
 
 # Wrangle for plotting. Only use MNC libraries for total cell type proportions, because the CD3+ sorted libraries would skew towards T cells.
 metadata_df <- seu@meta.data

@@ -1,18 +1,18 @@
 # Peter van Galen, 250718
 # Evaluate clonotype dominance in remission samples ~3 months after transplant
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 library(Seurat)
 library(ggrastr)
 library(ggpubr)
 
-# Empty environment
-rm(list = ls())
-
 # Set working directory
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/06_TCR_Diversity")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/06_TCR_Diversity"))
+
+# Clear environment variables
+rm(list = ls())
 
 # Load final Seurat object including TCR calls & subset for T cells
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")

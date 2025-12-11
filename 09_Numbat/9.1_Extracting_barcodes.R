@@ -1,18 +1,17 @@
 # Nurefsan Sariipek, 250310
 # Extracting recipient barcodes for running Numbat
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 library(janitor)
 library(readr)
 library(dplyr)
 
 # Set working directory
-#setwd("~/hsct_immune_reconstitution/09_Numbat/")
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/10_Miscellaneous")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/09_Numbat"))
 
-# Empty environment
+# Clear environment variables
 rm(list = ls())
 
 # Favorite function

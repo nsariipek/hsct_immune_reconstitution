@@ -10,12 +10,10 @@ library(ComplexHeatmap)
 library(circlize)
 
 # Set working directory
-#VM: setwd("~/hsct_immune_reconstitution/05_DGE/")
-#Local:
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/05_DGE"))
 
-# Delete environment variables & load favorite function
+# Clear environment variables & load favorite function
 rm(list = ls())
 cutf <- function(x, f = 1, d = "/") {
       sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))

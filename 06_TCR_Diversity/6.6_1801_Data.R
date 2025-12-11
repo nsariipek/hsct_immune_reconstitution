@@ -1,7 +1,7 @@
 # Nurefsan Sariipek, 240823
 # Analyzing samples from 1801 project from Leslie Kean
 
-# Load the libraries
+# Load libraries
 library(ggpubr)
 library(ggplot2)
 library(tidyverse)
@@ -10,12 +10,12 @@ library(rstatix)
 library(readr)
 library(readxl)
 
-# Empty environment
-rm(list = ls())
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/06_TCR_Diversity"))
 
-# Set working directory (local)
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/06_TCR_Diversity/")
+# Clear environment variables
+rm(list = ls())
 
 # Load the tsv files for relapse cohort
 rel_files <- list.files(

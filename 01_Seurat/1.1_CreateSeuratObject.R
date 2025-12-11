@@ -12,7 +12,7 @@ setwd("/home/rstudio/")
 # Google VM:
 #setwd("/home/unix/vangalen")
 
-# Start with a clean slate
+# Clear environment variables
 rm(list = ls())
 
 # Parameters to interact with Google bucket, this part only needed for Terra

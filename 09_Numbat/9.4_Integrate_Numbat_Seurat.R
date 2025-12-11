@@ -5,15 +5,12 @@
 library(tidyverse)
 library(Seurat)
 
-# Empty environment
-rm(list = ls())
-
 # Set working directory
-setwd("~/hsct_immune_reconstitution/09_Numbat/")
-# For Peter:
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat/"
-)
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/09_Numbat"))
+
+# Clear environment variables
+rm(list = ls())
 
 # Favorite function
 cutf <- function(x, f = 1, d = "/") {

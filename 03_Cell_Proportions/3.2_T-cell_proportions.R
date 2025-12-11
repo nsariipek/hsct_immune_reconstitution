@@ -1,17 +1,14 @@
 # Nurefsan Sariipek and Peter van Galen, 250715
 # Visualize T cell proportions
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 library(Seurat)
 library(ggpubr)
 
-# Set working directory (for Nurefsan):
-setwd("~/hsct_immune_reconstitution/5_Cell_Proportions/")
-
-# For Peter
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/5_Cell_Proportions")
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/03_Cell_Proportions"))
 
 # Clear environment variables
 rm(list = ls())

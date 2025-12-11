@@ -1,20 +1,16 @@
 # Nurefsan Sariipek and Peter van Galen, 250711
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 library(Seurat)
 library(fgsea)
 
-# Empty environment
-rm(list = ls())
-
 # Set working directory
-setwd("~/hsct_immune_reconstitution/05_DGE/")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/05_DGE"))
 
-# For Peter
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE"
-)
+# Clear environment variables
+rm(list = ls())
 
 # Load pathways for GSEA
 hallmark_pathways <- gmtPathways("h.all.v2024.1.Hs.symbols.gmt")

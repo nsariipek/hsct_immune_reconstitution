@@ -1,18 +1,18 @@
 # Nurefsan and Peter, 240117-250607
 # Plot TCR diversity over time
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 library(Seurat)
 library(scRepertoire)
 library(cowplot)
 
-# Empty environment
-rm(list = ls())
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/06_TCR_Diversity"))
 
-# Set working directory (local)
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/06_TCR_Diversity/")
+# Clear environment variables
+rm(list = ls())
 
 # Load necessary functions
 cutf <- function(x, f = 1, d = "/") {

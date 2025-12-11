@@ -1,7 +1,7 @@
 # Nurefsan Sariipek and Peter van Galen, 250719
 # Quantify neoantigen score per clonotype
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 library(Seurat)
 library(ggforce)
@@ -11,11 +11,14 @@ library(ggrastr)
 # Start with a clean slate
 rm(list = ls())
 
-# Set working directory and load Seurat object
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/07_Neoantigen")
-# For VM:
-#setwd("~/hsct_immune_reconstitution/10_Neoantigen/")
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/07_Neoantigen"))
+
+# Clear environment variables
+rm(list = ls())
+
+# Load Seurat object
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 
 # Subset for T cells

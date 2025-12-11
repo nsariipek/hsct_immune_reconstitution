@@ -2,7 +2,7 @@
 # Run BM annotation using Ksenia's script
 # The final version was run by Peter on a Google VM on 250426
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 library(Seurat)
 library(BoneMarrowMap)
@@ -21,9 +21,10 @@ library(ggsci)
 # devtools::install_github('andygxzeng/BoneMarrowMap')
 
 # Set working directory
-setwd("~/hsct_immune_reconstitution/2_Annotate-predict/")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/02_Annotate-predict"))
 
-# Clear environment
+# Clear environment variables
 rm(list = ls())
 
 # Load the object generated in 1_Seurat/1.1_CreateSeuratObject.R
@@ -280,14 +281,6 @@ seu$celltype <- factor(
 #  predicted_CellType_Broad, celltype) %>% count() %>% view
 
 ### PLOT UMAPS ###
-
-# Local for Peter. This only works for the "celltype" group below
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/2_Annotate-predict/"
-)
-#seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")
-#annotated_cells <- colnames(seu)[!is.na(seu$celltype)]
-#seu_pass <- subset(seu, cells = annotated_cells)
 
 # Subset for cells with a good annotation
 seu_pass <- subset(seu, mapping_error_QC == "Pass")

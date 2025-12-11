@@ -4,13 +4,12 @@
 library(tidyverse)
 library(Seurat)
 
-# Clear environment
-rm(list = ls())
-
 # Set working directory
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/2_Annotate-predict/"
-)
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/02_Annotate-predict"))
+
+# Clear environment variables
+rm(list = ls())
 
 # Load the saved seurat objects
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")

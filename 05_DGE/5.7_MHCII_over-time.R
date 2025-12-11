@@ -1,15 +1,14 @@
 # Peter van Galen, 250710
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 
-# Empty environment
-rm(list = ls())
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/05_DGE"))
 
-# For Peter
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE"
-)
+# Clear environment variables
+rm(list = ls())
 
 # Load the DGE results from 5.5_DGE_tumorcells.R
 de_results <- read_tsv("5.5_DGE_Pre-transplant_vs_Relapse.txt")

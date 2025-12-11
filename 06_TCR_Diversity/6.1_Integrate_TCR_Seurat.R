@@ -3,18 +3,19 @@
 
 # Note: this script has to be run from Terra. Access to Google Cloud storage from other locations is finicky and it would be better to use `gsutil cp` instead, as in 1.1_CreateSeuratObject.R
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 library(Seurat)
 library(googleCloudStorageR)
 library(glue)
 library(scRepertoire)
 
-# Empty environment
-rm(list = ls())
-
 # Set working directory
-setwd("~/hsct_immune_reconstitution/06_TCR_Diversity/")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/06_TCR_Diversity"))
+
+# Clear environment variables
+rm(list = ls())
 
 # Load Seurat object
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")

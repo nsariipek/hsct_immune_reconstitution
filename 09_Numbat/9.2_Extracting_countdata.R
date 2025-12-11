@@ -6,11 +6,12 @@ library(Seurat)
 library(readr)
 library(stringr)
 
-# Empty environment
-rm(list = ls())
-
 # Set working directory
-setwd("~/hsct_immune_reconstitution/09_Numbat/")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/09_Numbat"))
+
+# Clear environment variables
+rm(list = ls())
 
 # Create output folder if it doesn't exist
 output_dir <- "UMI_counts"

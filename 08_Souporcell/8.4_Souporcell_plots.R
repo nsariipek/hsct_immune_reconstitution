@@ -1,21 +1,19 @@
 # Nurefsan Sariipek and Peter van Galen, 250706
 # Generate plots of donor/recipient proportions
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 library(Seurat)
 library(ggpubr)
 library(ggtext)
 library(ggrepel)
 
-# Empty environment
-rm(list = ls())
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/08_Souporcell"))
 
-# For VM:
-# setwd("~/hsct_immune_reconstitution/08_Souporcell/")
-# For Peter:
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/08_Souporcell/")
+# Clear environment variables
+rm(list = ls())
 
 # Load data
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")

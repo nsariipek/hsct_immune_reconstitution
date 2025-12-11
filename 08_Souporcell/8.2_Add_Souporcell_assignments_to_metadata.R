@@ -1,20 +1,19 @@
 # Nurefsan Sariipek and Peter van Galen, 250518
 # Add Souporcell results to Seurat metadata and save as gzipped csv file
 
+# Load libraries
 library(tidyverse)
 library(Seurat)
 library(ggplot2)
 library(RColorBrewer)
 library(janitor)
 
-# Empty environment
-rm(list = ls())
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/08_Souporcell"))
 
-# For Nurefsan:
-setwd("~/hsct_immune_reconstitution/08_Souporcell/")
-# For Peter:
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/08_Souporcell/")
+# Clear environment variables
+rm(list = ls())
 
 # Load Seurat data
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")

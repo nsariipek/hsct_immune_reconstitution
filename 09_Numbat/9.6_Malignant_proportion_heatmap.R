@@ -7,10 +7,10 @@ library(tidyverse)
 library(janitor)
 
 # Set working directory
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/09_Numbat"))
 
-# Delete environment variables
+# Clear environment variables
 rm(list = ls())
 
 # Load data

@@ -7,12 +7,10 @@ library(tidyverse)
 library(data.table)
 
 # Set working directory
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/02_Annotate-predict")
-# Or for VM
-setwd("~/hsct_immune_reconstitution/02_Annotate-predict")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/02_Annotate-predict"))
 
-# Delete environment variables
+# Clear environment variables
 rm(list = ls())
 
 # Load data

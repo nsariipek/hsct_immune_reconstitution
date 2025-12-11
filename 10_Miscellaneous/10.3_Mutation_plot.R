@@ -5,8 +5,11 @@ library(tidyverse)
 library(readxl)
 
 # Set working directory
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/10_Miscellaneous")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/10_Miscellaneous"))
+
+# Clear environment variables
+rm(list = ls())
 
 # Load table with sample mutation info
 df <- read_excel("10.3_Mutation_table.xlsx")

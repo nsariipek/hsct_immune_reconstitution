@@ -13,17 +13,15 @@ library(ComplexHeatmap)
 library(cowplot)
 library(grid)
 
-# Clear environment variables
-rm(list = ls())
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/08_Souporcell"))
 
-# Favorite function
+# Clear environment variables & load favorite function
+rm(list = ls())
 cutf <- function(x, f = 1, d = "/") {
   sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
 }
-
-# Set working directory (local)
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/08_Souporcell/")
 
 # Load Seurat data
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")

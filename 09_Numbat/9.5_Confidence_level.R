@@ -1,22 +1,16 @@
 # Nurefsan Sariipek, 250402
 # Check the confidence levels of Numbat calls
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 library(Seurat)
 
-# Empty environment
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/09_Numbat"))
+
+# Clear environment variables & load favorite function
 rm(list = ls())
-
-# Set working directory (for Nurefsan)
-setwd("~/hsct_immune_reconstitution/09_Numbat/")
-
-# For Peter
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat"
-)
-
-# Favorite function
 cutf <- function(x, f = 1, d = "/") {
   sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
 }

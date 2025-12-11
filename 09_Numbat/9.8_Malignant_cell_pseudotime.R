@@ -6,15 +6,12 @@ library(tidyverse)
 library(Seurat)
 library(janitor)
 
-# Empty environment
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/09_Numbat"))
+
+# Clear environment variables
 rm(list = ls())
-
-# Set working directory (for Nurefsan or VM)
-setwd("~/hsct_immune_reconstitution/09_Numbat/")
-
-# For Peter (local)
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat")
 
 # Load the saved Seurat object
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")

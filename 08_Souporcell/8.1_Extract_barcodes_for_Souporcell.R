@@ -2,19 +2,16 @@
 # To run Souporcell on merged bam files, we are merging the barcodes from each patients here, and we are removing the barcodes that are present in multiple samples
 # See https://github.com/wheaton5/souporcell for souporcell explanation
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 library(Seurat)
 
-# Start with a clean slate
-rm(list = ls())
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/08_Souporcell"))
 
-# Set the working directory (for Nurefsan)
-setwd("~/hsct_immune_reconstitution/5_Souporcell/")
-# For Peter:
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/08_Souporcell/"
-)
+# Clear environment variables
+rm(list = ls())
 
 # Load Seurat object
 seu <- readRDS("../AuxiliaryFiles/250426_Seurat_annotated.rds")

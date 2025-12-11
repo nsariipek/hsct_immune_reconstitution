@@ -8,10 +8,10 @@ library(janitor)
 library(readxl)
 
 # Set working directory
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/10_Miscellaneous")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/10_Miscellaneous"))
 
-# Delete environment variables
+# Clear environment variables
 rm(list = ls())
 
 # Load data
@@ -132,3 +132,18 @@ table(is.na(seu_T$CTstrict))
 seu_T$CTstrict[!is.na(seu_T$CTstrict)] %>% unique %>% length()
 
 # --> "We captured TCR sequences in 85.6% of all 199,957 T cells in our dataset, representing 115,205 unique clonotypes"
+
+# MISCELLANEOUS ---------------------------------------------------------------
+
+# I would expect P31 and P33 to have persistent recipient HSPCs, but they do not
+as_tibble(seu@meta.data) %>%
+  filter(patient_id %in% c("P31", "P33"), sample_status == "remission") %>%
+  group_by(patient_id, celltype, souporcell_origin) %>%
+  count() %>%
+  pivot_wider(
+    names_from = souporcell_origin,
+    values_from = n,
+    values_fill = 0
+  ) %>%
+  arrange(patient_id, celltype) %>%
+  print(n = 60)

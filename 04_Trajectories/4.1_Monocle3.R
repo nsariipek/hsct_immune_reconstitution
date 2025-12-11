@@ -11,16 +11,14 @@ library(monocle3)
 library(patchwork)
 library(ggpubr)
 
-# Start with a clean slate
+# Set working directory and load Seurat object
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/04_Trajectories"))
+
+# Clear environment variables
 rm(list = ls())
 
-######## LOAD DATA AND SUBSET TO RELEVANT CELL TYPE ########
-
-# Set working directory and load Seurat object
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/04_Trajectories/")
-# For VM:
-#setwd("~/hsct_immune_reconstitution/4_Trajectories/")
+# Load data
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 
 # Load colors
@@ -35,6 +33,8 @@ celltype_colors <- setNames(
   celltype_colors_df$color,
   celltype_colors_df$celltype
 )
+
+######## SUBSET TO RELEVANT CELL TYPE ########
 
 # Visualize proliferation (filter by <0.05 below)
 plot(seu$TCAT_Proliferation, pch = ".")

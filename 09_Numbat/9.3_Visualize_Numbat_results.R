@@ -4,13 +4,12 @@
 library(tidyverse)
 library(numbat)
 
-# Empty environment
-rm(list = ls())
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/09_Numbat"))
 
-# For Peter
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat"
-)
+# Clear environment variables
+rm(list = ls())
 
 # Map IDs. This is because Numbat was run before we changed all other analyses to a new ID
 # fmt: skip

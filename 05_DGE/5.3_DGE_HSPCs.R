@@ -9,14 +9,12 @@ library(DESeq2)
 library(apeglm)
 library(pheatmap)
 
-# Empty environment
-rm(list = ls())
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/05_DGE"))
 
-# Set working directory (Nurefsan)
-setwd("~/hsct_immune_reconstitution/05_DGE/")
-# For Peter:
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE/")
+# Clear environment variables
+rm(list = ls())
 
 # Load the saved Seurat object
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
@@ -74,7 +72,7 @@ n_cells %>%
     axis.text.x = element_text(angle = 45, hjust = 1),
     axis.title.x = element_blank()
   )
-ggsave("3.3.1_Cell_counts.pdf", width = 5, height = 5)
+ggsave("5.3.1_Cell_counts.pdf", width = 5, height = 5)
 
 # Aggregate to get pseudobulk expression
 seu_pseudobulk <- AggregateExpression(
@@ -114,7 +112,7 @@ resultsNames(dds)
 res <- results(dds, name = "souporcell_origin_recipient_vs_donor", alpha = 0.05)
 
 # Visualize
-pdf("3.3.2_MA_plot_before_shrinking.pdf", width = 8, height = 6)
+pdf("5.3.2_MA_plot_before_shrinking.pdf", width = 8, height = 6)
 plotMA(res)
 dev.off()
 
@@ -126,7 +124,7 @@ res <- lfcShrink(
   type = "apeglm"
 )
 
-pdf("3.3.3_MA_plot_after_shrinking.pdf", width = 6, height = 6)
+pdf("5.3.3_MA_plot_after_shrinking.pdf", width = 6, height = 6)
 plotMA(res)
 dev.off()
 
@@ -142,7 +140,7 @@ write_tsv(
     res_tbl,
     across(where(is.numeric), ~ format(.x, scientific = FALSE, digits = 15))
   ),
-  file = "3.3_DGE_Recipient_vs_Donor_HSPCs.txt",
+  file = "5.3_DGE_Recipient_vs_Donor_HSPCs.txt",
 )
 
 # Add significance classification
@@ -200,7 +198,7 @@ volcano <- res_tbl %>%
 # View
 volcano
 
-ggsave("3.3.4_Volcano.pdf", volcano, width = 6, height = 4)
+ggsave("5.3.4_Volcano.pdf", volcano, width = 6, height = 4)
 
 # Select top 10 genes up in recipient
 top_10_recipient <- res_tbl %>%
@@ -261,7 +259,7 @@ top_10_boxplot <- plot_df %>%
 top_10_boxplot
 
 ggsave(
-  paste0("3.3.5_Top10_recipient_boxplots.pdf"),
+  paste0("5.3.5_Top10_recipient_boxplots.pdf"),
   plot = top_10_boxplot,
   width = 10,
   height = 4
@@ -275,7 +273,7 @@ mat <- mat[top_10_recipient, ]
 mat_scaled <- t(scale(t(mat))) # z-score by gene
 
 # Plot heatmap
-pdf("3.3.6_Top10_recipient_heatmap.pdf", width = 8, height = 6)
+pdf("5.3.6_Top10_recipient_heatmap.pdf", width = 8, height = 6)
 pheatmap::pheatmap(
   mat_scaled,
   cluster_rows = T,

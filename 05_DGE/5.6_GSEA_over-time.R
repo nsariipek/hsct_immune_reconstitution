@@ -1,32 +1,29 @@
 # Nurefsan Sariipek and Peter van Galen, 250710
 
-# Load the libraries
+# Load libraries
 library(tidyverse)
 library(Seurat)
 library(fgsea)
 
-# Empty environment
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/05_DGE"))
+
+# Clear environment variables
 rm(list = ls())
 
-# Set working directory
-setwd("~/hsct_immune_reconstitution/05_DGE/")
-
-# For Peter
-setwd(
-  "~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE"
-)
-
 # Load pathways for GSEA
-c2_pathways <- gmtPathways("c2.all.v2024.1.Hs.symbols.gmt")
+pathways <- gmtPathways("c2.all.v2024.1.Hs.symbols.gmt") # used for paper
+pathways <- gmtPathways("h.all.v2024.1.Hs.symbols.gmt") # out of curiosity
 
 # Rank the DEG results from 5.5_DGE_tumorcells.R
-de_results <- read_tsv("5.5_DGE_Pre-transplant_vs_Relapse.tsv")
+de_results <- read_tsv("5.5_DGE_Pre-transplant_vs_Relapse.txt")
 ranks <- as.numeric(de_results$log2FoldChange)
 names(ranks) <- de_results$gene
 
 # Run GSEA and order by p-value
 gseaRes = fgsea(
-  pathways = c2_pathways,
+  pathways = pathways,
   stats = ranks,
   minSize = 5,
   eps = 0.0,

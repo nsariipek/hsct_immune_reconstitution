@@ -9,14 +9,11 @@ library(apeglm)
 library(pheatmap)
 library(janitor)
 
-# Set working directory (Nurefsan)
-setwd("~/hsct_immune_reconstitution/05_DGE/")
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/05_DGE"))
 
-# For Peter
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/05_DGE")
-
-# Remove environment variables
+# Clear environment variables
 rm(list = ls())
 
 # Load the saved Seurat object
@@ -61,7 +58,7 @@ ggsave("5.5.1_Cell_counts.pdf", width = 7, height = 4)
 # Exclude P22 and P33 who have only one timepoint, and exclude remission due to insufficient cell numbers
 seu_subset <- subset(
   seu_subset,
-  ! patient_id %in% c("P22", "P33") & sample_status != "remission"
+  !patient_id %in% c("P22", "P33") & sample_status != "remission"
 )
 
 # Check final cell numbers

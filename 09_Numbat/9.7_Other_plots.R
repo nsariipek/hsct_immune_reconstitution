@@ -6,14 +6,12 @@ library(tidyverse)
 library(Seurat)
 library(janitor)
 
-# Empty environment
-rm(list = ls())
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/09_Numbat"))
 
-# Set working directory (for VM)
-#setwd("~/hsct_immune_reconstitution/09_Numbat/")
-# For Peter
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/09_Numbat")
+# Clear environment variables
+rm(list = ls())
 
 # Load the saved Seurat object
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
@@ -134,7 +132,7 @@ as_tibble(seu_numbat@meta.data, rownames = "cell") %>%
       c("HSC MPP", "MEP", "LMPP", "Cycling Progenitor", "Early GMP")
   ) %>%
   group_by(patient_id) %>%
- # filter(any(HSPC)) %>% # remove samples with 0 HSPCs
+  # filter(any(HSPC)) %>% # remove samples with 0 HSPCs
   ungroup() %>%
   group_by(patient_id, celltype) %>%
   slice_sample(n = 10) %>% # improve visuals

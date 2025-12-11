@@ -6,8 +6,8 @@ library(readxl)
 library(Seurat)
 
 # Set working directory
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/10_Miscellaneous")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/10_Miscellaneous"))
 
 # Clear environment variables
 rm(list = ls())
@@ -80,10 +80,10 @@ df2 %>%
   ) %>%
   select(Sample_id, Sample_type, Timepoint_days, Analyzed_cells)
 sampling_to_relapse <- c(
-  188 - 104,  #P20
-  502 - 90,   #P21
-  166 - 110,  #P22
-  1201 - 116  #P23
+  188 - 104, #P20
+  502 - 90, #P21
+  166 - 110, #P22
+  1201 - 116 #P23
 ) /
   30.44
 summary(sampling_to_relapse)
@@ -98,11 +98,11 @@ df2 %>%
   select(Sample_id, Sample_type, Timepoint_days, Analyzed_cells)
 sampling_to_relapse <- c(
   188 - 104, #P20
-  502 - 90,  #P21
+  502 - 90, #P21
   166 - 110, #P22
-  168 - 88,  #P24
+  168 - 88, #P24
   133 - 104, #P26
-  146 - 83   #P27
+  146 - 83 #P27
 ) /
   30.44
 summary(sampling_to_relapse)

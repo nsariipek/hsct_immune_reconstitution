@@ -9,15 +9,12 @@ library(RColorBrewer)
 library(SeuratWrappers)
 library(viridis)
 
-# Start with a clean slate
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/06_TCR_Diversity"))
+
+# Clear environment variables
 rm(list = ls())
-
-# Set working directory (Nurefsan, Terra)
-setwd("~/hsct_immune_reconstitution/04_Trajectories/")
-
-# For Peter
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/04_Trajectories/")
 
 # Load data
 seu <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")

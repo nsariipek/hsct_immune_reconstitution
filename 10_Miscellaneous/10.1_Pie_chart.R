@@ -5,8 +5,8 @@
 library(tidyverse)
 
 # Set working directory
-# fmt: skip
-setwd("~/DropboxMGB/Projects/ImmuneEscapeTP53/hsct_immune_reconstitution/10_Miscellaneous")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(paste0(repo_root, "/10_Miscellaneous"))
 
 # Clear environment variables
 rm(list = ls())

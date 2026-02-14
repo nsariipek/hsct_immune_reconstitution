@@ -28,6 +28,7 @@ metadata_df <- seu_T@meta.data %>%
     timepoint,
     sample_status,
     TP53_status,
+    souporcell_origin,
     celltype
   )
 metadata_df$type <- case_when(
@@ -41,7 +42,8 @@ meta_subset <- metadata_df %>%
   filter(
     sample_status == "remission",
     timepoint %in% c(3, 5, 6),
-    TP53_status == "MUT" # Change to see WT samples or remove to see all samples
+   # souporcell_origin == "recipient" , #if desired
+    TP53_status == "WT" # Change to see WT samples or remove to see all samples
   )
 
 # Calculate the ratio for each patient
@@ -63,7 +65,7 @@ p1 <- tb %>%
   geom_boxplot(width = 0.7, alpha = 0.9, outlier.shape = NA) +
   geom_jitter(shape = 21, size = 2, color = "black") +
   scale_fill_manual(values = cohort_colors) +
-  coord_cartesian(ylim = c(0, 2)) +
+ # coord_cartesian(ylim = c(0, 5)) +
   scale_y_continuous(expand = expansion(mult = c(0.05, 0.15))) +
   labs(y = "CD4/CD8 T cell ratio", x = NULL) +
   stat_compare_means(

@@ -81,7 +81,8 @@ celltype_proportions2 <- metadata_df %>%
   filter(
     sample_status == "remission",
     timepoint %in% c(3, 5, 6),
-    TP53_status == "MUT" # Change to see WT samples or remove to see all samples
+   #souporcell_origin == "donor", #remove if not desired
+    TP53_status == "MT" # Change to see WT samples or remove to see all samples
   ) %>%
   group_by(patient_id, celltype, cohort) %>%
   summarize(count = n(), .groups = "drop") %>%

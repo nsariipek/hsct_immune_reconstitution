@@ -43,7 +43,8 @@ seu_subset <- subset(
   seu_T,
   subset = TCAT_Multinomial_Label %in%
     c("CD8_Naive", "CD8_CM", "CD8_EM", "CD8_TEMRA") &
-    sample_status == "remission" &
+    sample_status == "remission" & 
+  souporcell_origin == "donor" & #to test the origin
     timepoint %in% c(3, 5, 6)
 )
 T_marker <- "CD8"
@@ -163,6 +164,7 @@ ct_tib %>%
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
+
 # Save as pdf
 ggsave(
   paste0("7.1_Ordered_violins_", T_marker, "_", current_sig, ".pdf"),
@@ -200,3 +202,5 @@ ggsave(
   width = 4,
   height = 5
 )
+
+

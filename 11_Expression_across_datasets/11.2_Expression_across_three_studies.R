@@ -17,7 +17,7 @@ cutf <- function(x, f = 1, d = "/") {
   sapply(strsplit(x, d), function(i) paste(i[f], collapse = d))
 }
 
-# Load Seurat data from three studies
+# Load Seurat data from three studies. This is saved in Terra's Google bucket and available upon request (see 11.1_Merge_and_annotate_three_studies.R).
 seu <- readRDS("../AuxiliaryFiles/260110_Seurat_ThreeStudies.rds")
 
 

@@ -1,6 +1,6 @@
 # Peter van Galen, 260110
 # Plot candidate gene expression across datasets
-# An updated version of this analysis is saved as 260110_Merge_and_annotate_three_studies.R and 260111_Expression_across_three_studies.R
+# An updated version of this analysis is saved as 11.1_Merge_and_annotate_three_studies.R and 11.2_Expression_across_three_studies.R
 
 library(tidyverse)
 library(Seurat)

@@ -31,11 +31,11 @@ celltype_colors <- setNames(
 )
 
 # Load data from three different projects
-# This file is available from Figshare (https://doi.org/10.6084/m9.figshare.30581066)
+# Van Galen et al., Cell 2019. Object is available from Figshare (https://doi.org/10.6084/m9.figshare.30581066)
 seu_aml_og <- readRDS("../AuxiliaryFiles/Seurat_AML.rds")
-# This file is available from Figshare (https://doi.org/10.6084/m9.figshare.31467496)
+# Griffin et al., Nature 2023. Object is available from Figshare (https://doi.org/10.6084/m9.figshare.31467496)
 seu_bpdcn_og <- readRDS("../AuxiliaryFiles/BM_Seurat_Final.rds")
-# This file is available from Figshare (https://doi.org/10.6084/m9.figshare.30213781)
+# Sariipek et al. (this work). Object is available from Figshare (https://doi.org/10.6084/m9.figshare.30213781)
 seu_hsct_og <- readRDS("../AuxiliaryFiles/250528_Seurat_complete.rds")
 
 # Common genes
@@ -282,7 +282,10 @@ seu_merge <- AddMetaData(
 )
 
 # Take out the UMAP coordinates
-umap_coords = as.matrix(bmm_annotations[, c("umapprojected_1", "umapprojected_2")])
+umap_coords = as.matrix(bmm_annotations[, c(
+  "umapprojected_1",
+  "umapprojected_2"
+)])
 
 # Ensure row names still match the Seurat object cell names
 all(rownames(umap_coords) == colnames(seu_merge))
@@ -386,7 +389,7 @@ DimPlot(
   seu_pass,
   group.by = "celltype",
   pt.size = 3,
-  label = F,  
+  label = F,
   split.by = "donor_id",
   ncol = 6
 ) +

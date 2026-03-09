@@ -2,7 +2,7 @@
 .DS_Store
 02_Annotate-manual
 AuxiliaryFiles/
-AnalysisPeter/
+#AnalysisPeter/
 
 # History files
 .Rhistory

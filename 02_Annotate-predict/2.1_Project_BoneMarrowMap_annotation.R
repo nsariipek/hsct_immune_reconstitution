@@ -1,6 +1,10 @@
 # Nurefsan Sarripek, 250424
-# Run BM annotation using Ksenia's script
-# The final version was run by Peter on a Google VM on 250426
+# Run BM annotation using Ksenia's script. The final version was run by Peter on a Google VM on 250426
+
+# For running BoneMarrowMap first time (see also its repository):
+# BiocManager::install(c("AUCell", "doMC", "BiocNeighbors"))
+# devtools::install_github("jaredhuling/jcolors")
+# devtools::install_github('andygxzeng/BoneMarrowMap')
 
 # Load libraries
 library(tidyverse)
@@ -10,15 +14,6 @@ library(symphony)
 library(RColorBrewer)
 library(patchwork)
 library(ggsci)
-
-# For running the BM library first time:
-# ## install dependencies that are not on CRAN
-# if(!require(BiocManager, quietly = TRUE)) install.packages("BiocManager")
-# BiocManager::install(c("AUCell", "doMC", "BiocNeighbors"))
-# if(!require(devtools, quietly = TRUE)) install.packages("devtools")
-# devtools::install_github("jaredhuling/jcolors")
-# ## install BoneMarrowMap package
-# devtools::install_github('andygxzeng/BoneMarrowMap')
 
 # Set working directory
 repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
@@ -33,24 +28,21 @@ seu <- readRDS("../AuxiliaryFiles/250417_MergedSeuratObject.rds")
 
 ### RUN BONE MARROW MAP CELL TYPE PREDICTION ###
 
-# Set directory to store projection reference files
-projection_path = '~/'
-
 # Download Bone Marrow Reference - 344 Mb
 curl::curl_download(
   'https://bonemarrowmap.s3.us-east-2.amazonaws.com/BoneMarrowMap_SymphonyReference.rds',
-  destfile = paste0(projection_path, 'BoneMarrowMap_SymphonyReference.rds')
+  destfile = '~/BoneMarrowMap_SymphonyReference.rds'
 )
 # Download uwot model file - 221 Mb
 curl::curl_download(
   'https://bonemarrowmap.s3.us-east-2.amazonaws.com/BoneMarrow_RefMap_uwot_model.uwot',
-  destfile = paste0(projection_path, 'BoneMarrowMap_uwot_model.uwot')
+  destfile = '~/BoneMarrowMap_uwot_model.uwot'
 )
 
 # Load Symphony reference
-ref <- readRDS(paste0(projection_path, 'BoneMarrowMap_SymphonyReference.rds'))
+ref <- readRDS('~/BoneMarrowMap_SymphonyReference.rds')
 # Set uwot path for UMAP projection
-ref$save_uwot_path <- paste0(projection_path, 'BoneMarrowMap_uwot_model.uwot')
+ref$save_uwot_path <- '~/BoneMarrowMap_uwot_model.uwot'
 
 # Visualize reference (optional)
 ReferenceSeuratObj <- create_ReferenceObject(ref)

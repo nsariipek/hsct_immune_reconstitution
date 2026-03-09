@@ -42,6 +42,14 @@ We distinguished recipient and donor cells using the [Souporcell](https://github
 
 We further explored our dataset using [Numbat](https://github.com/kharchenkolab/numbat) to identify malignant (tumor) cells, focusing only on recipient cells as inferred by Souporcell. Recipient barcodes and corresponding counts were extracted (9.1_Extracting_barcodes.R, 9.2_Extracting_countdata.R) and used to run the analysis and a computing cluster. The resulting CNV calls and plotting data were transferred back and visualized in R (9.3_Visualize_Numbat_results.R), followed by integration into the Seurat object using the output file PX_clone_post_2.tsv (9.4_Integrate_Numbat_Seurat.R). Confidence levels of the CNV calls were evaluated using metrics provided by Numbat (9.5_confidence_level.R). The malignant cell proportion across cell types was visualized in 9.6_Malignant_proportion_heatmap.R. In 9.7_Other_plots.R, we generate UMAPs and determine that remission HSPCs harbor CNVs. Finally, BoneMarrowMap-derived pseudotime of malignant cells was compared between pre-transplant and relapse samples in 9.8_Malignant_cell_pseudotime.R.
 
-## 10_Miscellaneous
+## 11_Miscellaneous
 
 Additional code to produce specific figure panels: pie chart of cohort sizes, swimmer plot, and clinical chimerism box plot.
+
+## 11_Expression_across_datasets
+
+Three genes are of particular interest in recipient HSPCs: PRAME, CALCRL, and RXFP1. In this folder, we assess expression of these genes in two earlier studies ([van Galen _et al., Cell,_ 2019](https://pubmed.ncbi.nlm.nih.gov/30827681/) and [Griffin _et al., Nature,_ 2023](https://pubmed.ncbi.nlm.nih.gov/37286599/)). We merge the count matrices from each dataset, re-annotate with BoneMarrowMap, and create box plots summarizing the data.
+
+## AnalysisPeter
+
+Exploratory analyses that are not part of the publication.

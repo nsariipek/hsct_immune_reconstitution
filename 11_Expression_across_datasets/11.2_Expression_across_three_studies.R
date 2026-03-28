@@ -9,7 +9,7 @@ library(ggnewscale)
 
 # Set working directory
 repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
-setwd(paste0(repo_root, "/AnalysisPeter"))
+setwd(paste0(repo_root, "/11_Expression_across_datasets"))
 
 # Clear environment variables & load favorite function
 rm(list = ls())
